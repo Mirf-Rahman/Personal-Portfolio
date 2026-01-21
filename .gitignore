@@ -1,0 +1,67 @@
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.npm
+.yarn/
+.next/
+next-env.d.ts
+out/
+dist/
+build/
+.vercel
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+*.iml
+.project
+.classpath
+.settings/
+
+# Docker
+*.log
+
+# MinIO data (persistent storage)
+# Ignore MinIO system files
+data/minio/.minio.sys/
+
+# Keep bucket directories
+!data/minio/portfolio-files/
+!data/minio/portfolio-files/**
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.cache
+
+# Playwright E2E Testing
+e2e/node_modules/
+e2e/playwright-report/
+e2e/test-results/
+e2e/.playwright/
+
+# Digital Ocean App Spec (should not be in git)
+.do/
+
+# Drizzle migrations (generated)
+drizzle/
+
+# TypeScript build info
+*.tsbuildinfo
