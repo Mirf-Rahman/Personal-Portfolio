@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Source control
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+
+# Next.js build (we rebuild in Docker)
+.next/
+out/
+
+# Documentation
+README.md
+*.md
+
+# Tests
+__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
