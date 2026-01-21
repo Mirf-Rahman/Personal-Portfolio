@@ -1,0 +1,116 @@
+name: Deploy to DigitalOcean App Platform (Main)
+
+# Required Secrets:
+#   DIGITALOCEAN_ACCESS_TOKEN - DigitalOcean API token with App Platform read/write permissions
+#   Generate at: https://cloud.digitalocean.com/account/api/tokens
+
+
+# WORKFLOW DISABLED - Commented out push trigger to prevent automatic deployments
+# Uncomment the 'push:' section below to re-enable automatic deployments on push to main
+
+on:
+    workflow_dispatch:  # Manual trigger only - workflow is disabled
+    # push:
+    #     branches:
+    #         - main
+    #     paths:
+    #         - "backend/**"
+    #         - "auth-service/**"  # Includes OAuth callback redirect fixes
+    #         - "email-service/**"
+    #         - "frontend/store-app/**"
+    #         - "frontend/admin-app/**"
+    #         - ".github/workflows/**"
+    #         - "docker-compose.yml"
+    #         - "Dockerfile"
+    #         - "**/Dockerfile"
+
+env:
+    APP_NAME: personal-portfolio
+    DO_API_URL: https://api.digitalocean.com/v2
+
+jobs:
+    deploy:
+        name: Deploy to DigitalOcean
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Get App ID
+              id: get-app-id
+              env:
+                DO_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+              run: |
+                echo "Fetching app ID for: ${{ env.APP_NAME }}"
+                RESPONSE=$(curl -s -w "\n%{http_code}" -X GET \
+                  -H "Authorization: Bearer $DO_TOKEN" \
+                  "${{ env.DO_API_URL }}/apps")
+                
+                HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+                BODY=$(echo "$RESPONSE" | sed '$d')
+                
+                if [ "$HTTP_CODE" != "200" ]; then
+                  echo "Error: Failed to fetch apps. HTTP $HTTP_CODE"
+                  echo "$BODY"
+                  exit 1
+                fi
+                
+                APP_ID=$(echo "$BODY" | jq -r --arg name "${{ env.APP_NAME }}" '.apps[] | select(.spec.name==$name) | .id')
+                
+                if [ -z "$APP_ID" ] || [ "$APP_ID" == "null" ]; then
+                  echo "Error: App '${{ env.APP_NAME }}' not found"
+                  echo "Available apps:"
+                  echo "$BODY" | jq -r '.apps[] | "  - \(.spec.name) (ID: \(.id))"'
+                  exit 1
+                fi
+                
+                echo "Found app ID: $APP_ID"
+                echo "APP_ID=$APP_ID" >> $GITHUB_ENV
+                echo "app_id=$APP_ID" >> $GITHUB_OUTPUT
+
+            - name: Trigger Deployment
+              id: trigger-deploy
+              env:
+                DO_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+              run: |
+                echo "Triggering deployment for app ID: ${{ env.APP_ID }}"
+                RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+                  -H "Authorization: Bearer $DO_TOKEN" \
+                  -H "Content-Type: application/json" \
+                  "${{ env.DO_API_URL }}/apps/${{ env.APP_ID }}/deployments" \
+                  -d '{"force_build": true}')
+                
+                HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+                BODY=$(echo "$RESPONSE" | sed '$d')
+                
+                if [ "$HTTP_CODE" != "201" ] && [ "$HTTP_CODE" != "200" ]; then
+                  echo "Error: Failed to trigger deployment. HTTP $HTTP_CODE"
+                  echo "$BODY"
+                  exit 1
+                fi
+                
+                DEPLOYMENT_ID=$(echo "$BODY" | jq -r '.deployment.id // .id')
+                DEPLOYMENT_PHASE=$(echo "$BODY" | jq -r '.deployment.phase // .phase // "unknown"')
+                
+                echo "Deployment triggered successfully"
+                echo "Deployment ID: $DEPLOYMENT_ID"
+                echo "Phase: $DEPLOYMENT_PHASE"
+                echo "deployment_id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
+                echo "deployment_phase=$DEPLOYMENT_PHASE" >> $GITHUB_OUTPUT
+
+            - name: Deployment Summary
+              run: |
+                echo "## 🚀 DigitalOcean Deployment Triggered" >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "- **App**: ${{ env.APP_NAME }}" >> $GITHUB_STEP_SUMMARY
+                echo "- **App ID**: ${{ env.APP_ID }}" >> $GITHUB_STEP_SUMMARY
+                echo "- **Deployment ID**: ${{ steps.trigger-deploy.outputs.deployment_id }}" >> $GITHUB_STEP_SUMMARY
+                echo "- **Status**: ${{ steps.trigger-deploy.outputs.deployment_phase }}" >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "Deployment is being processed by DigitalOcean App Platform." >> $GITHUB_STEP_SUMMARY
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "### 📝 Recent Changes" >> $GITHUB_STEP_SUMMARY
+                echo "- OAuth redirect handling: Fixed 404 errors after Google OAuth callback" >> $GITHUB_STEP_SUMMARY
+                echo "- Auth service now properly redirects to /admin/dashboard or /profile after OAuth" >> $GITHUB_STEP_SUMMARY

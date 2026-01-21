@@ -1,0 +1,643 @@
+name: Deploy Preview to DigitalOcean
+
+# Required Secrets:
+#   DIGITALOCEAN_ACCESS_TOKEN - DigitalOcean API token with App Platform read/write permissions
+#   AUTH_JWT_SECRET - JWT secret for authentication
+#   BETTER_AUTH_SECRET - Better Auth secret
+#   STRIPE_SECRET_KEY - Stripe secret key
+#   STRIPE_WEBHOOK_SECRET - Stripe webhook secret
+#   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY - Stripe publishable key
+#   RESEND_API_KEY - Resend API key for email service
+#   EMAIL_API_KEY - Email service API key
+#   Generate DO token at: https://cloud.digitalocean.com/account/api/tokens
+
+# Workflow disabled
+# on:
+#     pull_request:
+#         types: [opened, synchronize, closed]
+on:
+    workflow_dispatch:  # Only allow manual runs
+
+env:
+    DO_API_URL: https://api.digitalocean.com/v2
+    APP_NAME_PREFIX: pj-preview
+
+jobs:
+    deploy-preview:
+        name: Deploy Preview App
+        if: github.event.action != 'closed'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            pull-requests: write
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Sanitize branch name
+              id: sanitize
+              run: |
+                BRANCH_NAME="${{ github.head_ref }}"
+                # Convert to lowercase, replace special chars with -, remove multiple dashes, trim leading/trailing dashes
+                SANITIZED=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+                # DigitalOcean app name regex: ^[a-z][a-z0-9-]{0,30}[a-z0-9]$
+                # Must start with letter, end with letter/number (not hyphen), max 32 chars
+                # Prefix is 10 chars (pj-preview-), so we have 22 chars for branch name
+                PR_NUM="${{ github.event.pull_request.number }}"
+                if [ -n "$PR_NUM" ] && [ "$PR_NUM" != "null" ]; then
+                  # Use PR number: pj-preview-pr{num}-{branch} (max 22 chars for branch part)
+                  # pj-preview-pr123- = 18 chars, leaving 14 for branch
+                  SANITIZED=$(echo "$SANITIZED" | cut -c1-14)
+                  APP_NAME="${{ env.APP_NAME_PREFIX }}-pr${PR_NUM}-${SANITIZED}"
+                else
+                  # Fallback: just truncate branch name (max 22 chars)
+                  SANITIZED=$(echo "$SANITIZED" | cut -c1-22)
+                  APP_NAME="${{ env.APP_NAME_PREFIX }}-${SANITIZED}"
+                fi
+                # Ensure it doesn't end with hyphen (DigitalOcean requirement)
+                while [ "${APP_NAME: -1}" == "-" ]; do
+                  APP_NAME="${APP_NAME%?}"
+                done
+                # Ensure it starts with a letter (should be fine with our prefix, but check)
+                if [[ ! "$APP_NAME" =~ ^[a-z] ]]; then
+                  APP_NAME="a${APP_NAME}"
+                fi
+                # Final check: ensure total length is <= 32 and ends with letter/number
+                APP_NAME=$(echo "$APP_NAME" | cut -c1-32)
+                # Remove trailing hyphen if still present after truncation
+                while [ "${APP_NAME: -1}" == "-" ]; do
+                  APP_NAME="${APP_NAME%?}"
+                done
+                # Ensure it ends with letter/number
+                if [[ ! "$APP_NAME" =~ [a-z0-9]$ ]]; then
+                  APP_NAME="${APP_NAME}x"
+                fi
+                echo "Original branch: $BRANCH_NAME"
+                echo "Sanitized: $SANITIZED"
+                echo "App name: $APP_NAME (length: ${#APP_NAME})"
+                echo "app_name=$APP_NAME" >> $GITHUB_OUTPUT
+                echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
+
+            - name: Check if preview app exists
+              id: check-app
+              env:
+                DO_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+              run: |
+                RESPONSE=$(curl -s -w "\n%{http_code}" -X GET \
+                  -H "Authorization: Bearer $DO_TOKEN" \
+                  "${{ env.DO_API_URL }}/apps")
+                
+                HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+                BODY=$(echo "$RESPONSE" | sed '$d')
+                
+                if [ "$HTTP_CODE" != "200" ]; then
+                  echo "Error: Failed to fetch apps. HTTP $HTTP_CODE"
+                  echo "$BODY"
+                  exit 1
+                fi
+                
+                APP_ID=$(echo "$BODY" | jq -r --arg name "${{ env.APP_NAME }}" '.apps[] | select(.spec.name==$name) | .id')
+                
+                if [ -n "$APP_ID" ] && [ "$APP_ID" != "null" ]; then
+                  echo "App exists with ID: $APP_ID"
+                  echo "APP_ID=$APP_ID" >> $GITHUB_ENV
+                  echo "app_id=$APP_ID" >> $GITHUB_OUTPUT
+                  echo "exists=true" >> $GITHUB_OUTPUT
+                else
+                  echo "App does not exist"
+                  echo "exists=false" >> $GITHUB_OUTPUT
+                fi
+
+            - name: Generate app spec
+              id: app-spec
+              run: |
+                cat > /tmp/app-spec.json << EOF
+                {
+                  "spec": {
+                    "name": "${{ env.APP_NAME }}",
+                    "region": "nyc",
+                    "databases": [
+                      {
+                        "name": "passion-app-db",
+                        "engine": "PG",
+                        "version": "17",
+                        "production": false
+                      },
+                      {
+                        "name": "passion-auth-db",
+                        "engine": "PG",
+                        "version": "17",
+                        "production": false
+                      }
+                    ],
+                    "services": [
+                      {
+                        "name": "backend",
+                        "github": {
+                          "repo": "${{ github.repository }}",
+                          "branch": "${{ github.head_ref }}",
+                          "deploy_on_push": true
+                        },
+                        "source_dir": "/backend",
+                        "dockerfile_path": "/backend/Dockerfile",
+                        "http_port": 8080,
+                        "instance_count": 1,
+                        "instance_size_slug": "basic-xxs",
+                        "routes": [
+                          {
+                            "path": "/api"
+                          }
+                        ],
+                        "envs": [
+                          {
+                            "key": "SPRING_PROFILES_ACTIVE",
+                            "value": "staging",
+                            "scope": "RUN_TIME",
+                            "type": "GENERAL"
+                          },
+                          {
+                            "key": "AUTH_JWT_SECRET",
+                            "value": "${{ secrets.AUTH_JWT_SECRET }}",
+                            "scope": "RUN_TIME",
+                            "type": "SECRET"
+                          },
+                          {
+                            "key": "SPRING_DATASOURCE_URL",
+                            "value": "jdbc:postgresql://\${passion-app-db.HOSTNAME}:\${passion-app-db.PORT}/defaultdb?sslmode=require",
+                            "scope": "RUN_AND_BUILD_TIME",
+                            "type": "GENERAL"
+                          },
+                          {
+                            "key": "SPRING_DATASOURCE_USERNAME",
+                            "value": "\${passion-app-db.USERNAME}",
+                            "scope": "RUN_AND_BUILD_TIME",
+                            "type": "GENERAL"
+                          },
+                          {
+                            "key": "SPRING_DATASOURCE_PASSWORD",
+                            "value": "\${passion-app-db.PASSWORD}",
+                            "scope": "RUN_AND_BUILD_TIME",
+                            "type": "SECRET"
+                          },
+                          {
+                            "key": "STRIPE_SECRET_KEY",
+                            "value": "${{ secrets.STRIPE_SECRET_KEY }}",
+                            "scope": "RUN_TIME",
+                            "type": "SECRET"
+                          },
+                          {
+                            "key": "STRIPE_WEBHOOK_SECRET",
+                            "value": "${{ secrets.STRIPE_WEBHOOK_SECRET }}",
+                            "scope": "RUN_TIME",
+                            "type": "SECRET"
+                          },
+                          {
+                            "key": "EMAIL_SERVICE_URL",
+                            "value": "http://email-service:3003",
+                            "scope": "RUN_TIME",
+                            "type": "GENERAL"
+                          },
+                          {
+                            "key": "EMAIL_API_KEY",
+                            "value": "${{ secrets.EMAIL_API_KEY }}",
+                            "scope": "RUN_TIME",
+                            "type": "SECRET"
+                          }
+                        ]
+                      },
+                      {
+                        "name": "auth-service",
+                        "github": {
+                          "repo": "${{ github.repository }}",
+                          "branch": "${{ github.head_ref }}",
+                          "deploy_on_push": true
+                        },
+                        "source_dir": "/auth-service",
+                        "dockerfile_path": "/auth-service/Dockerfile",
+                        "http_port": 3001,
+                        "instance_count": 1,
+                        "instance_size_slug": "basic-xxs",
+                        "routes": [
+                          {
+                            "path": "/auth"
+                          }
+                        ],
+                        "envs": [
+                          {
+                            "key": "DATABASE_URL",
+                            "value": "postgresql://\${passion-auth-db.USERNAME}:\${passion-auth-db.PASSWORD}@\${passion-auth-db.HOSTNAME}:\${passion-auth-db.PORT}/defaultdb?sslmode=require",
+                            "scope": "RUN_AND_BUILD_TIME",
+                            "type": "GENERAL"
+                          },
+                          {
+                            "key": "BETTER_AUTH_SECRET",
+                            "value": "${{ secrets.BETTER_AUTH_SECRET }}",
+                            "scope": "RUN_TIME",
+                            "type": "SECRET"
+                          },
+                          {
+                            "key": "BETTER_AUTH_JWT_SECRET",
+                            "value": "${{ secrets.AUTH_JWT_SECRET }}",
+                            "scope": "RUN_TIME",
+                            "type": "SECRET"
+                          },
+                          {
+                            "key": "BETTER_AUTH_URL",
+                            "value": "https://passion-jerseys-ujthe.ondigitalocean.app/auth/api/auth",
+                            "scope": "RUN_TIME",
+                            "type": "GENERAL"
+                          },
+                          {
+                            "key": "CORS_ORIGINS",
+                            "value": "https://passion-jerseys-ujthe.ondigitalocean.app,https://passion-jerseys-ujthe.ondigitalocean.app/admin",
+                            "scope": "RUN_TIME",
+                            "type": "GENERAL"
+                          },
+                          {
+                            "key": "ADMIN_APP_URL",
+                            "value": "https://passion-jerseys-ujthe.ondigitalocean.app/admin",
+                            "scope": "RUN_TIME",
+                            "type": "GENERAL"
+                          },
+                          {
+                            "key": "STORE_APP_URL",
+                            "value": "https://passion-jerseys-ujthe.ondigitalocean.app",
+                            "scope": "RUN_TIME",
+                            "type": "GENERAL"
+                          },
+                          {
+                            "key": "GOOGLE_CLIENT_ID",
+                            "value": "${{ secrets.GOOGLE_CLIENT_ID }}",
+                            "scope": "RUN_TIME",
+                            "type": "SECRET"
+                          },
+                          {
+                            "key": "GOOGLE_CLIENT_SECRET",
+                            "value": "${{ secrets.GOOGLE_CLIENT_SECRET }}",
+                            "scope": "RUN_TIME",
+                            "type": "SECRET"
+                          },
+                          {
+                            "key": "EMAIL_SERVICE_URL",
+                            "value": "http://email-service:3003",
+                            "scope": "RUN_TIME",
+                            "type": "GENERAL"
+                          },
+                          {
+                            "key": "EMAIL_API_KEY",
+                            "value": "${{ secrets.EMAIL_API_KEY }}",
+                            "scope": "RUN_TIME",
+                            "type": "SECRET"
+                          }
+                        ]
+                      },
+                      {
+                        "name": "email-service",
+                        "github": {
+                          "repo": "${{ github.repository }}",
+                          "branch": "${{ github.head_ref }}",
+                          "deploy_on_push": true
+                        },
+                        "source_dir": "/email-service",
+                        "dockerfile_path": "/email-service/Dockerfile",
+                        "http_port": 3003,
+                        "instance_count": 1,
+                        "instance_size_slug": "basic-xxs",
+                        "envs": [
+                          {
+                            "key": "RESEND_API_KEY",
+                            "value": "${{ secrets.RESEND_API_KEY }}",
+                            "scope": "RUN_TIME",
+                            "type": "SECRET"
+                          },
+                          {
+                            "key": "EMAIL_API_KEY",
+                            "value": "${{ secrets.EMAIL_API_KEY }}",
+                            "scope": "RUN_TIME",
+                            "type": "SECRET"
+                          }
+                        ]
+                      },
+                      {
+                        "name": "store-app",
+                        "github": {
+                          "repo": "${{ github.repository }}",
+                          "branch": "${{ github.head_ref }}",
+                          "deploy_on_push": true
+                        },
+                        "source_dir": "/frontend/store-app",
+                        "dockerfile_path": "/frontend/store-app/Dockerfile",
+                        "http_port": 3000,
+                        "instance_count": 1,
+                        "instance_size_slug": "basic-xxs",
+                        "routes": [
+                          {
+                            "path": "/"
+                          }
+                        ],
+                        "envs": [
+                          {
+                            "key": "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+                            "value": "${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}",
+                            "scope": "RUN_TIME",
+                            "type": "GENERAL"
+                          },
+                          {
+                            "key": "NEXT_PUBLIC_API_URL",
+                            "value": "\${backend.PUBLIC_URL}",
+                            "scope": "RUN_TIME",
+                            "type": "GENERAL"
+                          },
+                          {
+                            "key": "NEXT_PUBLIC_AUTH_SERVICE_URL",
+                            "value": "\${auth-service.PUBLIC_URL}",
+                            "scope": "RUN_TIME",
+                            "type": "GENERAL"
+                          }
+                        ]
+                      },
+                      {
+                        "name": "admin-app",
+                        "github": {
+                          "repo": "${{ github.repository }}",
+                          "branch": "${{ github.head_ref }}",
+                          "deploy_on_push": true
+                        },
+                        "source_dir": "/frontend/admin-app",
+                        "dockerfile_path": "/frontend/admin-app/Dockerfile",
+                        "http_port": 3002,
+                        "instance_count": 1,
+                        "instance_size_slug": "basic-xxs",
+                        "routes": [
+                          {
+                            "path": "/admin",
+                            "preserve_path_prefix": true
+                          }
+                        ],
+                        "envs": [
+                          {
+                            "key": "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+                            "value": "${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}",
+                            "scope": "RUN_TIME",
+                            "type": "GENERAL"
+                          },
+                          {
+                            "key": "NEXT_PUBLIC_API_URL",
+                            "value": "\${backend.PUBLIC_URL}",
+                            "scope": "RUN_TIME",
+                            "type": "GENERAL"
+                          },
+                          {
+                            "key": "NEXT_PUBLIC_AUTH_SERVICE_URL",
+                            "value": "\${auth-service.PUBLIC_URL}",
+                            "scope": "RUN_TIME",
+                            "type": "GENERAL"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+                EOF
+                echo "App spec generated"
+                cat /tmp/app-spec.json | jq '.' > /dev/null || (echo "Invalid JSON" && exit 1)
+
+            - name: Create or update preview app
+              id: create-app
+              env:
+                DO_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+              run: |
+                if [ "${{ steps.check-app.outputs.exists }}" == "true" ]; then
+                  echo "Updating existing app: ${{ env.APP_NAME }}"
+                  RESPONSE=$(curl -s -w "\n%{http_code}" -X PUT \
+                    -H "Authorization: Bearer $DO_TOKEN" \
+                    -H "Content-Type: application/json" \
+                    -d @/tmp/app-spec.json \
+                    "${{ env.DO_API_URL }}/apps/${{ env.APP_ID }}")
+                  
+                  HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+                  BODY=$(echo "$RESPONSE" | sed '$d')
+                  
+                  if [ "$HTTP_CODE" != "200" ] && [ "$HTTP_CODE" != "202" ]; then
+                    echo "Error: Failed to update app. HTTP $HTTP_CODE"
+                    echo "$BODY"
+                    exit 1
+                  fi
+                  
+                  echo "App updated successfully"
+                else
+                  echo "Creating new app: ${{ env.APP_NAME }}"
+                  RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+                    -H "Authorization: Bearer $DO_TOKEN" \
+                    -H "Content-Type: application/json" \
+                    -d @/tmp/app-spec.json \
+                    "${{ env.DO_API_URL }}/apps")
+                  
+                  HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+                  BODY=$(echo "$RESPONSE" | sed '$d')
+                  
+                  if [ "$HTTP_CODE" != "200" ] && [ "$HTTP_CODE" != "201" ] && [ "$HTTP_CODE" != "202" ]; then
+                    echo "Error: Failed to create app. HTTP $HTTP_CODE"
+                    echo "$BODY"
+                    exit 1
+                  fi
+                  
+                  APP_ID=$(echo "$BODY" | jq -r '.app.id // .id')
+                  if [ -z "$APP_ID" ] || [ "$APP_ID" == "null" ]; then
+                    echo "Error: Could not extract app ID from response"
+                    echo "$BODY"
+                    exit 1
+                  fi
+                  
+                  echo "App created successfully with ID: $APP_ID"
+                  echo "APP_ID=$APP_ID" >> $GITHUB_ENV
+                  echo "app_id=$APP_ID" >> $GITHUB_OUTPUT
+                fi
+                
+                # Get app URL - wait a bit for app to be created and get the URL
+                echo "Waiting for app to be ready..."
+                sleep 10  # Initial wait for app to be created
+                
+                # Try to get the app URL (may not be available immediately)
+                APP_INFO=$(curl -s -X GET \
+                  -H "Authorization: Bearer $DO_TOKEN" \
+                  "${{ env.DO_API_URL }}/apps/${{ env.APP_ID }}")
+                
+                # Try multiple fields for the URL
+                PREVIEW_URL=$(echo "$APP_INFO" | jq -r '.app.live_url // .app.live_domain // .app.default_ingress // .app.active_deployment.live_url // "Deploying..."')
+                
+                # If still deploying, get the app spec URL or construct from app name
+                if [ "$PREVIEW_URL" == "Deploying..." ] || [ -z "$PREVIEW_URL" ] || [ "$PREVIEW_URL" == "null" ]; then
+                  # DigitalOcean apps typically get URLs like: https://{app-name}-{hash}.ondigitalocean.app
+                  # But we can't construct it reliably, so we'll note it's deploying
+                  PREVIEW_URL="Deploying... (check DigitalOcean dashboard or wait a few minutes)"
+                fi
+                
+                echo "Preview URL: $PREVIEW_URL"
+                echo "PREVIEW_URL=$PREVIEW_URL" >> $GITHUB_ENV
+                echo "preview_url=$PREVIEW_URL" >> $GITHUB_OUTPUT
+
+            - name: Post preview URL as PR comment
+              uses: actions/github-script@v7
+              if: success()
+              env:
+                PREVIEW_URL: ${{ env.PREVIEW_URL }}
+              with:
+                script: |
+                  const previewUrl = process.env.PREVIEW_URL || 'Deploying...';
+                  const appName = '${{ env.APP_NAME }}';
+                  
+                  const body = `## 🚀 Preview Deployment Created
+                  
+                  **App Name**: \`${appName}\`
+                  
+                  **Preview URL**: ${previewUrl && !previewUrl.includes('Deploying') ? `[${previewUrl}](${previewUrl})` : '⏳ Deploying... (typically takes 5-15 minutes)'}
+                  
+                  **Status**: The app is being built and deployed. The preview URL will be available once the deployment completes.
+                  
+                  **Note**: You can check the deployment status in the [DigitalOcean dashboard](https://cloud.digitalocean.com/apps/${process.env.APP_ID || '${{ env.APP_ID }}'}) or wait for the deployment to complete.
+                  
+                  This preview deployment will be automatically deleted when this PR is closed or merged.
+                  
+                  ---
+                  *Deployed from branch: \`${{ github.head_ref }}\`*`;
+                  
+                  github.rest.issues.createComment({
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    body: body
+                  });
+
+    delete-preview:
+        name: Delete Preview App
+        if: github.event.action == 'closed'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            pull-requests: write
+        steps:
+            - name: Sanitize branch name
+              id: sanitize
+              run: |
+                BRANCH_NAME="${{ github.head_ref }}"
+                SANITIZED=$(echo "$BRANCH_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
+                # DigitalOcean app name regex: ^[a-z][a-z0-9-]{0,30}[a-z0-9]$
+                # Must start with letter, end with letter/number (not hyphen), max 32 chars
+                # Prefix is 10 chars (pj-preview-), so we have 22 chars for branch name
+                PR_NUM="${{ github.event.pull_request.number }}"
+                if [ -n "$PR_NUM" ] && [ "$PR_NUM" != "null" ]; then
+                  # Use PR number: pj-preview-pr{num}-{branch} (max 22 chars for branch part)
+                  # pj-preview-pr123- = 18 chars, leaving 14 for branch
+                  SANITIZED=$(echo "$SANITIZED" | cut -c1-14)
+                  APP_NAME="${{ env.APP_NAME_PREFIX }}-pr${PR_NUM}-${SANITIZED}"
+                else
+                  # Fallback: just truncate branch name (max 22 chars)
+                  SANITIZED=$(echo "$SANITIZED" | cut -c1-22)
+                  APP_NAME="${{ env.APP_NAME_PREFIX }}-${SANITIZED}"
+                fi
+                # Ensure it doesn't end with hyphen (DigitalOcean requirement)
+                while [ "${APP_NAME: -1}" == "-" ]; do
+                  APP_NAME="${APP_NAME%?}"
+                done
+                # Ensure it starts with a letter (should be fine with our prefix, but check)
+                if [[ ! "$APP_NAME" =~ ^[a-z] ]]; then
+                  APP_NAME="a${APP_NAME}"
+                fi
+                # Final check: ensure total length is <= 32 and ends with letter/number
+                APP_NAME=$(echo "$APP_NAME" | cut -c1-32)
+                # Remove trailing hyphen if still present after truncation
+                while [ "${APP_NAME: -1}" == "-" ]; do
+                  APP_NAME="${APP_NAME%?}"
+                done
+                # Ensure it ends with letter/number
+                if [[ ! "$APP_NAME" =~ [a-z0-9]$ ]]; then
+                  APP_NAME="${APP_NAME}x"
+                fi
+                echo "App name: $APP_NAME (length: ${#APP_NAME})"
+                echo "app_name=$APP_NAME" >> $GITHUB_OUTPUT
+                echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
+
+            - name: Find preview app
+              id: find-app
+              env:
+                DO_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+              run: |
+                RESPONSE=$(curl -s -w "\n%{http_code}" -X GET \
+                  -H "Authorization: Bearer $DO_TOKEN" \
+                  "${{ env.DO_API_URL }}/apps")
+                
+                HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+                BODY=$(echo "$RESPONSE" | sed '$d')
+                
+                if [ "$HTTP_CODE" != "200" ]; then
+                  echo "Warning: Failed to fetch apps. HTTP $HTTP_CODE"
+                  echo "$BODY"
+                  echo "exists=false" >> $GITHUB_OUTPUT
+                  exit 0  # Don't fail on cleanup
+                fi
+                
+                APP_ID=$(echo "$BODY" | jq -r --arg name "${{ env.APP_NAME }}" '.apps[] | select(.spec.name==$name) | .id')
+                
+                if [ -n "$APP_ID" ] && [ "$APP_ID" != "null" ]; then
+                  echo "Found app with ID: $APP_ID"
+                  echo "APP_ID=$APP_ID" >> $GITHUB_ENV
+                  echo "app_id=$APP_ID" >> $GITHUB_OUTPUT
+                  echo "exists=true" >> $GITHUB_OUTPUT
+                else
+                  echo "App not found (may have been already deleted)"
+                  echo "exists=false" >> $GITHUB_OUTPUT
+                fi
+
+            - name: Delete preview app
+              id: delete-app
+              if: steps.find-app.outputs.exists == 'true'
+              env:
+                DO_TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+              run: |
+                echo "Deleting app: ${{ env.APP_NAME }} (ID: ${{ env.APP_ID }})"
+                RESPONSE=$(curl -s -w "\n%{http_code}" -X DELETE \
+                  -H "Authorization: Bearer $DO_TOKEN" \
+                  "${{ env.DO_API_URL }}/apps/${{ env.APP_ID }}")
+                
+                HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+                BODY=$(echo "$RESPONSE" | sed '$d')
+                
+                if [ "$HTTP_CODE" != "204" ] && [ "$HTTP_CODE" != "200" ]; then
+                  echo "Warning: Failed to delete app. HTTP $HTTP_CODE"
+                  echo "$BODY"
+                  # Don't exit 1 - cleanup failures shouldn't fail the workflow
+                else
+                  echo "App deleted successfully"
+                fi
+
+            - name: Post cleanup confirmation
+              uses: actions/github-script@v7
+              if: always()
+              with:
+                script: |
+                  const appName = '${{ env.APP_NAME }}';
+                  const deleted = '${{ steps.delete-app.outcome }}' === 'success' || '${{ steps.find-app.outputs.exists }}' === 'false';
+                  
+                  const body = deleted 
+                    ? `## 🧹 Preview Deployment Cleaned Up
+                    
+                    Preview app \`${appName}\` has been deleted successfully.
+                    
+                    ---
+                    *Cleanup completed automatically*`
+                    : `## ⚠️ Preview Deployment Cleanup
+                    
+                    Attempted to delete preview app \`${appName}\`, but it may have already been deleted or an error occurred.
+                    
+                    Please verify in the DigitalOcean dashboard if manual cleanup is needed.
+                    
+                    ---
+                    *Cleanup attempted automatically*`;
+                  
+                  github.rest.issues.createComment({
+                    issue_number: context.issue.number,
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    body: body
+                  });
