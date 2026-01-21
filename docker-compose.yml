@@ -1,0 +1,196 @@
+services:
+    # --------------------
+    # Databases
+    # --------------------
+    app-db:
+        image: postgres:17
+        container_name: app-db
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: portfolio_app
+            POSTGRES_USER: app_user
+            POSTGRES_PASSWORD: app_pass
+        ports:
+            - "5433:5432"
+        volumes:
+            - app_db_data:/var/lib/postgresql/data
+        networks:
+            - portfolio-net
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U app_user -d portfolio_app"]
+            interval: 5s
+            timeout: 5s
+            retries: 10
+            start_period: 10s
+
+    auth-db:
+        image: postgres:17
+        container_name: auth-db
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: auth_db
+            POSTGRES_USER: auth_user
+            POSTGRES_PASSWORD: auth_pass
+        ports:
+            - "5434:5432"
+        volumes:
+            - auth_db_data:/var/lib/postgresql/data
+        networks:
+            - portfolio-net
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U auth_user -d auth_db"]
+            interval: 5s
+            timeout: 5s
+            retries: 10
+            start_period: 10s
+
+    # --------------------
+    # Backend (Next.js API)
+    # --------------------
+    backend:
+        build:
+            context: ./backend
+            dockerfile: Dockerfile
+        container_name: backend
+        restart: unless-stopped
+        env_file:
+            - .env
+        environment:
+            DATABASE_URL: postgres://app_user:app_pass@app-db:5432/portfolio_app
+            POSTGRES_HOST: app-db
+            POSTGRES_USER: app_user
+            POSTGRES_PASSWORD: app_pass
+            POSTGRES_DB: portfolio_app
+            AUTH_JWT_SECRET: ${AUTH_JWT_SECRET}
+            AUTH_JWT_ISS: portfolio-auth
+            AUTH_JWT_AUD: portfolio-api
+            CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+            FILE_MINIO_ENDPOINT: ${FILE_MINIO_ENDPOINT:-minio:9000}
+            FILE_MINIO_ACCESS_KEY: ${FILE_MINIO_ACCESS_KEY:-minioadmin}
+            FILE_MINIO_SECRET_KEY: ${FILE_MINIO_SECRET_KEY:-minioadmin}
+            FILE_MINIO_SECURE: ${FILE_MINIO_SECURE:-false}
+            FILE_MINIO_BUCKET: ${FILE_MINIO_BUCKET:-portfolio-files}
+        depends_on:
+            app-db:
+                condition: service_healthy
+            minio:
+                condition: service_started
+        ports:
+            - "8080:8080"
+        networks:
+            - portfolio-net
+
+    # --------------------
+    # Auth service (Better Auth)
+    # --------------------
+    auth-service:
+        build:
+            context: ./auth-service
+            dockerfile: Dockerfile
+        container_name: auth-service
+        restart: unless-stopped
+        env_file:
+            - .env
+        environment:
+            NODE_ENV: development
+            DATABASE_URL: postgres://auth_user:auth_pass@auth-db:5432/auth_db
+            POSTGRES_USER: auth_user
+            POSTGRES_PASSWORD: auth_pass
+            POSTGRES_DB: auth_db
+            BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+            BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3001}
+            BETTER_AUTH_JWT_SECRET: ${AUTH_JWT_SECRET}
+            BETTER_AUTH_JWT_ISS: portfolio-auth
+            BETTER_AUTH_JWT_AUD: portfolio-api
+            CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+            GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+            GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+            FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+        depends_on:
+            auth-db:
+                condition: service_healthy
+        ports:
+            - "3001:3001"
+        networks:
+            - portfolio-net
+
+    # --------------------
+    # MinIO (Object Storage)
+    # --------------------
+    minio:
+        image: ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z
+        container_name: minio
+        restart: unless-stopped
+        command: server /data --console-address ":9001"
+        environment:
+            MINIO_ROOT_USER: ${FILE_MINIO_ACCESS_KEY:-minioadmin}
+            MINIO_ROOT_PASSWORD: ${FILE_MINIO_SECRET_KEY:-minioadmin}
+        ports:
+            - "9000:9000"
+            - "9001:9001"
+        volumes:
+            - ./data/minio:/data
+        networks:
+            - portfolio-net
+
+    # --------------------
+    # Frontend (Next.js - Single App with Admin)
+    # --------------------
+    frontend:
+        build:
+            context: ./frontend/app
+            dockerfile: Dockerfile
+            args:
+                NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+                NEXT_PUBLIC_AUTH_SERVICE_URL: ${NEXT_PUBLIC_AUTH_SERVICE_URL:-http://localhost:3001}
+        container_name: frontend
+        restart: unless-stopped
+        env_file:
+            - .env
+        environment:
+            # Client-side (browser) uses localhost
+            NEXT_PUBLIC_API_URL: http://localhost:8080
+            NEXT_PUBLIC_AUTH_SERVICE_URL: http://localhost:3001
+            # Server-side (SSR) uses service names
+            API_URL: http://backend:8080
+            AUTH_SERVICE_URL: http://auth-service:3001
+        depends_on:
+            - backend
+            - auth-service
+        ports:
+            - "3000:3000"
+        networks:
+            - portfolio-net
+
+    # --------------------
+    # pgAdmin (Development Only)
+    # --------------------
+    pgadmin:
+        profiles: ["pgadmin"]
+        image: dpage/pgadmin4:8.8
+        container_name: pgadmin
+        restart: unless-stopped
+        env_file:
+            - .env
+        environment:
+            PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@portfolio.local}
+            PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+            PGADMIN_CONFIG_SERVER_MODE: "False"
+        ports:
+            - "5050:80"
+        volumes:
+            - pgadmin_data:/var/lib/pgadmin
+            - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+        networks:
+            - portfolio-net
+        depends_on:
+            - app-db
+            - auth-db
+
+networks:
+    portfolio-net:
+
+volumes:
+    app_db_data:
+    auth_db_data:
+    pgadmin_data:

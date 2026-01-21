@@ -1,0 +1,253 @@
+# =============================================================================
+# Passion Jerseys - Production Docker Compose
+# =============================================================================
+# This file is for production deployment reference.
+# For Digital Ocean App Platform, services are configured directly in the platform.
+# This compose file can be used for self-hosted production deployments.
+#
+# Usage:
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# Prerequisites:
+#   - Create .env.prod file with production values
+#   - External managed databases (DO Managed PostgreSQL recommended)
+#   - External object storage (DO Spaces recommended)
+# =============================================================================
+
+services:
+    # --------------------
+    # Backend (Spring Boot monolith)
+    # --------------------
+    backend:
+        build:
+            context: ./backend
+            dockerfile: Dockerfile
+        container_name: backend
+        restart: unless-stopped
+        env_file:
+            - .env.prod
+        environment:
+            # Production Spring profile (CRITICAL - enables security features)
+            SPRING_PROFILES_ACTIVE: prod
+
+            # Database connection (use managed database connection string)
+            SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+            SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+            SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+
+            # JWT validation (must match auth-service)
+            AUTH_JWT_SECRET: ${AUTH_JWT_SECRET}
+            AUTH_JWT_ISS: passion-jerseys-auth
+            AUTH_JWT_AUD: passion-jerseys-api
+
+            # CORS configuration (production domains)
+            CORS_ORIGINS: ${CORS_ORIGINS}
+
+            # Stripe (production keys)
+            STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+            STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+
+            # DO Spaces file storage configuration
+            FILE_MINIO_ENDPOINT: ${FILE_MINIO_ENDPOINT}
+            FILE_MINIO_ACCESS_KEY: ${FILE_MINIO_ACCESS_KEY}
+            FILE_MINIO_SECRET_KEY: ${FILE_MINIO_SECRET_KEY}
+            FILE_MINIO_SECURE: "true"
+            FILE_MINIO_BUCKET_PRODUCTS: ${FILE_MINIO_BUCKET_PRODUCTS}
+            FILE_MINIO_BUCKET_INVOICES: ${FILE_MINIO_BUCKET_INVOICES}
+
+            # Email service configuration
+            EMAIL_SERVICE_URL: http://email-service:3003
+            EMAIL_API_KEY: ${EMAIL_API_KEY}
+            STORE_APP_URL: ${STORE_APP_URL}
+        depends_on:
+            - email-service
+        ports:
+            - "8080:8080"
+        networks:
+            - passion-net
+        healthcheck:
+            test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 60s
+
+    # --------------------
+    # Auth service (Better Auth, Node/Next)
+    # --------------------
+    auth-service:
+        build:
+            context: ./auth-service
+            dockerfile: Dockerfile
+        container_name: auth-service
+        restart: unless-stopped
+        env_file:
+            - .env.prod
+        environment:
+            # Production mode
+            NODE_ENV: production
+
+            # Database connection (use managed database connection string)
+            DATABASE_URL: ${DATABASE_URL}
+
+            # Better Auth configuration
+            BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+            BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+
+            # JWT issuing (shared secret + claims)
+            BETTER_AUTH_JWT_SECRET: ${AUTH_JWT_SECRET}
+            BETTER_AUTH_JWT_ISS: passion-jerseys-auth
+            BETTER_AUTH_JWT_AUD: passion-jerseys-api
+
+            # CORS configuration (production domains)
+            CORS_ORIGINS: ${CORS_ORIGINS}
+
+            # Google OAuth
+            GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+            GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+
+            # Email service configuration
+            EMAIL_SERVICE_URL: http://email-service:3003
+            EMAIL_API_KEY: ${EMAIL_API_KEY}
+            FRONTEND_URL: ${FRONTEND_URL}
+
+            # Frontend app URLs for OAuth redirects
+            ADMIN_APP_URL: ${ADMIN_APP_URL}
+            STORE_APP_URL: ${STORE_APP_URL}
+        depends_on:
+            - email-service
+        ports:
+            - "3001:3001"
+        networks:
+            - passion-net
+        healthcheck:
+            test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 40s
+
+    # --------------------
+    # Email service (Resend, Node/Next)
+    # --------------------
+    email-service:
+        build:
+            context: ./email-service
+            dockerfile: Dockerfile
+        container_name: email-service
+        restart: unless-stopped
+        env_file:
+            - .env.prod
+        environment:
+            NODE_ENV: production
+            RESEND_API_KEY: ${RESEND_API_KEY}
+            EMAIL_FROM_ADDRESS: ${EMAIL_FROM_ADDRESS}
+            EMAIL_API_KEY: ${EMAIL_API_KEY}
+            EMAIL_API_RATE_LIMIT_CAPACITY: ${EMAIL_API_RATE_LIMIT_CAPACITY:-100}
+            EMAIL_API_RATE_LIMIT_WINDOW_MS: ${EMAIL_API_RATE_LIMIT_WINDOW_MS:-900000}
+            NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+            BACKEND_URL: ${BACKEND_URL}
+        ports:
+            - "3003:3003"
+        networks:
+            - passion-net
+        healthcheck:
+            test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003/api/health"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 40s
+
+    # --------------------
+    # Storefront (Next.js)
+    # --------------------
+    store-app:
+        build:
+            context: ./frontend
+            dockerfile: store-app/Dockerfile
+            args:
+                NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+        container_name: store-app
+        restart: unless-stopped
+        env_file:
+            - .env.prod
+        environment:
+            NODE_ENV: production
+            NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+            NEXT_PUBLIC_AUTH_SERVICE_URL: ${NEXT_PUBLIC_AUTH_SERVICE_URL}
+            API_URL: http://backend:8080
+            AUTH_SERVICE_URL: http://auth-service:3001
+            NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+            EMAIL_SERVICE_URL: http://email-service:3003
+            EMAIL_API_KEY: ${EMAIL_API_KEY}
+        depends_on:
+            - backend
+            - auth-service
+            - email-service
+        ports:
+            - "3000:3000"
+        networks:
+            - passion-net
+        healthcheck:
+            test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 40s
+
+    # --------------------
+    # Admin console (Next.js)
+    # --------------------
+    admin-app:
+        build:
+            context: ./frontend
+            dockerfile: admin-app/Dockerfile
+        container_name: admin-app
+        restart: unless-stopped
+        env_file:
+            - .env.prod
+        environment:
+            NODE_ENV: production
+            NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+            NEXT_PUBLIC_AUTH_SERVICE_URL: ${NEXT_PUBLIC_AUTH_SERVICE_URL}
+            API_URL: http://backend:8080
+            AUTH_SERVICE_URL: http://auth-service:3001
+            NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY}
+        depends_on:
+            - backend
+            - auth-service
+        ports:
+            - "3002:3002"
+        networks:
+            - passion-net
+        healthcheck:
+            test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 40s
+
+networks:
+    passion-net:
+
+# =============================================================================
+# Production Notes:
+# =============================================================================
+# 1. This compose file does NOT include databases or MinIO
+#    - Use Digital Ocean Managed PostgreSQL for databases
+#    - Use Digital Ocean Spaces for object storage
+#
+# 2. Required .env.prod variables:
+#    - SPRING_DATASOURCE_URL (managed PostgreSQL connection string)
+#    - DATABASE_URL (managed PostgreSQL connection string for auth)
+#    - All secrets (AUTH_JWT_SECRET, BETTER_AUTH_SECRET, etc.)
+#    - Production URLs (CORS_ORIGINS, STORE_APP_URL, etc.)
+#    - DO Spaces credentials (FILE_MINIO_*)
+#
+# 3. DO NOT use seed-users.sh in production
+#    - Create admin account via SQL after deployment
+#
+# 4. For Digital Ocean App Platform deployment:
+#    - Services are configured directly in the platform
+#    - This compose file is for self-hosted reference only
+# =============================================================================
