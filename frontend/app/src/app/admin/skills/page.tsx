@@ -402,6 +402,7 @@ export default function SkillsManagementPage() {
                         <td className="px-4 py-3 font-medium">
                           <div className="flex items-center gap-2">
                             {skill.iconUrl && (
+                              // eslint-disable-next-line @next/next/no-img-element
                               <img
                                 src={skill.iconUrl}
                                 alt={skill.name}

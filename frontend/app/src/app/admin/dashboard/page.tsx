@@ -72,7 +72,7 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">Welcome back! Here's an overview of your portfolio.</p>
+        <p className="text-muted-foreground mt-2">Welcome back! Here&apos;s an overview of your portfolio.</p>
       </div>
 
       {loading ? (

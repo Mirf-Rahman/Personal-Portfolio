@@ -27,6 +27,7 @@ export default function TestimonialsManagementPage() {
 
   useEffect(() => {
     fetchTestimonials();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   const fetchTestimonials = async () => {
