@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+import { authenticatedFetch, fetchApi } from "@/lib/api";
 
 interface Project {
   id: string;
@@ -47,8 +46,8 @@ export default function ProjectsManagementPage() {
 
   const fetchProjects = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/projects`);
-      if (res.ok) setProjects(await res.json());
+      const data = await fetchApi<Project[]>("/api/projects");
+      setProjects(data);
     } catch (error) {
       console.error("Error fetching projects:", error);
     } finally {
@@ -61,29 +60,29 @@ export default function ProjectsManagementPage() {
     setError("");
 
     try {
-      const url = editingProject ? `${API_URL}/api/projects/${editingProject.id}` : `${API_URL}/api/projects`;
       const payload = {
         ...formData,
         technologies: formData.technologies.split(",").map((t) => t.trim()).filter(Boolean),
       };
 
-      const res = await fetch(url, {
-        method: editingProject ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.session.token || ""}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) throw new Error("Failed to save project");
+      if (editingProject) {
+        await authenticatedFetch<Project>(`/api/projects/${editingProject.id}`, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+      } else {
+        await authenticatedFetch<Project>("/api/projects", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+      }
 
       setFormData({ title: "", description: "", technologies: "", imageUrl: "", liveUrl: "", githubUrl: "", featured: false, order: 0 });
       setIsEditing(false);
       setEditingProject(null);
-      fetchProjects();
+      await fetchProjects();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : "Failed to save project. Please try again.");
     }
   };
 
@@ -105,14 +104,12 @@ export default function ProjectsManagementPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this project?")) return;
     try {
-      const res = await fetch(`${API_URL}/api/projects/${id}`, {
+      await authenticatedFetch(`/api/projects/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${session?.session.token || ""}` },
       });
-      if (!res.ok) throw new Error("Failed to delete project");
-      fetchProjects();
+      await fetchProjects();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete");
+      alert(err instanceof Error ? err.message : "Failed to delete project");
     }
   };
 

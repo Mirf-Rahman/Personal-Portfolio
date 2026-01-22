@@ -17,6 +17,7 @@ interface Skill {
   id: string;
   name: string;
   category: string;
+  iconUrl: string | null;
 }
 
 interface Experience {
@@ -52,20 +53,30 @@ const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http:
 
 async function getHomeData() {
   try {
-    const [projectsRes, skillsRes, experiencesRes, educationRes, hobbiesRes] = await Promise.all([
-      fetch(`${API_URL}/api/projects`, { next: { revalidate: 60 } }),
-      fetch(`${API_URL}/api/skills`, { next: { revalidate: 60 } }),
-      fetch(`${API_URL}/api/experiences`, { next: { revalidate: 60 } }),
-      fetch(`${API_URL}/api/education`, { next: { revalidate: 60 } }),
-      fetch(`${API_URL}/api/hobbies`, { next: { revalidate: 60 } }),
+    const [projectsRes, skillsRes, experiencesRes, educationRes, hobbiesRes] = await Promise.allSettled([
+      fetch(`${API_URL}/api/projects`, { cache: 'no-store' }),
+      fetch(`${API_URL}/api/skills`, { cache: 'no-store' }),
+      fetch(`${API_URL}/api/experiences`, { cache: 'no-store' }),
+      fetch(`${API_URL}/api/education`, { cache: 'no-store' }),
+      fetch(`${API_URL}/api/hobbies`, { cache: 'no-store' }),
     ]);
 
     const [projects, skills, experiences, education, hobbies] = await Promise.all([
-      projectsRes.ok ? projectsRes.json() : [],
-      skillsRes.ok ? skillsRes.json() : [],
-      experiencesRes.ok ? experiencesRes.json() : [],
-      educationRes.ok ? educationRes.json() : [],
-      hobbiesRes.ok ? hobbiesRes.json() : [],
+      projectsRes.status === 'fulfilled' && projectsRes.value.ok 
+        ? projectsRes.value.json().catch(() => []) 
+        : [],
+      skillsRes.status === 'fulfilled' && skillsRes.value.ok 
+        ? skillsRes.value.json().catch(() => []) 
+        : [],
+      experiencesRes.status === 'fulfilled' && experiencesRes.value.ok 
+        ? experiencesRes.value.json().catch(() => []) 
+        : [],
+      educationRes.status === 'fulfilled' && educationRes.value.ok 
+        ? educationRes.value.json().catch(() => []) 
+        : [],
+      hobbiesRes.status === 'fulfilled' && hobbiesRes.value.ok 
+        ? hobbiesRes.value.json().catch(() => []) 
+        : [],
     ]);
 
     return { projects, skills, experiences, education, hobbies };
@@ -78,6 +89,9 @@ async function getHomeData() {
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("en-US", { year: "numeric", month: "short" });
 }
+
+// Force dynamic rendering to ensure fresh data on every request
+export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const { projects, skills, experiences, education, hobbies } = await getHomeData();
@@ -168,7 +182,17 @@ export default async function Home() {
           {skills.length > 0 ? (
             <div className="flex flex-wrap justify-center gap-4 max-w-4xl mx-auto">
               {(skills as Skill[]).map((skill) => (
-                <div key={skill.id} className="flex items-center justify-center rounded-lg border bg-background px-6 py-4 shadow-sm hover:shadow-md transition-shadow">
+                <div key={skill.id} className="flex items-center gap-3 rounded-lg border bg-background px-6 py-4 shadow-sm hover:shadow-md transition-shadow">
+                  {skill.iconUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={skill.iconUrl}
+                      alt={skill.name}
+                      width={24}
+                      height={24}
+                      className="object-contain"
+                    />
+                  ) : null}
                   <span className="font-medium">{skill.name}</span>
                 </div>
               ))}

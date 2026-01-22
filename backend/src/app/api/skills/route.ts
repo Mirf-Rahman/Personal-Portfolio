@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@/lib/db";
-import { eq } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth";
 
 // GET /api/skills - List all skills (public)
@@ -39,13 +39,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Auto-assign order: if not provided, use max order + 1
+    let finalOrder = order;
+    if (finalOrder === undefined || finalOrder === null) {
+      const [maxOrderResult] = await db
+        .select({ maxOrder: sql<number>`COALESCE(MAX(${schema.skills.order}), 0)` })
+        .from(schema.skills);
+      
+      finalOrder = (maxOrderResult?.maxOrder ?? 0) + 1;
+    }
+
     const [newSkill] = await db
       .insert(schema.skills)
       .values({
         name,
         category,
         iconUrl: iconUrl || null,
-        order: order || 0,
+        order: finalOrder,
       })
       .returning();
 

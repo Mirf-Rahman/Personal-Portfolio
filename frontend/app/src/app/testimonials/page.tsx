@@ -13,7 +13,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 async function getTestimonials(): Promise<Testimonial[]> {
   try {
-    const res = await fetch(`${API_URL}/api/testimonials`, { next: { revalidate: 60 } });
+    const res = await fetch(`${API_URL}/api/testimonials`, { cache: 'no-store' });
     if (!res.ok) return [];
     return res.json();
   } catch (error) {
@@ -21,6 +21,9 @@ async function getTestimonials(): Promise<Testimonial[]> {
     return [];
   }
 }
+
+// Force dynamic rendering to ensure fresh data on every request
+export const dynamic = 'force-dynamic';
 
 export default async function TestimonialsPage() {
   const testimonials = await getTestimonials();

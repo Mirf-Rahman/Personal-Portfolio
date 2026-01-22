@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+import { authenticatedFetch } from "@/lib/api";
 
 interface Message {
   id: string;
@@ -29,15 +28,14 @@ export default function MessagesManagementPage() {
 
   useEffect(() => {
     fetchMessages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   const fetchMessages = async () => {
     if (!session) return;
     try {
-      const res = await fetch(`${API_URL}/api/messages`, {
-        headers: { Authorization: `Bearer ${session?.session.token || ""}` },
-      });
-      if (res.ok) setMessages(await res.json());
+      const data = await authenticatedFetch<Message[]>("/api/messages");
+      setMessages(data);
     } catch (error) {
       console.error("Error fetching messages:", error);
     } finally {
@@ -47,36 +45,29 @@ export default function MessagesManagementPage() {
 
   const handleMarkAsRead = async (id: string, read: boolean) => {
     try {
-      const res = await fetch(`${API_URL}/api/messages/${id}`, {
+      await authenticatedFetch(`/api/messages/${id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.session.token || ""}`,
-        },
         body: JSON.stringify({ read }),
       });
-      if (!res.ok) throw new Error("Failed to update message");
-      fetchMessages();
+      await fetchMessages();
       if (selectedMessage?.id === id) {
         setSelectedMessage({ ...selectedMessage, read });
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to update");
+      alert(err instanceof Error ? err.message : "Failed to update message");
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this message?")) return;
     try {
-      const res = await fetch(`${API_URL}/api/messages/${id}`, {
+      await authenticatedFetch(`/api/messages/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${session?.session.token || ""}` },
       });
-      if (!res.ok) throw new Error("Failed to delete message");
       setSelectedMessage(null);
-      fetchMessages();
+      await fetchMessages();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete");
+      alert(err instanceof Error ? err.message : "Failed to delete message");
     }
   };
 

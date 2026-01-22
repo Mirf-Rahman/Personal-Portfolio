@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+import { authenticatedFetch } from "@/lib/api";
 
 interface Testimonial {
   id: string;
@@ -28,15 +27,14 @@ export default function TestimonialsManagementPage() {
 
   useEffect(() => {
     fetchTestimonials();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   const fetchTestimonials = async () => {
     if (!session) return;
     try {
-      const res = await fetch(`${API_URL}/api/testimonials/all`, {
-        headers: { Authorization: `Bearer ${session?.session.token || ""}` },
-      });
-      if (res.ok) setTestimonials(await res.json());
+      const data = await authenticatedFetch<Testimonial[]>("/api/testimonials/all");
+      setTestimonials(data);
     } catch (error) {
       console.error("Error fetching testimonials:", error);
     } finally {
@@ -46,32 +44,25 @@ export default function TestimonialsManagementPage() {
 
   const handleApprove = async (id: string, approved: boolean) => {
     try {
-      const res = await fetch(`${API_URL}/api/testimonials/${id}`, {
+      await authenticatedFetch(`/api/testimonials/${id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.session.token || ""}`,
-        },
         body: JSON.stringify({ approved }),
       });
-      if (!res.ok) throw new Error("Failed to update testimonial");
-      fetchTestimonials();
+      await fetchTestimonials();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to update");
+      alert(err instanceof Error ? err.message : "Failed to update testimonial");
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this testimonial?")) return;
     try {
-      const res = await fetch(`${API_URL}/api/testimonials/${id}`, {
+      await authenticatedFetch(`/api/testimonials/${id}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${session?.session.token || ""}` },
       });
-      if (!res.ok) throw new Error("Failed to delete testimonial");
-      fetchTestimonials();
+      await fetchTestimonials();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete");
+      alert(err instanceof Error ? err.message : "Failed to delete testimonial");
     }
   };
 

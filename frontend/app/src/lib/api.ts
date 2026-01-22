@@ -1,4 +1,6 @@
 // API client for communicating with the backend
+import { getAuthToken } from "./auth-client";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export async function fetchApi<T>(
@@ -16,7 +18,17 @@ export async function fetchApi<T>(
   });
 
   if (!response.ok) {
-    throw new Error(`API Error: ${response.status} ${response.statusText}`);
+    // Try to parse error message from response
+    let errorMessage = `API Error: ${response.status} ${response.statusText}`;
+    try {
+      const errorData = await response.json();
+      if (errorData.error) {
+        errorMessage = errorData.error;
+      }
+    } catch {
+      // If parsing fails, use default message
+    }
+    throw new Error(errorMessage);
   }
 
   // Handle 204 No Content responses
@@ -26,6 +38,25 @@ export async function fetchApi<T>(
 
   const text = await response.text();
   return text ? JSON.parse(text) : null as T;
+}
+
+// Authenticated fetch that automatically includes JWT token
+export async function authenticatedFetch<T>(
+  endpoint: string,
+  options: RequestInit = {},
+): Promise<T> {
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error("Not authenticated. Please log in again.");
+  }
+
+  return fetchApi<T>(endpoint, {
+    ...options,
+    headers: {
+      ...options.headers,
+      Authorization: `Bearer ${token}`,
+    },
+  });
 }
 
 // Helper to get image URLs from the backend
