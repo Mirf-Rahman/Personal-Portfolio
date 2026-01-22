@@ -9,8 +9,10 @@ export async function GET() {
       .select()
       .from(schema.projects)
       .orderBy(schema.projects.order);
-    
-    return NextResponse.json(projects);
+
+    const res = NextResponse.json(projects);
+    res.headers.set("Cache-Control", "no-store");
+    return res;
   } catch (error) {
     console.error("Error fetching projects:", error);
     return NextResponse.json({ error: "Failed to fetch projects" }, { status: 500 });
@@ -32,6 +34,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Title and description are required" }, { status: 400 });
     }
 
+    let orderValue = typeof order === "number" && order > 0 ? order : 0;
+    if (orderValue === 0) {
+      const rows = await db.select({ order: schema.projects.order }).from(schema.projects);
+      const maxOrder = rows.length ? Math.max(...rows.map((r) => r.order)) : 0;
+      orderValue = maxOrder + 1;
+    }
+
     const [newProject] = await db
       .insert(schema.projects)
       .values({
@@ -44,7 +53,7 @@ export async function POST(request: NextRequest) {
         liveUrl: liveUrl || null,
         githubUrl: githubUrl || null,
         featured: featured || false,
-        order: order || 0,
+        order: orderValue,
       })
       .returning();
 
