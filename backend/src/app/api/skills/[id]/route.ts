@@ -42,8 +42,79 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { name, category, iconUrl, order } = body;
+    const { name, category, iconUrl, order, shouldSwap } = body;
 
+    // If order is being changed and shouldSwap is true, swap the orders atomically
+    if (order !== undefined && shouldSwap === true) {
+      // Perform atomic swap in a transaction
+      const result = await db.transaction(async (tx) => {
+        // Get the current skill
+        const [currentSkill] = await tx
+          .select()
+          .from(schema.skills)
+          .where(eq(schema.skills.id, id));
+
+        if (!currentSkill) {
+          throw new Error("NOT_FOUND");
+        }
+
+        // Find the skill with the target order
+        const [targetSkill] = await tx
+          .select()
+          .from(schema.skills)
+          .where(eq(schema.skills.order, order));
+
+        if (!targetSkill) {
+          throw new Error("TARGET_NOT_FOUND");
+        }
+
+        // Skip swap if trying to swap with itself
+        if (targetSkill.id === id) {
+          // Just update the skill without swapping
+          const [updatedSkill] = await tx
+            .update(schema.skills)
+            .set({
+              ...(name && { name }),
+              ...(category && { category }),
+              ...(iconUrl !== undefined && { iconUrl }),
+              order,
+              updatedAt: new Date(),
+            })
+            .where(eq(schema.skills.id, id))
+            .returning();
+          return { updatedSkill, targetSkill: null };
+        }
+
+        // Swap orders atomically: both updates in same transaction
+        const [updatedSkill, swappedSkill] = await Promise.all([
+          tx
+            .update(schema.skills)
+            .set({
+              ...(name && { name }),
+              ...(category && { category }),
+              ...(iconUrl !== undefined && { iconUrl }),
+              order,
+              updatedAt: new Date(),
+            })
+            .where(eq(schema.skills.id, id))
+            .returning(),
+          tx
+            .update(schema.skills)
+            .set({
+              order: currentSkill.order,
+              updatedAt: new Date(),
+            })
+            .where(eq(schema.skills.id, targetSkill.id))
+            .returning(),
+        ]);
+
+        return { updatedSkill: updatedSkill[0], targetSkill: swappedSkill[0] };
+      });
+
+      return NextResponse.json(result.updatedSkill);
+    }
+
+    // Regular update without swapping
     const [updatedSkill] = await db
       .update(schema.skills)
       .set({
