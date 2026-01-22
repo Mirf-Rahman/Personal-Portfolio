@@ -10,5 +10,13 @@
   "env": {
     "node": true,
     "es2020": true
-  }
+  },
+  "overrides": [
+    {
+      "files": ["*.js", "*.jsx"],
+      "parserOptions": {
+        "project": null
+      }
+    }
+  ]
 }
