@@ -21,8 +21,6 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
-ENV NODE_ENV=production
-
 # Create a non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001
@@ -33,14 +31,18 @@ RUN apk add --no-cache postgresql-client
 # Copy package files from build stage
 COPY --from=build /app/package.json /app/package-lock.json* ./
 
-# Install production dependencies only
-RUN npm ci --omit=dev
+
+RUN npm ci
+
+
+ENV NODE_ENV=production
 
 # Copy built application
 COPY --from=build /app/.next ./.next
 COPY --from=build /app/next.config.js ./next.config.js
 COPY --from=build /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=build /app/src/lib/db ./src/lib/db
+COPY --from=build /app/seed.ts ./seed.ts
 
 # Copy scripts if any
 COPY scripts ./scripts
@@ -64,5 +66,5 @@ EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
 
-# Start the application
-CMD ["npm", "start"]
+# Start the application with seed
+CMD ["./scripts/startup.sh"]

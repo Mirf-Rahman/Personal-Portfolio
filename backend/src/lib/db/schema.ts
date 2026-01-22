@@ -5,7 +5,6 @@ export const skills = pgTable("skills", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   category: text("category").notNull(),
-  proficiency: integer("proficiency").notNull().default(50),
   iconUrl: text("icon_url"),
   order: integer("order").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
