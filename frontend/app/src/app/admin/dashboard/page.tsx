@@ -1,40 +1,159 @@
-export default function AdminDashboard() {
-  return (
-    <div>
-      <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <DashboardCard title="Skills" count={0} href="/admin/skills" />
-        <DashboardCard title="Projects" count={0} href="/admin/projects" />
-        <DashboardCard title="Experience" count={0} href="/admin/experience" />
-        <DashboardCard title="Education" count={0} href="/admin/education" />
-        <DashboardCard title="Hobbies" count={0} href="/admin/hobbies" />
-        <DashboardCard title="Testimonials" count={0} href="/admin/testimonials" />
-        <DashboardCard title="Messages" count={0} href="/admin/messages" />
-        <DashboardCard title="Resume" count={0} href="/admin/resume" />
-      </div>
-    </div>
-  );
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
+import Link from "next/link";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+
+interface Stats {
+  skills: number;
+  projects: number;
+  testimonials: number;
+  messages: number;
 }
 
-function DashboardCard({ 
-  title, 
-  count, 
-  href 
-}: { 
-  title: string; 
-  count: number; 
-  href: string; 
-}) {
+export default function AdminDashboard() {
+  const router = useRouter();
+  const { data: session, isPending } = authClient.useSession();
+  const [stats, setStats] = useState<Stats>({ skills: 0, projects: 0, testimonials: 0, messages: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!isPending && !session) {
+      router.push("/login");
+    }
+  }, [session, isPending, router]);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [skillsRes, projectsRes, testimonialsRes, messagesRes] = await Promise.all([
+          fetch(`${API_URL}/api/skills`),
+          fetch(`${API_URL}/api/projects`),
+          fetch(`${API_URL}/api/testimonials/all`, {
+            headers: { Authorization: `Bearer ${session?.session.token || ""}` },
+          }),
+          fetch(`${API_URL}/api/messages`, {
+            headers: { Authorization: `Bearer ${session?.session.token || ""}` },
+          }),
+        ]);
+
+        const [skills, projects, testimonials, messages] = await Promise.all([
+          skillsRes.ok ? skillsRes.json() : [],
+          projectsRes.ok ? projectsRes.json() : [],
+          testimonialsRes.ok ? testimonialsRes.json() : [],
+          messagesRes.ok ? messagesRes.json() : [],
+        ]);
+
+        setStats({
+          skills: skills.length,
+          projects: projects.length,
+          testimonials: testimonials.length,
+          messages: messages.length,
+        });
+      } catch (error) {
+        console.error("Error fetching stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (session) {
+      fetchStats();
+    }
+  }, [session]);
+
+  if (isPending || !session) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  const cards = [
+    { title: "Skills", count: stats.skills, href: "/admin/skills", icon: "⚡", color: "from-blue-600 to-cyan-600" },
+    { title: "Projects", count: stats.projects, href: "/admin/projects", icon: "🚀", color: "from-purple-600 to-pink-600" },
+    { title: "Testimonials", count: stats.testimonials, href: "/admin/testimonials", icon: "💬", color: "from-green-600 to-emerald-600" },
+    { title: "Messages", count: stats.messages, href: "/admin/messages", icon: "📧", color: "from-orange-600 to-red-600" },
+  ];
+
   return (
-    <a 
-      href={href}
-      className="block p-6 bg-card rounded-lg shadow hover:shadow-md transition-shadow border border-border"
-    >
-      <h2 className="text-xl font-semibold mb-2">{title}</h2>
-      <p className="text-3xl font-bold text-primary">{count}</p>
-      <p className="text-sm text-muted-foreground mt-2">
-        Manage {title.toLowerCase()}
-      </p>
-    </a>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <p className="text-muted-foreground mt-2">Welcome back! Here's an overview of your portfolio.</p>
+      </div>
+
+      {loading ? (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-32 bg-muted animate-pulse rounded-lg" />
+          ))}
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {cards.map((card) => (
+            <Link key={card.title} href={card.href} className="group">
+              <div className="relative overflow-hidden rounded-lg border bg-card p-6 transition-all hover:shadow-lg hover:scale-105">
+                <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${card.color} opacity-10 rounded-full blur-2xl`} />
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-4xl">{card.icon}</span>
+                    <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">
+                      View all →
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">{card.title}</p>
+                    <p className="text-3xl font-bold">{card.count}</p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="rounded-lg border bg-card p-6">
+          <h3 className="font-semibold text-lg mb-4">Quick Actions</h3>
+          <div className="space-y-2">
+            <Link href="/admin/projects" className="flex items-center gap-2 text-sm hover:underline text-primary">
+              <span>→</span> Add New Project
+            </Link>
+            <Link href="/admin/skills" className="flex items-center gap-2 text-sm hover:underline text-primary">
+              <span>→</span> Add New Skill
+            </Link>
+            <Link href="/admin/testimonials" className="flex items-center gap-2 text-sm hover:underline text-primary">
+              <span>→</span> Review Testimonials
+            </Link>
+            <Link href="/admin/messages" className="flex items-center gap-2 text-sm hover:underline text-primary">
+              <span>→</span> Check Messages
+            </Link>
+          </div>
+        </div>
+
+        <div className="rounded-lg border bg-card p-6">
+          <h3 className="font-semibold text-lg mb-4">Content Management</h3>
+          <div className="grid grid-cols-2 gap-2">
+            <Link href="/admin/experience" className="flex items-center justify-center p-3 rounded border hover:bg-accent text-sm">
+              Experience
+            </Link>
+            <Link href="/admin/education" className="flex items-center justify-center p-3 rounded border hover:bg-accent text-sm">
+              Education
+            </Link>
+            <Link href="/admin/hobbies" className="flex items-center justify-center p-3 rounded border hover:bg-accent text-sm">
+              Hobbies
+            </Link>
+            <Link href="/admin/resume" className="flex items-center justify-center p-3 rounded border hover:bg-accent text-sm">
+              Resume
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
