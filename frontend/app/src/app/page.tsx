@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 
 // Types for API responses
 interface Project {
@@ -128,51 +127,62 @@ export default async function Home() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/10 rounded-full blur-3xl -z-10" />
       </section>
 
-      {/* Projects Section */}
+      {/* Projects Section - only featured projects */}
       <section id="projects" className="py-20 md:py-32 container px-4 md:px-6 mx-auto">
         <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-12 text-center">Featured Projects</h2>
-        {projects.length > 0 ? (
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {(projects as Project[]).slice(0, 6).map((project) => (
-              <div key={project.id} className="group relative overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md">
-                <div className="aspect-video w-full bg-muted flex items-center justify-center text-muted-foreground relative">
-                  {project.imageUrl ? (
-                    <Image src={project.imageUrl} alt={project.title} fill className="object-cover" unoptimized />
-                  ) : (
-                    "No Image"
-                  )}
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold mb-2">{project.title}</h3>
-                  <p className="text-muted-foreground mb-4 line-clamp-2">{project.description}</p>
-                  <div className="flex gap-2 flex-wrap mb-4">
-                    {project.technologies.slice(0, 4).map((tech) => (
-                      <span key={tech} className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold text-foreground">
-                        {tech}
-                      </span>
-                    ))}
+        {(() => {
+          const featuredProjects = (projects as Project[]).filter((p) => p.featured === true);
+          return featuredProjects.length > 0 ? (
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {featuredProjects.map((project) => {
+                const techs = Array.isArray(project.technologies) ? project.technologies : [];
+                return (
+                  <div key={project.id} className="group relative overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md">
+                    <div className="aspect-video w-full bg-muted flex items-center justify-center text-muted-foreground relative overflow-hidden">
+                      {project.imageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={project.imageUrl}
+                          alt={project.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        "No Image"
+                      )}
+                    </div>
+                    <div className="p-6">
+                      <h3 className="text-xl font-bold mb-2">{project.title}</h3>
+                      <p className="text-muted-foreground mb-4 line-clamp-2">{project.description}</p>
+                      <div className="flex gap-2 flex-wrap mb-4">
+                        {techs.map((tech, i) => (
+                          <span key={`${tech}-${i}`} className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold text-foreground">
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-4 mt-1">
+                        {project.liveUrl && (
+                          <Link href={project.liveUrl} target="_blank" className="text-sm font-medium hover:underline underline-offset-4 decoration-primary text-primary">
+                            Live Demo
+                          </Link>
+                        )}
+                        {project.githubUrl && (
+                          <Link href={project.githubUrl} target="_blank" className="text-sm font-medium hover:underline underline-offset-4 decoration-primary text-primary">
+                            GitHub
+                          </Link>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex gap-4">
-                    {project.liveUrl && (
-                      <Link href={project.liveUrl} target="_blank" className="text-sm font-medium hover:underline underline-offset-4 decoration-primary text-primary">
-                        Live Demo
-                      </Link>
-                    )}
-                    {project.githubUrl && (
-                      <Link href={project.githubUrl} target="_blank" className="text-sm font-medium hover:underline underline-offset-4 decoration-primary text-primary">
-                        GitHub
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 text-muted-foreground">
-            <p>No projects yet. Check back soon!</p>
-          </div>
-        )}
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <p>No featured projects yet.</p>
+            </div>
+          );
+        })()}
       </section>
 
       {/* Skills Section */}
