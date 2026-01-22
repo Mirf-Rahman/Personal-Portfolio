@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
+import { authenticatedFetch, fetchApi } from "@/lib/api";
 import Link from "next/link";
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 interface Stats {
   skills: number;
@@ -29,22 +28,11 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [skillsRes, projectsRes, testimonialsRes, messagesRes] = await Promise.all([
-          fetch(`${API_URL}/api/skills`),
-          fetch(`${API_URL}/api/projects`),
-          fetch(`${API_URL}/api/testimonials/all`, {
-            headers: { Authorization: `Bearer ${session?.session.token || ""}` },
-          }),
-          fetch(`${API_URL}/api/messages`, {
-            headers: { Authorization: `Bearer ${session?.session.token || ""}` },
-          }),
-        ]);
-
         const [skills, projects, testimonials, messages] = await Promise.all([
-          skillsRes.ok ? skillsRes.json() : [],
-          projectsRes.ok ? projectsRes.json() : [],
-          testimonialsRes.ok ? testimonialsRes.json() : [],
-          messagesRes.ok ? messagesRes.json() : [],
+          fetchApi<any[]>("/api/skills").catch(() => []),
+          fetchApi<any[]>("/api/projects").catch(() => []),
+          authenticatedFetch<any[]>("/api/testimonials/all").catch(() => []),
+          authenticatedFetch<any[]>("/api/messages").catch(() => []),
         ]);
 
         setStats({
@@ -84,7 +72,7 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">Welcome back! Here's an overview of your portfolio.</p>
+        <p className="text-muted-foreground mt-2">Welcome back! Here&apos;s an overview of your portfolio.</p>
       </div>
 
       {loading ? (

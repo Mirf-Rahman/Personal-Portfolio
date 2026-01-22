@@ -21,14 +21,25 @@ async function seed() {
 
     console.log("📝 Seeding initial data...");
 
+    // Default icon URLs for skills
+    const skillIcons: Record<string, string> = {
+      "React": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg",
+      "TypeScript": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg",
+      "Next.js": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg",
+      "Node.js": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg",
+      "PostgreSQL": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postgresql/postgresql-original.svg",
+      "Docker": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg",
+      "Python": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg",
+    };
+
     // Seed Skills
     const skills = await db.insert(schema.skills).values([
-      { name: "React", category: "Frontend", order: 1 },
-      { name: "TypeScript", category: "Frontend", order: 2 },
-      { name: "Next.js", category: "Frontend", order: 3 },
-      { name: "Node.js", category: "Backend", order: 4 },
-      { name: "PostgreSQL", category: "Database", order: 5 },
-      { name: "Docker", category: "DevOps", order: 6 },
+      { name: "React", category: "Frontend", order: 1, iconUrl: skillIcons["React"] },
+      { name: "TypeScript", category: "Frontend", order: 2, iconUrl: skillIcons["TypeScript"] },
+      { name: "Next.js", category: "Frontend", order: 3, iconUrl: skillIcons["Next.js"] },
+      { name: "Node.js", category: "Backend", order: 4, iconUrl: skillIcons["Node.js"] },
+      { name: "PostgreSQL", category: "Database", order: 5, iconUrl: skillIcons["PostgreSQL"] },
+      { name: "Docker", category: "DevOps", order: 6, iconUrl: skillIcons["Docker"] },
     ]).returning();
     console.log(`✅ Seeded ${skills.length} skills`);
 
