@@ -48,12 +48,13 @@ services:
             STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
 
             # DO Spaces file storage configuration
-            FILE_MINIO_ENDPOINT: ${FILE_MINIO_ENDPOINT}
-            FILE_MINIO_ACCESS_KEY: ${FILE_MINIO_ACCESS_KEY}
-            FILE_MINIO_SECRET_KEY: ${FILE_MINIO_SECRET_KEY}
-            FILE_MINIO_SECURE: "true"
-            FILE_MINIO_BUCKET_PRODUCTS: ${FILE_MINIO_BUCKET_PRODUCTS}
-            FILE_MINIO_BUCKET_INVOICES: ${FILE_MINIO_BUCKET_INVOICES}
+            SPACES_ENDPOINT: ${SPACES_ENDPOINT}
+            SPACES_ACCESS_KEY: ${SPACES_ACCESS_KEY}
+            SPACES_SECRET_KEY: ${SPACES_SECRET_KEY}
+            SPACES_BUCKET: ${SPACES_BUCKET}
+            SPACES_REGION: ${SPACES_REGION}
+            SPACES_CDN_URL: ${SPACES_CDN_URL}
+            SPACES_FOLDER_PREFIX: ${SPACES_FOLDER_PREFIX}
 
             # Email service configuration
             EMAIL_SERVICE_URL: http://email-service:3003
@@ -233,16 +234,16 @@ networks:
 # =============================================================================
 # Production Notes:
 # =============================================================================
-# 1. This compose file does NOT include databases or MinIO
+# 1. This compose file does NOT include databases
 #    - Use Digital Ocean Managed PostgreSQL for databases
-#    - Use Digital Ocean Spaces for object storage
+#    - Use Digital Ocean Spaces for object storage (configured via SPACES_* env vars)
 #
 # 2. Required .env.prod variables:
 #    - SPRING_DATASOURCE_URL (managed PostgreSQL connection string)
 #    - DATABASE_URL (managed PostgreSQL connection string for auth)
 #    - All secrets (AUTH_JWT_SECRET, BETTER_AUTH_SECRET, etc.)
 #    - Production URLs (CORS_ORIGINS, STORE_APP_URL, etc.)
-#    - DO Spaces credentials (FILE_MINIO_*)
+#    - DO Spaces credentials (SPACES_*)
 #
 # 3. DO NOT use seed-users.sh in production
 #    - Create admin account via SQL after deployment
