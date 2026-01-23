@@ -323,7 +323,7 @@ export default function MessagesManagementPage() {
                       disabled={actionLoading === selectedMessage.id}
                       className="text-sm text-destructive hover:underline disabled:opacity-50"
                     >
-                      {actionLoading === selectedMessage.id ? "Deleting..." : "Delete"}
+                      Delete
                     </button>
                   </div>
                 </div>
