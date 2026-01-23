@@ -277,9 +277,18 @@ export default async function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             {(hobbies as Hobby[]).map((hobby) => (
               <div key={hobby.id} className="flex flex-col items-center justify-center p-6 rounded-lg border bg-card hover:bg-muted/50 transition-colors aspect-square">
-                <div className="w-12 h-12 rounded-full bg-primary/10 mb-4 flex items-center justify-center text-primary text-xl font-bold">
-                  {hobby.name[0]}
-                </div>
+                {hobby.iconUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={hobby.iconUrl}
+                    alt={hobby.name}
+                    className="w-12 h-12 object-contain mb-4"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-primary/10 mb-4 flex items-center justify-center text-primary text-xl font-bold">
+                    {hobby.name[0]}
+                  </div>
+                )}
                 <span className="font-medium">{hobby.name}</span>
               </div>
             ))}
