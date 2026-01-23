@@ -9,6 +9,9 @@ import Link from "next/link";
 interface Stats {
   skills: number;
   projects: number;
+  experiences: number;
+  education: number;
+  hobbies: number;
   testimonials: number;
   messages: number;
 }
@@ -16,7 +19,15 @@ interface Stats {
 export default function AdminDashboard() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
-  const [stats, setStats] = useState<Stats>({ skills: 0, projects: 0, testimonials: 0, messages: 0 });
+  const [stats, setStats] = useState<Stats>({
+    skills: 0,
+    projects: 0,
+    experiences: 0,
+    education: 0,
+    hobbies: 0,
+    testimonials: 0,
+    messages: 0,
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,9 +39,12 @@ export default function AdminDashboard() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [skills, projects, testimonials, messages] = await Promise.all([
+        const [skills, projects, experiences, education, hobbies, testimonials, messages] = await Promise.all([
           fetchApi<any[]>("/api/skills").catch(() => []),
           fetchApi<any[]>("/api/projects").catch(() => []),
+          fetchApi<any[]>("/api/experiences").catch(() => []),
+          fetchApi<any[]>("/api/education").catch(() => []),
+          fetchApi<any[]>("/api/hobbies").catch(() => []),
           authenticatedFetch<any[]>("/api/testimonials/all").catch(() => []),
           authenticatedFetch<any[]>("/api/messages").catch(() => []),
         ]);
@@ -38,6 +52,9 @@ export default function AdminDashboard() {
         setStats({
           skills: skills.length,
           projects: projects.length,
+          experiences: experiences.length,
+          education: education.length,
+          hobbies: hobbies.length,
           testimonials: testimonials.length,
           messages: messages.length,
         });
@@ -64,6 +81,9 @@ export default function AdminDashboard() {
   const cards = [
     { title: "Skills", count: stats.skills, href: "/admin/skills", icon: "⚡", color: "from-blue-600 to-cyan-600" },
     { title: "Projects", count: stats.projects, href: "/admin/projects", icon: "🚀", color: "from-purple-600 to-pink-600" },
+    { title: "Experience", count: stats.experiences, href: "/admin/experience", icon: "💼", color: "from-amber-600 to-orange-600" },
+    { title: "Education", count: stats.education, href: "/admin/education", icon: "🎓", color: "from-teal-600 to-cyan-600" },
+    { title: "Hobbies", count: stats.hobbies, href: "/admin/hobbies", icon: "🎯", color: "from-indigo-600 to-violet-600" },
     { title: "Testimonials", count: stats.testimonials, href: "/admin/testimonials", icon: "💬", color: "from-green-600 to-emerald-600" },
     { title: "Messages", count: stats.messages, href: "/admin/messages", icon: "📧", color: "from-orange-600 to-red-600" },
   ];
@@ -77,7 +97,7 @@ export default function AdminDashboard() {
 
       {loading ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
+          {[1, 2, 3, 4, 5, 6, 7].map((i) => (
             <div key={i} className="h-32 bg-muted animate-pulse rounded-lg" />
           ))}
         </div>
@@ -114,6 +134,15 @@ export default function AdminDashboard() {
             </Link>
             <Link href="/admin/skills" className="flex items-center gap-2 text-sm hover:underline text-primary">
               <span>→</span> Add New Skill
+            </Link>
+            <Link href="/admin/experience" className="flex items-center gap-2 text-sm hover:underline text-primary">
+              <span>→</span> Add Experience
+            </Link>
+            <Link href="/admin/education" className="flex items-center gap-2 text-sm hover:underline text-primary">
+              <span>→</span> Add Education
+            </Link>
+            <Link href="/admin/hobbies" className="flex items-center gap-2 text-sm hover:underline text-primary">
+              <span>→</span> Add Hobby
             </Link>
             <Link href="/admin/testimonials" className="flex items-center gap-2 text-sm hover:underline text-primary">
               <span>→</span> Review Testimonials

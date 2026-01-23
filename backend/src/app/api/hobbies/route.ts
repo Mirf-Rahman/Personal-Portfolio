@@ -5,8 +5,14 @@ import { requireAdmin } from "@/lib/auth";
 // GET /api/hobbies - List all hobbies (public)
 export async function GET() {
   try {
-    const hobbies = await db.select().from(schema.hobbies).orderBy(schema.hobbies.order);
-    return NextResponse.json(hobbies);
+    const hobbies = await db
+      .select()
+      .from(schema.hobbies)
+      .orderBy(schema.hobbies.order);
+
+    const res = NextResponse.json(hobbies);
+    res.headers.set("Cache-Control", "no-store");
+    return res;
   } catch (error) {
     console.error("Error fetching hobbies:", error);
     return NextResponse.json({ error: "Failed to fetch hobbies" }, { status: 500 });
@@ -26,14 +32,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Name is required" }, { status: 400 });
     }
 
-    const [newHobby] = await db.insert(schema.hobbies).values({
-      name,
-      nameFr: nameFr || null,
-      description: description || null,
-      descriptionFr: descriptionFr || null,
-      iconUrl: iconUrl || null,
-      order: order || 0,
-    }).returning();
+    let orderValue = typeof order === "number" && order > 0 ? order : 0;
+    if (orderValue === 0) {
+      const rows = await db.select({ order: schema.hobbies.order }).from(schema.hobbies);
+      const maxOrder = rows.length ? Math.max(...rows.map((r) => r.order)) : 0;
+      orderValue = maxOrder + 1;
+    }
+
+    const [newHobby] = await db
+      .insert(schema.hobbies)
+      .values({
+        name,
+        nameFr: nameFr || null,
+        description: description || null,
+        descriptionFr: descriptionFr || null,
+        iconUrl: iconUrl || null,
+        order: orderValue,
+      })
+      .returning();
 
     return NextResponse.json(newHobby, { status: 201 });
   } catch (error) {
