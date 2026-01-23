@@ -72,6 +72,7 @@ export interface Testimonial {
   contentFr?: string;
   imageUrl?: string;
   approved: boolean;
+  order: number;
   createdAt: string;
 }
 

@@ -81,6 +81,7 @@ export interface Testimonial {
   contentFr?: string | null;
   imageUrl?: string | null;
   approved: boolean;
+  order: number;
   createdAt: Date;
   updatedAt: Date;
 }

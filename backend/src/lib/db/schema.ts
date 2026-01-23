@@ -86,6 +86,7 @@ export const testimonials = pgTable("testimonials", {
   contentFr: text("content_fr"),
   imageUrl: text("image_url"),
   approved: boolean("approved").notNull().default(false),
+  order: integer("order").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
