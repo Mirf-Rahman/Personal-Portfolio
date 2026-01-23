@@ -65,16 +65,16 @@ services:
             AUTH_JWT_ISS: portfolio-auth
             AUTH_JWT_AUD: portfolio-api
             CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
-            FILE_MINIO_ENDPOINT: ${FILE_MINIO_ENDPOINT:-minio:9000}
-            FILE_MINIO_ACCESS_KEY: ${FILE_MINIO_ACCESS_KEY:-minioadmin}
-            FILE_MINIO_SECRET_KEY: ${FILE_MINIO_SECRET_KEY:-minioadmin}
-            FILE_MINIO_SECURE: ${FILE_MINIO_SECURE:-false}
-            FILE_MINIO_BUCKET: ${FILE_MINIO_BUCKET:-portfolio-files}
+            SPACES_ENDPOINT: ${SPACES_ENDPOINT}
+            SPACES_ACCESS_KEY: ${SPACES_ACCESS_KEY}
+            SPACES_SECRET_KEY: ${SPACES_SECRET_KEY}
+            SPACES_BUCKET: ${SPACES_BUCKET}
+            SPACES_REGION: ${SPACES_REGION:-nyc3}
+            SPACES_CDN_URL: ${SPACES_CDN_URL}
+            SPACES_FOLDER_PREFIX: ${SPACES_FOLDER_PREFIX:-dev}
         depends_on:
             app-db:
                 condition: service_healthy
-            minio:
-                condition: service_started
         ports:
             - "8080:8080"
         networks:
@@ -111,25 +111,6 @@ services:
                 condition: service_healthy
         ports:
             - "3001:3001"
-        networks:
-            - portfolio-net
-
-    # --------------------
-    # MinIO (Object Storage)
-    # --------------------
-    minio:
-        image: ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z
-        container_name: minio
-        restart: unless-stopped
-        command: server /data --console-address ":9001"
-        environment:
-            MINIO_ROOT_USER: ${FILE_MINIO_ACCESS_KEY:-minioadmin}
-            MINIO_ROOT_PASSWORD: ${FILE_MINIO_SECRET_KEY:-minioadmin}
-        ports:
-            - "9000:9000"
-            - "9001:9001"
-        volumes:
-            - ./data/minio:/data
         networks:
             - portfolio-net
 

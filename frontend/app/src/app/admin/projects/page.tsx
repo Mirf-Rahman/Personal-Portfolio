@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { authenticatedFetch, fetchApi } from "@/lib/api";
+import ImageUpload from "@/components/ImageUpload";
 
 interface Project {
   id: string;
@@ -234,13 +235,12 @@ export default function ProjectsManagementPage() {
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="text-sm font-medium mb-2 block">Image URL</label>
-                <input
-                  type="url"
+                <ImageUpload
                   value={formData.imageUrl}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  placeholder="https://..."
-                  className="w-full px-3 py-2 border rounded-md bg-background"
+                  onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+                  label="Image URL"
+                  accept="image/*"
+                  maxSize={10}
                 />
               </div>
               <div>

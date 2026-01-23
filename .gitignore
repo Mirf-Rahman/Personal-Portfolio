@@ -33,14 +33,6 @@ build/
 # Docker
 *.log
 
-# MinIO data (persistent storage)
-# Ignore MinIO system files
-data/minio/.minio.sys/
-
-# Keep bucket directories
-!data/minio/portfolio-files/
-!data/minio/portfolio-files/**
-
 # OS
 Thumbs.db
 .DS_Store
