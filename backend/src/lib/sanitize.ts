@@ -118,3 +118,46 @@ export function containsSpamPatterns(text: string): boolean {
 
   return false;
 }
+
+/**
+ * Validate URL format
+ */
+export function isValidUrl(url: string): boolean {
+  if (!url || typeof url !== "string") {
+    return false;
+  }
+
+  try {
+    const urlObj = new URL(url);
+    return urlObj.protocol === "http:" || urlObj.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Sanitize testimonial form data
+ */
+export interface TestimonialFormData {
+  name: string;
+  position: string;
+  company: string;
+  content: string;
+  contentFr: string;
+}
+
+export function sanitizeTestimonialForm(data: {
+  name?: unknown;
+  position?: unknown;
+  company?: unknown;
+  content?: unknown;
+  contentFr?: unknown;
+}): TestimonialFormData {
+  return {
+    name: sanitizeString(String(data.name || "")),
+    position: sanitizeString(String(data.position || "")),
+    company: sanitizeString(String(data.company || "")),
+    content: sanitizeText(String(data.content || "")),
+    contentFr: sanitizeText(String(data.contentFr || "")),
+  };
+}
