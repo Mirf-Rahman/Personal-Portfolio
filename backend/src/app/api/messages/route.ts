@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
         field: "name",
         message: "Name must be no more than 100 characters",
       });
-    } else if (!/^[a-zA-Z\s\-'\.]+$/.test(sanitized.name)) {
+    } else if (!/^[\p{L}\p{M}\s\-'\.]+$/u.test(sanitized.name)) {
       validationErrors.push({
         field: "name",
         message: "Name contains invalid characters",
