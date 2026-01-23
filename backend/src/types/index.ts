@@ -113,3 +113,21 @@ export interface ContactInfo {
   twitter?: string | null;
   updatedAt: Date;
 }
+
+// Validation error types
+export interface ValidationError {
+  field: string;
+  message: string;
+}
+
+export interface ApiError {
+  error: string;
+  code?: string;
+  details?: ValidationError[];
+}
+
+// Rate limit error
+export interface RateLimitError extends ApiError {
+  code: "RATE_LIMIT_EXCEEDED";
+  retryAfter?: number;
+}
