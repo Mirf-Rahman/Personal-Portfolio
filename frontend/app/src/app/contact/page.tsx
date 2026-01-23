@@ -40,36 +40,42 @@ export default function ContactPage() {
     switch (field) {
       case "name":
         if (!value.trim()) return "Name is required";
-        if (value.length < LIMITS.name.min)
+        const trimmedName = value.trim();
+        if (trimmedName.length < LIMITS.name.min)
           return `Name must be at least ${LIMITS.name.min} characters`;
-        if (value.length > LIMITS.name.max)
+        if (trimmedName.length > LIMITS.name.max)
           return `Name must be no more than ${LIMITS.name.max} characters`;
-        if (!/^[a-zA-Z\s\-'\.]+$/.test(value))
+        if (!/^[a-zA-Z\s\-'\.]+$/.test(trimmedName))
           return "Name contains invalid characters";
         return undefined;
 
       case "email":
         if (!value.trim()) return "Email is required";
-        if (value.length > LIMITS.email.max)
+        const trimmedEmail = value.trim();
+        if (trimmedEmail.length < LIMITS.email.min)
+          return `Email must be at least ${LIMITS.email.min} characters`;
+        if (trimmedEmail.length > LIMITS.email.max)
           return `Email must be no more than ${LIMITS.email.max} characters`;
         const emailRegex =
           /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-        if (!emailRegex.test(value)) return "Invalid email format";
+        if (!emailRegex.test(trimmedEmail)) return "Invalid email format";
         return undefined;
 
       case "subject":
         if (!value.trim()) return "Subject is required";
-        if (value.length < LIMITS.subject.min)
+        const trimmedSubject = value.trim();
+        if (trimmedSubject.length < LIMITS.subject.min)
           return `Subject must be at least ${LIMITS.subject.min} characters`;
-        if (value.length > LIMITS.subject.max)
+        if (trimmedSubject.length > LIMITS.subject.max)
           return `Subject must be no more than ${LIMITS.subject.max} characters`;
         return undefined;
 
       case "message":
         if (!value.trim()) return "Message is required";
-        if (value.length < LIMITS.message.min)
+        const trimmedMessage = value.trim();
+        if (trimmedMessage.length < LIMITS.message.min)
           return `Message must be at least ${LIMITS.message.min} characters`;
-        if (value.length > LIMITS.message.max)
+        if (trimmedMessage.length > LIMITS.message.max)
           return `Message must be no more than ${LIMITS.message.max} characters`;
         return undefined;
 
@@ -190,7 +196,20 @@ export default function ContactPage() {
         body: JSON.stringify({ name, email, subject, message }),
       });
 
-      const data = await res.json();
+      // Check Content-Type before parsing response
+      const contentType = res.headers.get("content-type");
+      let data: any;
+      
+      if (contentType && contentType.includes("application/json")) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        setError(
+          `Server error (${res.status}): ${text || "Unexpected response format"}`
+        );
+        setLoading(false);
+        return;
+      }
 
       if (!res.ok) {
         // Handle validation errors from server
