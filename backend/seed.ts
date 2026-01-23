@@ -65,11 +65,11 @@ async function seed() {
     // Seed Education
     const educationEntries = await db.insert(schema.education).values([
       {
-        institution: "University of Example",
-        degree: "Bachelor of Science",
+        institution: "Champlain College Saint-Lambert",
+        degree: "DEC",
         field: "Computer Science",
-        startDate: new Date("2018-09-01"),
-        endDate: new Date("2022-05-15"),
+        startDate: new Date("2023-08-01"),
+        endDate: new Date("2026-06-15"),
         current: false,
         description: "Focused on software engineering and data structures",
         order: 1,
@@ -80,11 +80,11 @@ async function seed() {
     // Seed Experiences
     const experiencesData = await db.insert(schema.experiences).values([
       {
-        company: "Tech Corp",
-        position: "Senior Full Stack Developer",
-        description: "Led development of enterprise web applications using React and Node.js",
-        location: "San Francisco, CA",
-        startDate: new Date("2022-06-01"),
+        company: "L'Original (Artur.art)",
+        position: "Junior Full Stack Developer (Internship)",
+        description: "Led development of enterprise web applications using React and Next.js",
+        location: "Montreal, QC",
+        startDate: new Date("2026-02-01"),
         endDate: null,
         current: true,
         order: 1,
