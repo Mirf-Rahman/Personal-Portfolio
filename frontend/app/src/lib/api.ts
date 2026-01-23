@@ -65,3 +65,42 @@ export function getImageUrl(path: string): string {
   if (path.startsWith("http")) return path;
   return `${API_URL}/api/files/${path}`;
 }
+
+// Upload a file to DigitalOcean Spaces
+export async function uploadFile(file: File): Promise<string> {
+  const token = await getAuthToken();
+  if (!token) {
+    throw new Error("Not authenticated. Please log in again.");
+  }
+
+  // Create FormData with the file
+  const formData = new FormData();
+  formData.append("file", file);
+
+  // Upload to backend
+  const response = await fetch(`${API_URL}/api/files`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      // Don't set Content-Type - browser will set it with boundary for FormData
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    // Try to parse error message from response
+    let errorMessage = `Upload failed: ${response.status} ${response.statusText}`;
+    try {
+      const errorData = await response.json();
+      if (errorData.error) {
+        errorMessage = errorData.error;
+      }
+    } catch {
+      // If parsing fails, use default message
+    }
+    throw new Error(errorMessage);
+  }
+
+  const data = await response.json();
+  return data.url; // Return the CDN URL
+}
