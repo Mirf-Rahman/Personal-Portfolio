@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { authenticatedFetch, fetchApi } from "@/lib/api";
+import ImageUpload from "@/components/ImageUpload";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
@@ -241,13 +242,12 @@ export default function SkillsManagementPage() {
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">Icon URL</label>
-              <input
-                type="url"
+              <ImageUpload
                 value={formData.iconUrl}
-                onChange={(e) => setFormData({ ...formData, iconUrl: e.target.value })}
-                placeholder="https://..."
-                className="w-full px-3 py-2 border rounded-md bg-background"
+                onChange={(url) => setFormData({ ...formData, iconUrl: url })}
+                label="Icon URL"
+                accept="image/*"
+                maxSize={10}
               />
             </div>
             {editingSkill && (
