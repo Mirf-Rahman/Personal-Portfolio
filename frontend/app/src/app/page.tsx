@@ -48,19 +48,30 @@ interface Hobby {
   iconUrl: string | null;
 }
 
+interface Testimonial {
+  id: string;
+  name: string;
+  position: string | null;
+  company: string | null;
+  content: string;
+  imageUrl: string | null;
+  order: number;
+}
+
 const API_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 async function getHomeData() {
   try {
-    const [projectsRes, skillsRes, experiencesRes, educationRes, hobbiesRes] = await Promise.allSettled([
+    const [projectsRes, skillsRes, experiencesRes, educationRes, hobbiesRes, testimonialsRes] = await Promise.allSettled([
       fetch(`${API_URL}/api/projects`, { cache: 'no-store' }),
       fetch(`${API_URL}/api/skills`, { cache: 'no-store' }),
       fetch(`${API_URL}/api/experiences`, { cache: 'no-store' }),
       fetch(`${API_URL}/api/education`, { cache: 'no-store' }),
       fetch(`${API_URL}/api/hobbies`, { cache: 'no-store' }),
+      fetch(`${API_URL}/api/testimonials`, { cache: 'no-store' }),
     ]);
 
-    const [projects, skills, experiences, education, hobbies] = await Promise.all([
+    const [projects, skills, experiences, education, hobbies, testimonials] = await Promise.all([
       projectsRes.status === 'fulfilled' && projectsRes.value.ok 
         ? projectsRes.value.json().catch(() => []) 
         : [],
@@ -76,12 +87,15 @@ async function getHomeData() {
       hobbiesRes.status === 'fulfilled' && hobbiesRes.value.ok 
         ? hobbiesRes.value.json().catch(() => []) 
         : [],
+      testimonialsRes.status === 'fulfilled' && testimonialsRes.value.ok 
+        ? testimonialsRes.value.json().catch(() => []) 
+        : [],
     ]);
 
-    return { projects, skills, experiences, education, hobbies };
+    return { projects, skills, experiences, education, hobbies, testimonials };
   } catch (error) {
     console.error("Error fetching home data:", error);
-    return { projects: [], skills: [], experiences: [], education: [], hobbies: [] };
+    return { projects: [], skills: [], experiences: [], education: [], hobbies: [], testimonials: [] };
   }
 }
 
@@ -93,7 +107,7 @@ function formatDate(dateString: string): string {
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  const { projects, skills, experiences, education, hobbies } = await getHomeData();
+  const { projects, skills, experiences, education, hobbies, testimonials } = await getHomeData();
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -298,6 +312,74 @@ export default async function Home() {
             <p>Hobbies coming soon...</p>
           </div>
         )}
+      </section>
+
+      {/* Testimonials Section */}
+      <section id="testimonials" className="py-20 md:py-32 bg-muted/30">
+        <div className="container px-4 md:px-6 mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4">
+              What People Say
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Kind words from colleagues, clients, and friends I&apos;ve had the pleasure of working with.
+            </p>
+          </div>
+          
+          {testimonials.length > 0 ? (
+            <>
+              <div className="overflow-x-auto pb-4 mb-8">
+                <div className="flex gap-6 min-w-max px-2">
+                  {(testimonials as Testimonial[]).map((t) => (
+                    <div key={t.id} className="flex flex-col justify-between rounded-lg border bg-card p-6 shadow-sm w-[350px] flex-shrink-0">
+                      <div className="mb-4">
+                        <svg
+                          className="h-8 w-8 text-primary/20 mb-4"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M14.017 21L14.017 18C14.017 16.896 14.321 16.059 14.929 15.489C15.536 14.919 16.486 14.489 17.779 14.199L18.429 14.029L18.429 8.939L17.779 9.179C12.879 10.979 11.279 15.339 10.979 21L14.017 21ZM5.00003 21L8.03803 21C7.73803 15.339 6.13803 10.979 1.23803 9.179L0.588028 8.939L0.588028 14.029L1.23803 14.199C2.53103 14.489 3.48103 14.919 4.08803 15.489C4.69503 16.059 5.00003 16.896 5.00003 18L5.00003 21Z" />
+                        </svg>
+                        <p className="text-muted-foreground italic line-clamp-4">&quot;{t.content}&quot;</p>
+                      </div>
+                      <div className="flex items-center gap-4 mt-6">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center text-sm font-bold text-white flex-shrink-0">
+                          {t.name.split(" ").map(n => n[0]).join("").slice(0, 2)}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm">{t.name}</p>
+                          {(t.position || t.company) && (
+                            <p className="text-xs text-muted-foreground">
+                              {t.position}{t.position && t.company ? " at " : ""}{t.company}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="flex justify-center">
+                <Link
+                  href="/testimonials"
+                  className="inline-flex h-12 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  Leave a Testimonial
+                </Link>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground mb-6">No testimonials yet. Be the first to leave one!</p>
+              <Link
+                href="/testimonials"
+                className="inline-flex h-12 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                Leave a Testimonial
+              </Link>
+            </div>
+          )}
+        </div>
       </section>
     </div>
   );
