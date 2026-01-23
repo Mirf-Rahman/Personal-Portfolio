@@ -96,19 +96,18 @@ export function containsSpamPatterns(text: string): boolean {
 
   const lowerText = text.toLowerCase();
 
-  // Common spam patterns
-  const spamPatterns = [
-    /\b(viagra|cialis|casino|poker|lottery|winner|prize|free money)\b/i,
-    /\b(click here|buy now|limited time|act now|urgent)\b/i,
-    /(http|https|www\.)\S+/gi, // Multiple URLs
-    /\b\d{10,}\b/, // Long number sequences (phone numbers)
-  ];
-
-  // Check for excessive links
+  // Check for excessive links (handled separately from pattern matching)
   const urlCount = (lowerText.match(/(http|https|www\.)/gi) || []).length;
   if (urlCount > 3) {
     return true;
   }
+
+  // Common spam patterns
+  const spamPatterns = [
+    /\b(viagra|cialis|casino|poker|lottery|winner|prize|free money)\b/i,
+    /\b(click here|buy now|limited time|act now|urgent)\b/i,
+    /\b\d{10,}\b/, // Long number sequences (phone numbers)
+  ];
 
   // Check for spam keywords
   for (const pattern of spamPatterns) {
