@@ -8,7 +8,7 @@ COPY package.json package-lock.json* ./
 
 # Install dependencies with cache mount for faster rebuilds
 RUN --mount=type=cache,target=/root/.npm \
-    npm ci
+  npm ci --legacy-peer-deps
 
 # Copy source code
 COPY . .
@@ -32,13 +32,13 @@ ENV NODE_ENV=production
 
 # Create a non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nextjs -u 1001
+  adduser -S nextjs -u 1001
 
 # Copy package files from build stage
 COPY --from=build /app/package.json /app/package-lock.json* ./
 
 # Install production dependencies only
-RUN npm ci --only=production
+RUN npm ci --only=production --legacy-peer-deps
 
 # Copy built application
 COPY --from=build /app/.next ./.next

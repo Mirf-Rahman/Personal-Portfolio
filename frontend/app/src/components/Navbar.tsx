@@ -1,13 +1,38 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { motion, AnimatePresence, useScroll, useTransform, useMotionTemplate } from "framer-motion";
 import { authClient } from "@/lib/auth-client";
+import { Menu, X, LayoutDashboard, LogOut } from "lucide-react";
+
+const navLinks = [
+  { href: "/#projects", label: "Projects", isAnchor: true },
+  { href: "/#skills", label: "Skills", isAnchor: true },
+  { href: "/#experience", label: "Experience", isAnchor: true },
+  { href: "/testimonials", label: "Testimonials", isAnchor: false },
+  { href: "/contact", label: "Contact", isAnchor: false },
+];
 
 export function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { data: session, isPending } = authClient.useSession();
   const isAdmin = (session?.user as { role?: string })?.role === "ADMIN";
+
+  const { scrollY } = useScroll();
+  const navbarOpacity = useTransform(scrollY, [0, 100], [0, 0.8]);
+  const navbarBlur = useTransform(scrollY, [0, 100], [0, 12]);
+  
+  // Use useMotionTemplate to properly interpolate motion values
+  const backgroundColor = useMotionTemplate`rgba(2, 6, 23, ${navbarOpacity})`;
+  const backdropFilter = useMotionTemplate`blur(${navbarBlur}px)`;
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   const handleLogout = async () => {
     await authClient.signOut();
@@ -15,95 +40,253 @@ export function Navbar() {
     router.refresh();
   };
 
+  // Handle navigation for all links
+  const handleNavigation = (href: string, isAnchor: boolean) => {
+    if (isAnchor && pathname === "/") {
+      // For anchor links on homepage, smooth scroll
+      const selector = href.startsWith("/#") ? href.slice(1) : href;
+      const element = document.querySelector(selector);
+      element?.scrollIntoView({ behavior: "smooth" });
+    } else if (isAnchor) {
+      // For anchor links on other pages, navigate to homepage with anchor
+      router.push(href);
+    } else {
+      // Page navigation: from / client router fails; use full navigation
+      if (pathname === "/") {
+        window.location.href = href;
+      } else {
+        router.push(href);
+      }
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link href="/" className="flex items-center space-x-2">
-          <span className="text-xl font-bold">Mirf.dev</span>
-        </Link>
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-          <Link
-            href="/#projects"
-            className="transition-colors hover:text-foreground/80 text-foreground/60"
-          >
-            Projects
-          </Link>
-          <Link
-            href="/#skills"
-            className="transition-colors hover:text-foreground/80 text-foreground/60"
-          >
-            Skills
-          </Link>
-          <Link
-            href="/#experience"
-            className="transition-colors hover:text-foreground/80 text-foreground/60"
-          >
-            Experience
-          </Link>
-          <Link
-            href="/#education"
-            className="transition-colors hover:text-foreground/80 text-foreground/60"
-          >
-            Education
-          </Link>
-          <Link
-            href="/#hobbies"
-            className="transition-colors hover:text-foreground/80 text-foreground/60"
-          >
-            Hobbies
-          </Link>
-          <Link
-            href="/testimonials"
-            className="transition-colors hover:text-foreground/80 text-foreground/60"
-          >
-            Testimonials
-          </Link>
-          <Link
-            href="/contact"
-            className="transition-colors hover:text-foreground/80 text-foreground/60"
-          >
-            Contact
-          </Link>
-        </nav>
-        <div className="flex items-center space-x-4">
-          {isPending ? (
-            <div className="h-9 w-20 bg-muted animate-pulse rounded-md" />
-          ) : isAdmin ? (
-            <>
-              {/* Admin Badge */}
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-3 py-1 text-xs font-semibold text-white shadow-md">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  Admin
-                </span>
-              </div>
-              {/* Dashboard Link */}
-              <Link
-                href="/admin/dashboard"
-                className="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                Dashboard
-              </Link>
-              {/* Logout Button */}
-              <button
-                onClick={handleLogout}
-                className="inline-flex h-9 items-center justify-center rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground shadow transition-colors hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <Link
-              href="/login"
-              className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+    <>
+      <motion.header
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="fixed top-0 left-0 right-0 z-[9999]"
+      >
+        <motion.div
+          style={{
+            backgroundColor,
+            backdropFilter,
+          }}
+          className="transition-colors duration-300 border-b border-white/5"
+        >
+          <div className="container mx-auto flex h-16 md:h-20 items-center justify-between px-4">
+            <Link 
+              href="/" 
+              className="flex items-center space-x-2"
+              onClick={(e) => {
+                if (pathname === "/") {
+                  e.preventDefault();
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }
+              }}
             >
-              Login
+              <motion.span
+                className="text-xl md:text-2xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent"
+                whileHover={{ scale: 1.05 }}
+              >
+                Mirf.dev
+              </motion.span>
             </Link>
-          )}
-        </div>
-      </div>
-    </header>
+
+            <nav className="hidden lg:flex items-center space-x-1">
+              {navLinks.map((link) => {
+                const baseClass =
+                  "relative px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors group cursor-pointer";
+                if (link.isAnchor) {
+                  return (
+                    <button
+                      key={link.href}
+                      onClick={() => handleNavigation(link.href, true)}
+                      className={baseClass}
+                    >
+                      {link.label}
+                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-cyan-400 group-hover:w-3/4 transition-all duration-300" />
+                    </button>
+                  );
+                }
+                if (pathname === "/") {
+                  return (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      className={baseClass}
+                    >
+                      {link.label}
+                      <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-cyan-400 group-hover:w-3/4 transition-all duration-300" />
+                    </a>
+                  );
+                }
+                return (
+                  <button
+                    key={link.href}
+                    onClick={() => handleNavigation(link.href, false)}
+                    className={baseClass}
+                  >
+                    {link.label}
+                    <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-cyan-400 group-hover:w-3/4 transition-all duration-300" />
+                  </button>
+                );
+              })}
+            </nav>
+
+            <div className="flex items-center space-x-3">
+              <div className="hidden md:flex items-center space-x-3">
+                {isPending ? (
+                  <div className="h-9 w-20 bg-slate-800/50 animate-pulse rounded-lg" />
+                ) : isAdmin ? (
+                  <>
+                    <span className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-medium">
+                      Admin
+                    </span>
+                    <button
+                      onClick={() => router.push("/admin/dashboard")}
+                      className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 text-sm font-medium hover:bg-white/10 cursor-pointer"
+                    >
+                      <LayoutDashboard className="w-4 h-4" />
+                      Dashboard
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="inline-flex h-9 items-center gap-2 rounded-lg bg-red-500/10 border border-red-500/20 px-4 text-sm font-medium text-red-400 hover:bg-red-500/20"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </>
+                ) : pathname === "/" ? (
+                  <a
+                    href="/login"
+                    className="inline-flex h-9 items-center rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-6 text-sm font-medium text-cyan-400 hover:bg-cyan-500/20 transition-colors cursor-pointer"
+                  >
+                    Login
+                  </a>
+                ) : (
+                  <button
+                    onClick={() => router.push("/login")}
+                    className="inline-flex h-9 items-center rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-6 text-sm font-medium text-cyan-400 hover:bg-cyan-500/20 transition-colors cursor-pointer"
+                  >
+                    Login
+                  </button>
+                )}
+              </div>
+
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white/5 border border-white/10"
+              >
+                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </motion.header>
+
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-sm bg-slate-950/95 backdrop-blur-xl border-l border-white/10 lg:hidden"
+            >
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between p-4 border-b border-white/10">
+                  <span className="text-lg font-bold">Menu</span>
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <nav className="flex-1 py-4">
+                  {navLinks.map((link) => {
+                    const navClass =
+                      "flex items-center w-full text-left px-6 py-4 text-lg font-medium text-slate-400 hover:text-white hover:bg-white/5";
+                    if (link.isAnchor) {
+                      return (
+                        <button
+                          key={link.href}
+                          onClick={() => {
+                            handleNavigation(link.href, true);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className={navClass}
+                        >
+                          {link.label}
+                        </button>
+                      );
+                    }
+                    if (pathname === "/") {
+                      return (
+                        <a
+                          key={link.href}
+                          href={link.href}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className={navClass}
+                        >
+                          {link.label}
+                        </a>
+                      );
+                    }
+                    return (
+                      <button
+                        key={link.href}
+                        onClick={() => {
+                          handleNavigation(link.href, false);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className={navClass}
+                      >
+                        {link.label}
+                      </button>
+                    );
+                  })}
+                </nav>
+                <div className="p-4 border-t border-white/10">
+                  {!isPending && !isAdmin &&
+                    (pathname === "/" ? (
+                      <a
+                        href="/login"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center justify-center w-full h-12 rounded-lg border border-cyan-500/30 bg-cyan-500/10 font-medium text-cyan-400"
+                      >
+                        Login
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          router.push("/login");
+                        }}
+                        className="flex items-center justify-center w-full h-12 rounded-lg border border-cyan-500/30 bg-cyan-500/10 font-medium text-cyan-400"
+                      >
+                        Login
+                      </button>
+                    ))}
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      <div className="h-16 md:h-20" />
+    </>
   );
 }
