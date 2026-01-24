@@ -5,29 +5,23 @@ import { motion } from "framer-motion";
 import { Github, Linkedin, Twitter, Heart, Mail } from "lucide-react";
 
 const socialLinks = [
-  { 
-    href: "https://github.com/Mirf-Rahman", 
-    icon: Github, 
+  {
+    href: "https://github.com/Mirf-Rahman",
+    icon: Github,
     label: "GitHub",
-    hoverColor: "hover:text-white hover:bg-gray-800"
+    hoverColor: "hover:text-white hover:bg-gray-800",
   },
-  { 
-    href: "https://linkedin.com/in/mirfaiyazur-rahman", 
-    icon: Linkedin, 
+  {
+    href: "https://www.linkedin.com/in/faiyazur-rahman-mir-828173309",
+    icon: Linkedin,
     label: "LinkedIn",
-    hoverColor: "hover:text-white hover:bg-blue-600"
+    hoverColor: "hover:text-white hover:bg-blue-600",
   },
-  { 
-    href: "https://twitter.com/MirfRahman", 
-    icon: Twitter, 
-    label: "Twitter",
-    hoverColor: "hover:text-white hover:bg-sky-500"
-  },
-  { 
-    href: "mailto:contact@mirf.dev", 
-    icon: Mail, 
+  {
+    href: "mailto:mirfaiyazrahman@gmail.com",
+    icon: Mail,
     label: "Email",
-    hoverColor: "hover:text-white hover:bg-cyan-600"
+    hoverColor: "hover:text-white hover:bg-cyan-600",
   },
 ];
 
@@ -44,22 +38,27 @@ export function Footer() {
     <footer className="relative border-t border-white/5 bg-gradient-to-b from-background to-muted/20">
       {/* Gradient line at top */}
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
-      
+
       <div className="container mx-auto px-4 py-12 md:py-16">
         <div className="grid gap-8 md:grid-cols-3 md:gap-12">
           {/* Brand */}
           <div className="space-y-4">
             <Link href="/" className="inline-block">
-              <span className="text-2xl font-bold gradient-text-cyan">Mirf.dev</span>
+              <span className="text-2xl font-bold gradient-text-cyan">
+                Mirf.dev
+              </span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
-              Full Stack Developer passionate about building modern web applications and turning ideas into reality.
+              Full Stack Developer passionate about building modern web
+              applications and turning ideas into reality.
             </p>
           </div>
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground">Quick Links</h3>
+            <h3 className="text-sm font-semibold text-foreground">
+              Quick Links
+            </h3>
             <nav className="flex flex-wrap gap-x-6 gap-y-2">
               {footerLinks.map((link) => (
                 <Link
@@ -85,8 +84,14 @@ export function Footer() {
                 >
                   <Link
                     href={social.href}
-                    target={social.href.startsWith("mailto") ? undefined : "_blank"}
-                    rel={social.href.startsWith("mailto") ? undefined : "noopener noreferrer"}
+                    target={
+                      social.href.startsWith("mailto") ? undefined : "_blank"
+                    }
+                    rel={
+                      social.href.startsWith("mailto")
+                        ? undefined
+                        : "noopener noreferrer"
+                    }
                     aria-label={social.label}
                     className={`inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white/5 border border-white/10 text-muted-foreground transition-all ${social.hoverColor}`}
                   >
@@ -102,9 +107,7 @@ export function Footer() {
         <div className="mt-12 pt-8 border-t border-white/5">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground flex items-center gap-1">
-              © {new Date().getFullYear()} Mir Faiyazur Rahman. Built with
-              <Heart className="w-4 h-4 text-pink-500 inline mx-1" />
-              using Next.js
+              © {new Date().getFullYear()} Mir Faiyazur Rahman.
             </p>
             <p className="text-xs text-muted-foreground/60">
               Designed & Developed by Mir Faiyazur Rahman
