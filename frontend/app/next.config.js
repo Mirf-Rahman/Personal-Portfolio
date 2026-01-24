@@ -6,6 +6,8 @@ const nextConfig = {
     // Don't block builds on ESLint errors
     ignoreDuringBuilds: true,
   },
+  // Transpile @react-three packages to prevent React version mismatch
+  transpilePackages: ["three", "@react-three/fiber"],
   images: {
     unoptimized: true,
     remotePatterns: [

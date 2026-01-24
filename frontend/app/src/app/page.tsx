@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useEffect, useState, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Lenis from "lenis";
@@ -10,7 +11,6 @@ import { StarsBackground } from "@/components/ui/stars-background";
 import { BlurFade } from "@/components/ui/blur-fade";
 import { LampContainer } from "@/components/ui/lamp";
 import { Button } from "@/components/ui/button";
-import { SyntheticHero } from "@/components/ui/synthetic-hero";
 import { BorderBeam } from "@/components/ui/border-beam";
 import { SparklesText } from "@/components/ui/sparkles-text";
 import {
@@ -22,6 +22,12 @@ import {
   MessageSquareQuote,
   ChevronRight,
 } from "lucide-react";
+
+// Dynamic import for SyntheticHero (uses @react-three/fiber which doesn't work in SSR)
+const SyntheticHero = dynamic(
+  () => import("@/components/ui/synthetic-hero").then((mod) => mod.SyntheticHero),
+  { ssr: false }
+);
 
 // Types
 interface Project {
