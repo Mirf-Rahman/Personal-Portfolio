@@ -3,15 +3,11 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
-import { useGSAP } from "@gsap/react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { SplitText } from "gsap/SplitText";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { motion, useScroll, useTransform } from "framer-motion";
-
-gsap.registerPlugin(SplitText, useGSAP, ScrollTrigger);
+import { TextReveal } from "@/components/ui/text-reveal-animation";
+import { GradientText } from "@/components/ui/gradient-text";
 
 interface ShaderPlaneProps {
   vertexShader: string;
@@ -130,11 +126,6 @@ export function SyntheticHero({
   microDetails = [],
 }: SyntheticHeroProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
-  const badgeWrapperRef = useRef<HTMLDivElement | null>(null);
-  const headingRef = useRef<HTMLHeadingElement | null>(null);
-  const paragraphRef = useRef<HTMLParagraphElement | null>(null);
-  const ctaRef = useRef<HTMLDivElement | null>(null);
-  const microRef = useRef<HTMLUListElement | null>(null);
 
   const shaderUniforms = useMemo(
     () => ({
@@ -144,95 +135,20 @@ export function SyntheticHero({
     []
   );
 
-  // Shader fade on scroll - extended fade for smoother transition
+  // Shader fade on scroll - fixed position parallax
   const { scrollY } = useScroll();
-  const shaderOpacity = useTransform(scrollY, [0, 2000], [1, 0]);
-
-  useGSAP(
-    () => {
-      if (!headingRef.current || !sectionRef.current) return;
-
-      document.fonts.ready.then(() => {
-        const split = new SplitText(headingRef.current!, {
-          type: "lines",
-          linesClass: "hero-lines",
-        });
-
-        gsap.set(split.lines, {
-          filter: "blur(16px)",
-          yPercent: 24,
-          autoAlpha: 0,
-          scale: 1.04,
-          transformOrigin: "50% 100%",
-        });
-
-        if (badgeWrapperRef.current) {
-          gsap.set(badgeWrapperRef.current, { autoAlpha: 0, y: -8 });
-        }
-        if (paragraphRef.current) {
-          gsap.set(paragraphRef.current, { autoAlpha: 0, y: 8 });
-        }
-        if (ctaRef.current) {
-          gsap.set(ctaRef.current, { autoAlpha: 0, y: 8 });
-        }
-
-        const microItems = microRef.current
-          ? Array.from(microRef.current.querySelectorAll("li"))
-          : [];
-        if (microItems.length > 0) {
-          gsap.set(microItems, { autoAlpha: 0, y: 6 });
-        }
-
-        const tl = gsap.timeline({
-          defaults: { ease: "power3.out" },
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top 80%",
-            end: "bottom 20%",
-            toggleActions: "play reverse play reverse",
-          },
-        });
-
-        if (badgeWrapperRef.current) {
-          tl.to(badgeWrapperRef.current, { autoAlpha: 1, y: 0, duration: 0.5 }, 0);
-        }
-
-        tl.to(
-          split.lines,
-          {
-            filter: "blur(0px)",
-            yPercent: 0,
-            autoAlpha: 1,
-            scale: 1,
-            duration: 0.9,
-            stagger: 0.12,
-          },
-          0.1
-        );
-
-        if (paragraphRef.current) {
-          tl.to(paragraphRef.current, { autoAlpha: 1, y: 0, duration: 0.5 }, "-=0.55");
-        }
-
-        if (ctaRef.current) {
-          tl.to(ctaRef.current, { autoAlpha: 1, y: 0, duration: 0.5 }, "-=0.35");
-        }
-
-        if (microItems.length > 0) {
-          tl.to(microItems, { autoAlpha: 1, y: 0, duration: 0.5, stagger: 0.1 }, "-=0.25");
-        }
-      });
-    },
-    { scope: sectionRef }
-  );
+  const shaderOpacity = useTransform(scrollY, [0, 800, 2000], [1, 0.6, 0]);
 
   return (
     <section
       ref={sectionRef}
       className="relative flex items-center justify-center min-h-screen overflow-hidden pt-24 md:pt-32 pointer-events-none"
     >
-      {/* Only Shader Background - fades on scroll */}
-      <motion.div style={{ opacity: shaderOpacity, pointerEvents: 'none' }} className="absolute inset-0 z-0">
+      {/* Shader Background - Fixed position for Parallax Effect */}
+      <motion.div 
+        style={{ opacity: shaderOpacity, pointerEvents: 'none' }} 
+        className="fixed inset-0 z-0 h-full w-full"
+      >
         <Canvas style={{ pointerEvents: 'none' }} eventSource={undefined as unknown as HTMLElement}>
           <ShaderPlane
             vertexShader={vertexShader}
@@ -240,10 +156,19 @@ export function SyntheticHero({
             uniforms={shaderUniforms}
           />
         </Canvas>
+        
+        {/* Atmosphere overlays - No hard bottom edge */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_10%,_#020617_120%)] opacity-80 pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-transparent via-slate-950/40 to-slate-950/80 pointer-events-none" />
       </motion.div>
 
       <div className="relative z-10 flex flex-col items-center text-center px-6 max-w-6xl mx-auto pointer-events-auto">
-        <div ref={badgeWrapperRef}>
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+        >
           <Badge className="mb-8 bg-white/10 hover:bg-white/15 text-cyan-300 backdrop-blur-md border border-white/20 uppercase tracking-wider font-medium flex items-center gap-2 px-5 py-2">
             <span className="text-[10px] font-light tracking-[0.18em] text-cyan-100/80">
               {badgeLabel}
@@ -253,23 +178,39 @@ export function SyntheticHero({
               {badgeText}
             </span>
           </Badge>
-        </div>
+        </motion.div>
 
-        <h1
-          ref={headingRef}
-          className="text-6xl md:text-8xl lg:text-9xl max-w-5xl font-light tracking-tight text-white mb-8 overflow-hidden leading-tight"
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
+          whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+          viewport={{ once: false }}
+          transition={{ duration: 1, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-8"
         >
-          {title}
-        </h1>
+          <h1 className="text-6xl md:text-8xl lg:text-9xl max-w-5xl font-display font-semibold tracking-tight leading-tight overflow-visible">
+            <GradientText className="!text-transparent pb-3">
+              {title}
+            </GradientText>
+          </h1>
+        </motion.div>
 
-        <p
-          ref={paragraphRef}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: false }}
+          transition={{ duration: 0.5, delay: 0.3 }}
           className="text-cyan-50/80 text-xl md:text-2xl max-w-3xl mx-auto mb-12 font-light leading-relaxed"
         >
-          {description}
-        </p>
+          <TextReveal word={description} delay={0.3} />
+        </motion.div>
 
-        <div ref={ctaRef} className="flex flex-wrap items-center justify-center gap-5">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: false }}
+          transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
+          className="flex flex-wrap items-center justify-center gap-5"
+        >
           {ctaButtons.map((button, index) => {
             const isPrimary = button.primary ?? index === 0;
             const classes = isPrimary
@@ -314,11 +255,14 @@ export function SyntheticHero({
               </Button>
             );
           })}
-        </div>
+        </motion.div>
 
         {microDetails.length > 0 && (
-          <ul
-            ref={microRef}
+          <motion.ul
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false }}
+            transition={{ duration: 0.6, delay: 0.8, ease: "easeOut" }}
             className="mt-10 flex flex-wrap justify-center gap-6 text-xs font-light tracking-tight text-cyan-100/70"
           >
             {microDetails.map((detail, index) => (
@@ -327,7 +271,7 @@ export function SyntheticHero({
                 {detail}
               </li>
             ))}
-          </ul>
+          </motion.ul>
         )}
       </div>
     </section>
