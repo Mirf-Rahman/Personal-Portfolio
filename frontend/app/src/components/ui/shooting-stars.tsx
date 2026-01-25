@@ -56,6 +56,13 @@ export const ShootingStars: React.FC<ShootingStarsProps> = ({
 }) => {
   const [star, setStar] = useState<ShootingStar | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const starRef = useRef<ShootingStar | null>(null);
+
+  // Update ref when star changes
+  useEffect(() => {
+    starRef.current = star;
+  }, [star]);
 
   useEffect(() => {
     const createStar = () => {
@@ -79,8 +86,9 @@ export const ShootingStars: React.FC<ShootingStarsProps> = ({
   }, [minSpeed, maxSpeed, minDelay, maxDelay]);
 
   useEffect(() => {
-    const moveStar = () => {
-      if (star) {
+    const animate = () => {
+      const currentStar = starRef.current;
+      if (currentStar) {
         setStar((prevStar) => {
           if (!prevStar) return null;
           const newX = prevStar.x + prevStar.speed * Math.cos((prevStar.angle * Math.PI) / 180);
@@ -97,11 +105,20 @@ export const ShootingStars: React.FC<ShootingStarsProps> = ({
           return { ...prevStar, x: newX, y: newY, distance: newDistance, scale: newScale };
         });
       }
+      
+      // Continue animation loop
+      animationFrameRef.current = requestAnimationFrame(animate);
     };
 
-    const animationFrame = requestAnimationFrame(moveStar);
-    return () => cancelAnimationFrame(animationFrame);
-  }, [star]);
+    // Start animation loop
+    animationFrameRef.current = requestAnimationFrame(animate);
+    
+    return () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, []); // Empty dependency array - only run once on mount
 
   return (
     <svg ref={svgRef} className={cn("w-full h-full absolute inset-0 pointer-events-none", className)}>
