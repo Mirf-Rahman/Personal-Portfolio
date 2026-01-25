@@ -11,6 +11,7 @@ const navLinks = [
   { href: "/#projects", label: "Projects", isAnchor: true },
   { href: "/#skills", label: "Skills", isAnchor: true },
   { href: "/#experience", label: "Experience", isAnchor: true },
+  { href: "/#hobbies", label: "Hobbies", isAnchor: true },
   { href: "/testimonials", label: "Testimonials", isAnchor: false },
   { href: "/contact", label: "Contact", isAnchor: false },
 ];
