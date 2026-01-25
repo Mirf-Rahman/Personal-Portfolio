@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 
 @layer base {
   :root {
@@ -26,6 +27,11 @@
     --input: 240 5.9% 90%;
     --ring: 240 5.9% 10%;
     --radius: 0.5rem;
+    --color-1: 186 100% 50%; /* Cyan */
+    --color-2: 217 100% 60%; /* Blue */
+    --color-3: 186 100% 40%; /* Dark Cyan */
+    --color-4: 217 100% 70%; /* Light Blue */
+    --color-5: 186 90% 45%; /* Teal */
   }
 
   .dark {
@@ -49,6 +55,11 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
+    --color-1: 186 100% 50%; /* Cyan */
+    --color-2: 217 100% 60%; /* Blue */
+    --color-3: 186 100% 40%; /* Dark Cyan */
+    --color-4: 217 100% 70%; /* Light Blue */
+    --color-5: 186 90% 45%; /* Teal */
   }
 }
 
@@ -56,6 +67,11 @@
   * {
     @apply border-border;
   }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', system-ui, sans-serif;
@@ -75,6 +91,17 @@
 /* Premium gradient text (Silver/White) */
 .gradient-text-silver {
   @apply bg-clip-text text-transparent bg-gradient-to-b from-white to-zinc-400;
+}
+
+/* Gradient Text Animation */
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient {
+  animation: gradient 6s ease infinite;
 }
 
 /* Hide scrollbar but keep functionality */
