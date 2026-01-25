@@ -38,7 +38,7 @@ jobs:
 
             - name: Install dependencies
               working-directory: ${{ matrix.service.path }}
-              run: npm ci
+              run: npm ci --legacy-peer-deps
 
             - name: Run ESLint
               working-directory: ${{ matrix.service.path }}
