@@ -132,7 +132,7 @@ export default function ContactPage() {
             </PinContainer>
 
             {/* Email */}
-            <PinContainer title="Email" href="mailto:contact@mirf.dev">
+            <PinContainer title="Email" href="mailto:mirfaiyazrahman@gmail.com">
                <div className="flex flex-col p-4 tracking-tight text-slate-100/50 w-[18rem] md:w-[20rem] h-[15rem] bg-gradient-to-b from-slate-900/90 to-slate-900/0 backdrop-blur-sm border border-slate-700/50 rounded-2xl group-hover/pin:border-purple-500/50 transition-colors">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="h-2 w-2 rounded-full bg-purple-400 animate-pulse" />

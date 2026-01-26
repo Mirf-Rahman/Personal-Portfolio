@@ -28,6 +28,9 @@ export const PinContainer = ({
     setTransform("translate(-50%,-50%) rotateX(0deg) scale(1)");
   };
 
+  // Check if link is external
+  const isExternal = href?.startsWith("http://") || href?.startsWith("https://");
+
   return (
     <Link
       className={cn(
@@ -37,7 +40,7 @@ export const PinContainer = ({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       href={href || "/"}
-      target="_blank"
+      {...(isExternal && { target: "_blank", rel: "noopener noreferrer" })}
     >
       <div
         style={{
