@@ -1,6 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { FloatingParticles } from "@/components/ui/floating-particles";
+import { BackgroundPaths } from "@/components/ui/background-paths";
+import { StarsBackground } from "@/components/ui/stars-background";
+import { ShootingStars } from "@/components/ui/shooting-stars";
+import { SectionHeading } from "@/components/ui/section-heading";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Quote, Send, User, Briefcase, Building2 } from "lucide-react";
 
 interface FieldErrors {
   name?: string;
@@ -73,85 +84,47 @@ export default function TestimonialsClient() {
     }
   };
 
-  // Real-time validation
+  // Real-time validation effects
   useEffect(() => {
     if (touched.name) {
       const error = validateField("name", name);
-      setFieldErrors((prev) => {
-        const updated = { ...prev };
-        if (error) {
-          updated.name = error;
-        } else {
-          delete updated.name;
-        }
-        return updated;
-      });
+      setFieldErrors((prev) => (error ? { ...prev, name: error } : { ...prev, name: undefined }));
     }
   }, [name, touched.name]);
 
   useEffect(() => {
     if (touched.position) {
       const error = validateField("position", position);
-      setFieldErrors((prev) => {
-        const updated = { ...prev };
-        if (error) {
-          updated.position = error;
-        } else {
-          delete updated.position;
-        }
-        return updated;
-      });
+      setFieldErrors((prev) => (error ? { ...prev, position: error } : { ...prev, position: undefined }));
     }
   }, [position, touched.position]);
 
   useEffect(() => {
     if (touched.company) {
       const error = validateField("company", company);
-      setFieldErrors((prev) => {
-        const updated = { ...prev };
-        if (error) {
-          updated.company = error;
-        } else {
-          delete updated.company;
-        }
-        return updated;
-      });
+      setFieldErrors((prev) => (error ? { ...prev, company: error } : { ...prev, company: undefined }));
     }
   }, [company, touched.company]);
 
   useEffect(() => {
     if (touched.content) {
       const error = validateField("content", content);
-      setFieldErrors((prev) => {
-        const updated = { ...prev };
-        if (error) {
-          updated.content = error;
-        } else {
-          delete updated.content;
-        }
-        return updated;
-      });
+      setFieldErrors((prev) => (error ? { ...prev, content: error } : { ...prev, content: undefined }));
     }
   }, [content, touched.content]);
 
   const handleBlur = (field: string) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
     const value =
-      field === "name"
-        ? name
-        : field === "position"
-        ? position
-        : field === "company"
-        ? company
-        : content;
+      field === "name" ? name :
+      field === "position" ? position :
+      field === "company" ? company :
+      content;
     const error = validateField(field, value);
     setFieldErrors((prev) => {
       const updated = { ...prev };
-      if (error) {
-        updated[field as keyof FieldErrors] = error;
-      } else {
-        delete updated[field as keyof FieldErrors];
-      }
+      if (error) updated[field as keyof FieldErrors] = error;
+      else delete updated[field as keyof FieldErrors];
       return updated;
     });
   };
@@ -162,10 +135,8 @@ export default function TestimonialsClient() {
     setError("");
     setSuccess(false);
 
-    // Mark all fields as touched
     setTouched({ name: true, position: true, company: true, content: true });
 
-    // Validate all fields
     const errors: FieldErrors = {};
     const nameError = validateField("name", name);
     const positionError = validateField("position", position);
@@ -179,7 +150,6 @@ export default function TestimonialsClient() {
 
     setFieldErrors(errors);
 
-    // If there are validation errors, stop submission
     if (Object.keys(errors).length > 0) {
       setLoading(false);
       return;
@@ -197,7 +167,6 @@ export default function TestimonialsClient() {
         }),
       });
 
-      // Check Content-Type before parsing response
       const contentType = res.headers.get("content-type");
       let data: any;
 
@@ -205,15 +174,10 @@ export default function TestimonialsClient() {
         data = await res.json();
       } else {
         const text = await res.text();
-        setError(
-          `Server error (${res.status}): ${text || "Unexpected response format"}`
-        );
-        setLoading(false);
-        return;
+        throw new Error(`Server error (${res.status}): ${text || "Unexpected response format"}`);
       }
 
       if (!res.ok) {
-        // Handle validation errors from server
         if (data.code === "VALIDATION_ERROR" && data.details) {
           const serverErrors: FieldErrors = {};
           (data.details as ValidationError[]).forEach((err) => {
@@ -222,17 +186,13 @@ export default function TestimonialsClient() {
           setFieldErrors(serverErrors);
           setError("Please fix the errors below");
         } else if (data.code === "RATE_LIMIT_EXCEEDED") {
-          const retryAfter = data.retryAfter || 900;
-          setError(
-            `Too many requests. Please try again in ${Math.ceil(retryAfter / 60)} minutes.`
-          );
+          setError(`Too many requests. Please try again later.`);
         } else {
           setError(data.error || "Failed to submit testimonial");
         }
         return;
       }
 
-      // Success
       setSuccess(true);
       setName("");
       setPosition("");
@@ -241,247 +201,183 @@ export default function TestimonialsClient() {
       setFieldErrors({});
       setTouched({});
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Something went wrong. Please try again."
-      );
+      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Check if form is valid: required fields filled and no error messages
-  const isFormValid =
-    name.trim() &&
-    content.trim() &&
-    Object.keys(fieldErrors).length === 0;
+  const isFormValid = name.trim() && content.trim() && Object.keys(fieldErrors).length === 0;
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-4rem)]">
-      {/* Submission Form Section */}
-      <section className="py-20 md:py-32 bg-background">
-        <div className="container px-4 md:px-6 mx-auto max-w-xl">
-          <div className="text-center mb-10">
-            <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4">
-              Leave a Testimonial
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              Worked with me? I&apos;d love to hear your feedback!
-            </p>
-          </div>
-          
-          <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-8">
+    <div className="flex flex-col min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-cyan-500/30">
+      
+      {/* Global Background Layers */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <StarsBackground className="absolute inset-0 opacity-50" />
+        <ShootingStars className="absolute inset-0" minDelay={2000} maxDelay={5000} starColor="#22d3ee" trailColor="#0f172a" />
+        <BackgroundPaths />
+      </div>
+
+      {/* Hero Section */}
+      <section className="relative h-[35vh] min-h-[300px] w-full flex flex-col items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+          <SectionHeading 
+             title="Leave a Testimonial" 
+             description="Your feedback helps me grow and deliver better solutions."
+             icon={Quote}
+             gradient="from-cyan-400 via-blue-500 to-purple-500"
+          />
+        </div>
+      </section>
+
+      {/* Form Section */}
+      <section className="relative w-full pb-24 px-4 overflow-hidden z-10 -mt-10">
+        <div className="container mx-auto max-w-3xl">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="backdrop-blur-xl bg-slate-900/40 border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden group"
+          >
+             {/* Decorative Backgrounds */}
+             <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent opacity-50" />
+             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-purple-500/5 pointer-events-none transition-opacity duration-500 group-hover:opacity-100 opacity-50" />
+
             {success ? (
-              <div className="text-center py-8">
-                <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/20 mx-auto mb-4 flex items-center justify-center">
-                  <svg
-                    className="w-8 h-8 text-green-600 dark:text-green-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold mb-2">Thank You!</h3>
-                <p className="text-muted-foreground">
-                  Your testimonial has been submitted for review.
+              <div className="text-center py-16 relative z-10">
+                <motion.div 
+                   initial={{ scale: 0 }} 
+                   animate={{ scale: 1 }}
+                   transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                   className="w-24 h-24 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 mx-auto mb-8 flex items-center justify-center shadow-lg shadow-green-500/10"
+                 >
+                   <Send className="w-10 h-10 text-green-400" />
+                 </motion.div>
+                <h3 className="text-3xl font-bold text-white mb-4">Review Submitted!</h3>
+                <p className="text-slate-300 text-lg mb-10 max-w-md mx-auto">
+                  Thank you for sharing your experience. Your testimonial is under review and will be live soon.
                 </p>
-                <button
-                  onClick={() => {
-                    setSuccess(false);
-                    setError("");
-                    setFieldErrors({});
-                    setTouched({});
-                  }}
-                  className="mt-4 text-primary hover:underline"
-                >
-                  Submit another testimonial
-                </button>
+                <Button 
+                   onClick={() => setSuccess(false)}
+                   variant="outline"
+                   className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300"
+                 >
+                   Submit another
+                 </Button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-                <div className="space-y-2">
-                  <label htmlFor="t-name" className="text-sm font-medium">
-                    Your Name *
-                  </label>
-                  <input
-                    id="t-name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    onBlur={() => handleBlur("name")}
-                    required
-                    placeholder="Alex Smith"
-                    maxLength={LIMITS.name.max}
-                    aria-invalid={fieldErrors.name ? "true" : "false"}
-                    aria-describedby={fieldErrors.name ? "name-error" : undefined}
-                    className={`flex h-10 w-full rounded-md border ${
-                      fieldErrors.name
-                        ? "border-red-500 focus-visible:ring-red-500"
-                        : "border-input"
-                    } bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
-                  />
-                  {fieldErrors.name && (
-                    <p
-                      id="name-error"
-                      className="text-sm text-red-600 dark:text-red-400"
-                      role="alert"
-                    >
-                      {fieldErrors.name}
-                    </p>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    {name.length}/{LIMITS.name.max} characters
-                  </p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label htmlFor="t-position" className="text-sm font-medium">
-                      Position
-                    </label>
-                    <input
-                      id="t-position"
-                      value={position}
-                      onChange={(e) => setPosition(e.target.value)}
-                      onBlur={() => handleBlur("position")}
-                      placeholder="Product Manager"
-                      maxLength={LIMITS.position.max}
-                      aria-invalid={fieldErrors.position ? "true" : "false"}
-                      aria-describedby={fieldErrors.position ? "position-error" : undefined}
-                      className={`flex h-10 w-full rounded-md border ${
-                        fieldErrors.position
-                          ? "border-red-500 focus-visible:ring-red-500"
-                          : "border-input"
-                      } bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
+              <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
+                
+                {/* Personal Info Group */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-2.5">
+                    <Label htmlFor="name" className="text-cyan-100/80 text-xs font-semibold tracking-wider uppercase pl-1 flex items-center gap-2">
+                      <User className="w-3 h-3" /> Name
+                    </Label>
+                    <Input
+                      id="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      onBlur={() => handleBlur("name")}
+                      required
+                      placeholder="Alex Smith"
+                      maxLength={LIMITS.name.max}
+                      className={`h-12 bg-slate-950/30 border-white/5 text-white placeholder:text-slate-600 focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 focus:bg-slate-950/50 transition-all rounded-xl ${
+                        fieldErrors.name ? "border-red-500/50 focus:border-red-500/50" : ""
+                      }`}
                     />
-                    {fieldErrors.position && (
-                      <p
-                        id="position-error"
-                        className="text-sm text-red-600 dark:text-red-400"
-                        role="alert"
-                      >
-                        {fieldErrors.position}
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      {position.length}/{LIMITS.position.max} characters
-                    </p>
+                    {fieldErrors.name && <p className="text-xs text-red-400 pl-1">{fieldErrors.name}</p>}
                   </div>
-                  <div className="space-y-2">
-                    <label htmlFor="t-company" className="text-sm font-medium">
-                      Company
-                    </label>
-                    <input
-                      id="t-company"
+
+                  <div className="space-y-2.5">
+                    <Label htmlFor="company" className="text-cyan-100/80 text-xs font-semibold tracking-wider uppercase pl-1 flex items-center gap-2">
+                      <Building2 className="w-3 h-3" /> Company (Optional)
+                    </Label>
+                     <Input
+                      id="company"
                       value={company}
                       onChange={(e) => setCompany(e.target.value)}
                       onBlur={() => handleBlur("company")}
                       placeholder="Tech Corp"
                       maxLength={LIMITS.company.max}
-                      aria-invalid={fieldErrors.company ? "true" : "false"}
-                      aria-describedby={fieldErrors.company ? "company-error" : undefined}
-                      className={`flex h-10 w-full rounded-md border ${
-                        fieldErrors.company
-                          ? "border-red-500 focus-visible:ring-red-500"
-                          : "border-input"
-                      } bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
+                      className="h-12 bg-slate-950/30 border-white/5 text-white placeholder:text-slate-600 focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 focus:bg-slate-950/50 transition-all rounded-xl"
                     />
-                    {fieldErrors.company && (
-                      <p
-                        id="company-error"
-                        className="text-sm text-red-600 dark:text-red-400"
-                        role="alert"
-                      >
-                        {fieldErrors.company}
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      {company.length}/{LIMITS.company.max} characters
-                    </p>
+                     {fieldErrors.company && <p className="text-xs text-red-400 pl-1">{fieldErrors.company}</p>}
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <label htmlFor="t-message" className="text-sm font-medium">
-                    Testimonial *
-                  </label>
-                  <textarea
-                    id="t-message"
+
+                <div className="space-y-2.5">
+                    <Label htmlFor="position" className="text-cyan-100/80 text-xs font-semibold tracking-wider uppercase pl-1 flex items-center gap-2">
+                       <Briefcase className="w-3 h-3" /> Position (Optional)
+                    </Label>
+                    <Input
+                      id="position"
+                      value={position}
+                      onChange={(e) => setPosition(e.target.value)}
+                      onBlur={() => handleBlur("position")}
+                      placeholder="Product Manager"
+                      maxLength={LIMITS.position.max}
+                      className="h-12 bg-slate-950/30 border-white/5 text-white placeholder:text-slate-600 focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 focus:bg-slate-950/50 transition-all rounded-xl"
+                    />
+                    {fieldErrors.position && <p className="text-xs text-red-400 pl-1">{fieldErrors.position}</p>}
+                </div>
+
+                <div className="space-y-2.5">
+                  <Label htmlFor="content" className="text-cyan-100/80 text-xs font-semibold tracking-wider uppercase pl-1 flex items-center gap-2">
+                    <Quote className="w-3 h-3" /> Testimonial
+                  </Label>
+                  <Textarea
+                    id="content"
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     onBlur={() => handleBlur("content")}
                     required
                     placeholder="Share your experience working with me..."
                     maxLength={LIMITS.content.max}
-                    rows={8}
-                    aria-invalid={fieldErrors.content ? "true" : "false"}
-                    aria-describedby={fieldErrors.content ? "content-error" : undefined}
-                    className={`flex min-h-[150px] w-full rounded-md border ${
-                      fieldErrors.content
-                        ? "border-red-500 focus-visible:ring-red-500"
-                        : "border-input"
-                    } bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-y`}
+                    className={`min-h-[180px] bg-slate-950/30 border-white/5 text-white placeholder:text-slate-600 focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 focus:bg-slate-950/50 transition-all resize-y rounded-xl p-4 leading-relaxed ${
+                         fieldErrors.content ? "border-red-500/50 focus:border-red-500/50" : ""
+                    }`}
                   />
-                  {fieldErrors.content && (
-                    <p
-                      id="content-error"
-                      className="text-sm text-red-600 dark:text-red-400"
-                      role="alert"
-                    >
-                      {fieldErrors.content}
-                    </p>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    {content.length}/{LIMITS.content.max} characters
-                  </p>
+                  <div className="flex justify-between px-1">
+                     {fieldErrors.content ? <p className="text-xs text-red-400">{fieldErrors.content}</p> : <span />}
+                     <span className="text-[10px] text-slate-600 font-mono">{content.length}/{LIMITS.content.max}</span>
+                  </div>
                 </div>
+
                 {error && (
-                  <div
-                    className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md"
-                    role="alert"
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-200 text-sm flex items-center gap-2"
                   >
                     {error}
-                  </div>
+                  </motion.div>
                 )}
-                <button
+
+                <Button
                   type="submit"
-                  disabled={loading || !isFormValid}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  disabled={loading}
+                  className="w-full h-14 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-lg font-medium rounded-xl shadow-lg shadow-cyan-900/20 hover:shadow-cyan-500/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
                 >
                   {loading ? (
-                    <>
-                      <svg
-                        className="animate-spin h-4 w-4"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      Submitting...
-                    </>
+                    <span className="flex items-center gap-2">
+                       <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                       </svg>
+                       Submitting...
+                    </span>
                   ) : (
-                    "Submit Testimonial"
+                    <span className="flex items-center gap-2">
+                       Submit Testimonial
+                       <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </span>
                   )}
-                </button>
+                </Button>
               </form>
             )}
-          </div>
+          </motion.div>
         </div>
       </section>
     </div>
