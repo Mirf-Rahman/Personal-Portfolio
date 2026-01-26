@@ -44,12 +44,21 @@ export function Navbar() {
   // Handle navigation for all links
   const handleNavigation = (href: string, isAnchor: boolean) => {
     if (isAnchor && pathname === "/") {
-      // For anchor links on homepage, smooth scroll
       const selector = href.startsWith("/#") ? href.slice(1) : href;
       const element = document.querySelector(selector);
-      element?.scrollIntoView({ behavior: "smooth" });
+      const lenis = (window as any).__lenis;
+      if (lenis && element) {
+        const rect = element.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const targetY = rect.top + scrollTop - 80;
+        lenis.scrollTo(targetY, { 
+          duration: 1.2,
+          easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+        });
+      } else {
+        element?.scrollIntoView({ behavior: "smooth" });
+      }
     } else if (isAnchor) {
-      // For anchor links on other pages, navigate to homepage with anchor
       router.push(href);
     } else {
       // Page navigation: from / client router fails; use full navigation
@@ -83,7 +92,19 @@ export function Navbar() {
               onClick={(e) => {
                 if (pathname === "/") {
                   e.preventDefault();
-                  window.scrollTo({ top: 0, behavior: "smooth" });
+                  const lenis = (window as any).__lenis;
+                  const scrollDurationMs = 1200;
+                  if (lenis) {
+                    lenis.scrollTo(0, {
+                      duration: 1.2,
+                      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t))
+                    });
+                  } else {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }
+                  setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent('portfolio:show-hero'));
+                  }, scrollDurationMs + 50);
                 }
               }}
             >
