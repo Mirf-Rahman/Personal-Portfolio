@@ -1,20 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { FloatingParticles } from "@/components/ui/floating-particles";
+import { BackgroundPaths } from "@/components/ui/background-paths";
+import { StarsBackground } from "@/components/ui/stars-background";
+import { ShootingStars } from "@/components/ui/shooting-stars";
+import { PinContainer } from "@/components/ui/3d-pin";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { SectionHeading } from "@/components/ui/section-heading";
+import { Button } from "@/components/ui/button";
+import { Mail, ArrowLeft } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-
-interface FieldErrors {
-  name?: string;
-  email?: string;
-  subject?: string;
-  message?: string;
-}
-
-interface ValidationError {
-  field: string;
-  message: string;
-}
 
 export default function ContactPage() {
   const [name, setName] = useState("");
@@ -24,170 +24,12 @@ export default function ContactPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
-
-  // Field length limits
-  const LIMITS = {
-    name: { min: 2, max: 100 },
-    email: { min: 5, max: 255 },
-    subject: { min: 3, max: 200 },
-    message: { min: 10, max: 5000 },
-  };
-
-  // Validate individual field
-  const validateField = (field: string, value: string): string | undefined => {
-    switch (field) {
-      case "name":
-        if (!value.trim()) return "Name is required";
-        const trimmedName = value.trim();
-        if (trimmedName.length < LIMITS.name.min)
-          return `Name must be at least ${LIMITS.name.min} characters`;
-        if (trimmedName.length > LIMITS.name.max)
-          return `Name must be no more than ${LIMITS.name.max} characters`;
-        if (!/^[a-zA-Z\s\-'\.]+$/.test(trimmedName))
-          return "Name contains invalid characters";
-        return undefined;
-
-      case "email":
-        if (!value.trim()) return "Email is required";
-        const trimmedEmail = value.trim();
-        if (trimmedEmail.length < LIMITS.email.min)
-          return `Email must be at least ${LIMITS.email.min} characters`;
-        if (trimmedEmail.length > LIMITS.email.max)
-          return `Email must be no more than ${LIMITS.email.max} characters`;
-        const emailRegex =
-          /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-        if (!emailRegex.test(trimmedEmail)) return "Invalid email format";
-        return undefined;
-
-      case "subject":
-        if (!value.trim()) return "Subject is required";
-        const trimmedSubject = value.trim();
-        if (trimmedSubject.length < LIMITS.subject.min)
-          return `Subject must be at least ${LIMITS.subject.min} characters`;
-        if (trimmedSubject.length > LIMITS.subject.max)
-          return `Subject must be no more than ${LIMITS.subject.max} characters`;
-        return undefined;
-
-      case "message":
-        if (!value.trim()) return "Message is required";
-        const trimmedMessage = value.trim();
-        if (trimmedMessage.length < LIMITS.message.min)
-          return `Message must be at least ${LIMITS.message.min} characters`;
-        if (trimmedMessage.length > LIMITS.message.max)
-          return `Message must be no more than ${LIMITS.message.max} characters`;
-        return undefined;
-
-      default:
-        return undefined;
-    }
-  };
-
-  // Real-time validation - remove error key when validation passes
-  useEffect(() => {
-    if (touched.name) {
-      const error = validateField("name", name);
-      setFieldErrors((prev) => {
-        const updated = { ...prev };
-        if (error) {
-          updated.name = error;
-        } else {
-          delete updated.name;
-        }
-        return updated;
-      });
-    }
-  }, [name, touched.name]);
-
-  useEffect(() => {
-    if (touched.email) {
-      const error = validateField("email", email);
-      setFieldErrors((prev) => {
-        const updated = { ...prev };
-        if (error) {
-          updated.email = error;
-        } else {
-          delete updated.email;
-        }
-        return updated;
-      });
-    }
-  }, [email, touched.email]);
-
-  useEffect(() => {
-    if (touched.subject) {
-      const error = validateField("subject", subject);
-      setFieldErrors((prev) => {
-        const updated = { ...prev };
-        if (error) {
-          updated.subject = error;
-        } else {
-          delete updated.subject;
-        }
-        return updated;
-      });
-    }
-  }, [subject, touched.subject]);
-
-  useEffect(() => {
-    if (touched.message) {
-      const error = validateField("message", message);
-      setFieldErrors((prev) => {
-        const updated = { ...prev };
-        if (error) {
-          updated.message = error;
-        } else {
-          delete updated.message;
-        }
-        return updated;
-      });
-    }
-  }, [message, touched.message]);
-
-  const handleBlur = (field: string) => {
-    setTouched((prev) => ({ ...prev, [field]: true }));
-    const value = field === "name" ? name : field === "email" ? email : field === "subject" ? subject : message;
-    const error = validateField(field, value);
-    setFieldErrors((prev) => {
-      const updated = { ...prev };
-      if (error) {
-        updated[field as keyof FieldErrors] = error;
-      } else {
-        delete updated[field as keyof FieldErrors];
-      }
-      return updated;
-    });
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     setSuccess(false);
-
-    // Mark all fields as touched
-    setTouched({ name: true, email: true, subject: true, message: true });
-
-    // Validate all fields
-    const errors: FieldErrors = {};
-    const nameError = validateField("name", name);
-    const emailError = validateField("email", email);
-    const subjectError = validateField("subject", subject);
-    const messageError = validateField("message", message);
-
-    if (nameError) errors.name = nameError;
-    if (emailError) errors.email = emailError;
-    if (subjectError) errors.subject = subjectError;
-    if (messageError) errors.message = messageError;
-
-    setFieldErrors(errors);
-
-    // If there are validation errors, stop submission
-    if (Object.keys(errors).length > 0) {
-      setLoading(false);
-      return;
-    }
 
     try {
       const res = await fetch(`${API_URL}/api/messages`, {
@@ -196,297 +38,271 @@ export default function ContactPage() {
         body: JSON.stringify({ name, email, subject, message }),
       });
 
-      // Check Content-Type before parsing response
-      const contentType = res.headers.get("content-type");
-      let data: any;
-      
-      if (contentType && contentType.includes("application/json")) {
-        data = await res.json();
-      } else {
-        const text = await res.text();
-        setError(
-          `Server error (${res.status}): ${text || "Unexpected response format"}`
-        );
-        setLoading(false);
-        return;
-      }
-
       if (!res.ok) {
-        // Handle validation errors from server
-        if (data.code === "VALIDATION_ERROR" && data.details) {
-          const serverErrors: FieldErrors = {};
-          (data.details as ValidationError[]).forEach((err) => {
-            serverErrors[err.field as keyof FieldErrors] = err.message;
-          });
-          setFieldErrors(serverErrors);
-          setError("Please fix the errors below");
-        } else if (data.code === "RATE_LIMIT_EXCEEDED") {
-          const retryAfter = data.retryAfter || 900;
-          setError(
-            `Too many requests. Please try again in ${Math.ceil(retryAfter / 60)} minutes.`
-          );
-        } else {
-          setError(data.error || "Failed to send message");
-        }
-        return;
+        throw new Error("Failed to send message");
       }
 
-      // Success
       setSuccess(true);
       setName("");
       setEmail("");
       setSubject("");
       setMessage("");
-      setFieldErrors({});
-      setTouched({});
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Something went wrong. Please try again."
-      );
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Check if form is valid: all fields filled and no error messages
-  const isFormValid =
-    name.trim() &&
-    email.trim() &&
-    subject.trim() &&
-    message.trim() &&
-    Object.keys(fieldErrors).length === 0;
-
   return (
-    <div className="flex flex-col min-h-[calc(100vh-4rem)]">
-      <section className="flex-1 py-12 md:py-24 lg:py-32 bg-muted/30 flex items-center justify-center">
-        <div className="container px-4 md:px-6 mx-auto max-w-2xl">
-          <div className="text-center mb-10">
-            <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4">
-              Get In Touch
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              Have a project in mind or just want to say hi? Feel free to send me a
-              message!
-            </p>
-          </div>
+    <div className="flex flex-col min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-cyan-500/30">
+      
+      {/* Global Background Layers - Continuous across all sections */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <StarsBackground className="absolute inset-0 opacity-50" />
+        <ShootingStars className="absolute inset-0" minDelay={2000} maxDelay={5000} starColor="#22d3ee" trailColor="#0f172a" />
+        <BackgroundPaths />
+      </div>
 
-          <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-8">
-            {success ? (
-              <div className="text-center py-8">
-                <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/20 mx-auto mb-4 flex items-center justify-center">
-                  <svg
-                    className="w-8 h-8 text-green-600 dark:text-green-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold mb-2">Message Sent!</h3>
-                <p className="text-muted-foreground">
-                  Thank you for reaching out. I&apos;ll get back to you soon.
-                </p>
-                <button
-                  onClick={() => {
-                    setSuccess(false);
-                    setError("");
-                    setFieldErrors({});
-                    setTouched({});
-                  }}
-                  className="mt-4 text-primary hover:underline"
-                >
-                  Send another message
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label htmlFor="name" className="text-sm font-medium">
-                      Name *
-                    </label>
-                    <input
-                      id="name"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      onBlur={() => handleBlur("name")}
-                      required
-                      placeholder="John Doe"
-                      maxLength={LIMITS.name.max}
-                      aria-invalid={fieldErrors.name ? "true" : "false"}
-                      aria-describedby={fieldErrors.name ? "name-error" : undefined}
-                      className={`flex h-10 w-full rounded-md border ${
-                        fieldErrors.name
-                          ? "border-red-500 focus-visible:ring-red-500"
-                          : "border-input"
-                      } bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
-                    />
-                    {fieldErrors.name && (
-                      <p
-                        id="name-error"
-                        className="text-sm text-red-600 dark:text-red-400"
-                        role="alert"
-                      >
-                        {fieldErrors.name}
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      {name.length}/{LIMITS.name.max} characters
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-medium">
-                      Email *
-                    </label>
-                    <input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      onBlur={() => handleBlur("email")}
-                      required
-                      placeholder="john@example.com"
-                      maxLength={LIMITS.email.max}
-                      aria-invalid={fieldErrors.email ? "true" : "false"}
-                      aria-describedby={fieldErrors.email ? "email-error" : undefined}
-                      className={`flex h-10 w-full rounded-md border ${
-                        fieldErrors.email
-                          ? "border-red-500 focus-visible:ring-red-500"
-                          : "border-input"
-                      } bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
-                    />
-                    {fieldErrors.email && (
-                      <p
-                        id="email-error"
-                        className="text-sm text-red-600 dark:text-red-400"
-                        role="alert"
-                      >
-                        {fieldErrors.email}
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground">
-                      {email.length}/{LIMITS.email.max} characters
-                    </p>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="subject" className="text-sm font-medium">
-                    Subject *
-                  </label>
-                  <input
-                    id="subject"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
-                    onBlur={() => handleBlur("subject")}
-                    required
-                    placeholder="Project Inquiry"
-                    maxLength={LIMITS.subject.max}
-                    aria-invalid={fieldErrors.subject ? "true" : "false"}
-                    aria-describedby={fieldErrors.subject ? "subject-error" : undefined}
-                    className={`flex h-10 w-full rounded-md border ${
-                      fieldErrors.subject
-                        ? "border-red-500 focus-visible:ring-red-500"
-                        : "border-input"
-                    } bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`}
-                  />
-                  {fieldErrors.subject && (
-                    <p
-                      id="subject-error"
-                      className="text-sm text-red-600 dark:text-red-400"
-                      role="alert"
-                    >
-                      {fieldErrors.subject}
-                    </p>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    {subject.length}/{LIMITS.subject.max} characters
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="message" className="text-sm font-medium">
-                    Message *
-                  </label>
-                  <textarea
-                    id="message"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    onBlur={() => handleBlur("message")}
-                    required
-                    placeholder="Your message here..."
-                    maxLength={LIMITS.message.max}
-                    rows={8}
-                    aria-invalid={fieldErrors.message ? "true" : "false"}
-                    aria-describedby={fieldErrors.message ? "message-error" : undefined}
-                    className={`flex min-h-[150px] w-full rounded-md border ${
-                      fieldErrors.message
-                        ? "border-red-500 focus-visible:ring-red-500"
-                        : "border-input"
-                    } bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-y`}
-                  />
-                  {fieldErrors.message && (
-                    <p
-                      id="message-error"
-                      className="text-sm text-red-600 dark:text-red-400"
-                      role="alert"
-                    >
-                      {fieldErrors.message}
-                    </p>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    {message.length}/{LIMITS.message.max} characters
-                  </p>
-                </div>
-                {error && (
-                  <div
-                    className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md"
-                    role="alert"
-                  >
-                    {error}
-                  </div>
-                )}
-                <button
-                  type="submit"
-                  disabled={loading || !isFormValid}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 w-full rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <svg
-                        className="animate-spin h-4 w-4"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        />
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      Sending...
-                    </>
-                  ) : (
-                    "Send Message"
-                  )}
-                </button>
-              </form>
-            )}
+      {/* Hero Section with Particles */}
+      <section className="relative h-[55vh] min-h-[500px] w-full flex flex-col items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 pointer-events-none z-10 [mask-image:linear-gradient(to_bottom,black_40%,transparent_100%)]">
+            <FloatingParticles
+              particleCount={3000}
+              particleColor1="#22d3ee" // Cyan-400
+              particleColor2="#34d399" // Emerald-400
+              cameraDistance={1000}
+              rotationSpeed={0.05}
+              particleSize={20}
+              antigravityForce={10}
+              activationRate={10}
+              className="w-full h-full"
+            />
           </div>
         </div>
+        
+        {/* Text */}
+        <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+          <motion.h1 
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            className="text-4xl md:text-7xl font-display font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-cyan-100 to-cyan-500 drop-shadow-2xl"
+          >
+            Contact Me
+          </motion.h1>
+        </div>
+      </section>
+
+
+      {/* Main Content Section */}
+      <section className="relative w-full py-24 px-4 overflow-hidden z-10">
+        <div className="container mx-auto relative z-10 max-w-7xl space-y-24">
+          
+          {/* Social Pins */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 justify-items-center">
+            
+            {/* LinkedIn */}
+            <PinContainer title="LinkedIn" href="https://www.linkedin.com/in/faiyazur-rahman-mir-828173309/">
+              <div className="flex flex-col p-4 tracking-tight text-slate-100/50 w-[18rem] md:w-[20rem] h-[15rem] bg-gradient-to-b from-slate-900/90 to-slate-900/0 backdrop-blur-sm border border-slate-700/50 rounded-2xl group-hover/pin:border-cyan-500/50 transition-colors">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
+                  <span className="text-xs text-slate-400 uppercase tracking-widest">Connect</span>
+                </div>
+                <div className="flex-1 flex flex-col justify-center items-center gap-2">
+                   <svg className="w-12 h-12 text-cyan-400" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                   <span className="text-lg font-bold text-white">LinkedIn</span>
+                </div>
+              </div>
+            </PinContainer>
+
+            {/* GitHub */}
+            <PinContainer title="https://github.com/Mirf-Rahman" href="https://github.com/Mirf-Rahman">
+               <div className="flex flex-col p-4 tracking-tight text-slate-100/50 w-[18rem] md:w-[20rem] h-[15rem] bg-gradient-to-b from-slate-900/90 to-slate-900/0 backdrop-blur-sm border border-slate-700/50 rounded-2xl group-hover/pin:border-emerald-500/50 transition-colors">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs text-slate-400 uppercase tracking-widest">Code</span>
+                </div>
+                <div className="flex-1 flex flex-col justify-center items-center gap-2">
+                   <svg className="w-12 h-12 text-emerald-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                   <span className="text-lg font-bold text-white">GitHub</span>
+                </div>
+              </div>
+            </PinContainer>
+
+            {/* Email */}
+            <PinContainer title="Email" href="mailto:mirfaiyazrahman@gmail.com">
+               <div className="flex flex-col p-4 tracking-tight text-slate-100/50 w-[18rem] md:w-[20rem] h-[15rem] bg-gradient-to-b from-slate-900/90 to-slate-900/0 backdrop-blur-sm border border-slate-700/50 rounded-2xl group-hover/pin:border-purple-500/50 transition-colors">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-2 w-2 rounded-full bg-purple-400 animate-pulse" />
+                  <span className="text-xs text-slate-400 uppercase tracking-widest">Message</span>
+                </div>
+                <div className="flex-1 flex flex-col justify-center items-center gap-2">
+                   <svg className="w-12 h-12 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                   <span className="text-lg font-bold text-white">mirfaiyazrahman@gmail.com</span>
+                </div>
+              </div>
+            </PinContainer>
+          </div>
+
+            {/* Contact Form Section */}
+            <div className="w-full max-w-4xl mx-auto">
+               <SectionHeading 
+                 title="Get In Touch" 
+                 description="Have a project in mind or just want to say hi? Feel free to reach out."
+                 icon={Mail}
+                 className="mb-12"
+                 gradient="from-cyan-400 via-blue-500 to-purple-500"
+               />
+
+              {/* Contact Form */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+              >
+              <div className="backdrop-blur-xl bg-slate-900/40 border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden group">
+                 {/* Glossy gradient overlay */}
+                 <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent opacity-50" />
+                 <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-purple-500/5 pointer-events-none transition-opacity duration-500 group-hover:opacity-100 opacity-50" />
+                 
+                 {/* Decorative blobs */}
+                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+                 <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+
+                {success ? (
+                  <div className="text-center py-16 relative z-10">
+                     <motion.div 
+                       initial={{ scale: 0 }} 
+                       animate={{ scale: 1 }}
+                       transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                       className="w-24 h-24 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 mx-auto mb-8 flex items-center justify-center shadow-lg shadow-green-500/10"
+                     >
+                       <svg className="w-12 h-12 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                       </svg>
+                     </motion.div>
+                     <h3 className="text-3xl font-bold text-white mb-4">Message Sent!</h3>
+                     <p className="text-slate-300 text-lg mb-10 max-w-md mx-auto">Thank you for reaching out. I&apos;ll get back to you soon.</p>
+                     <Button 
+                       onClick={() => setSuccess(false)}
+                       variant="outline"
+                       className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300"
+                     >
+                       Send another message
+                     </Button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-2.5">
+                         <Label htmlFor="name" className="text-cyan-100/80 text-xs font-semibold tracking-wider uppercase pl-1">Name</Label>
+                         <Input 
+                           id="name"
+                           value={name}
+                           onChange={(e) => setName(e.target.value)}
+                           required
+                           placeholder="John Doe"
+                           maxLength={100}
+                           className="h-12 bg-slate-950/30 border-white/5 text-white placeholder:text-slate-600 focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 focus:bg-slate-950/50 transition-all rounded-xl"
+                         />
+                         <div className="flex justify-end">
+                            <span className="text-[10px] text-slate-600 font-mono">{name.length}/100</span>
+                         </div>
+                      </div>
+                      <div className="space-y-2.5">
+                         <Label htmlFor="email" className="text-cyan-100/80 text-xs font-semibold tracking-wider uppercase pl-1">Email</Label>
+                         <Input 
+                           id="email"
+                           type="email"
+                           value={email}
+                           onChange={(e) => setEmail(e.target.value)}
+                           required
+                           placeholder="john@example.com"
+                           maxLength={255}
+                           className="h-12 bg-slate-950/30 border-white/5 text-white placeholder:text-slate-600 focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 focus:bg-slate-950/50 transition-all rounded-xl"
+                         />
+                         <div className="flex justify-end">
+                            <span className="text-[10px] text-slate-600 font-mono">{email.length}/255</span>
+                         </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2.5">
+                       <Label htmlFor="subject" className="text-cyan-100/80 text-xs font-semibold tracking-wider uppercase pl-1">Subject</Label>
+                       <Input 
+                         id="subject"
+                         value={subject}
+                         onChange={(e) => setSubject(e.target.value)}
+                         required
+                         placeholder="Project Inquiry"
+                         maxLength={200}
+                         className="h-12 bg-slate-950/30 border-white/5 text-white placeholder:text-slate-600 focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 focus:bg-slate-950/50 transition-all rounded-xl"
+                       />
+                       <div className="flex justify-end">
+                          <span className="text-[10px] text-slate-600 font-mono">{subject.length}/200</span>
+                       </div>
+                    </div>
+
+                    <div className="space-y-2.5">
+                       <Label htmlFor="message" className="text-cyan-100/80 text-xs font-semibold tracking-wider uppercase pl-1">Message</Label>
+                       <Textarea 
+                         id="message"
+                         value={message}
+                         onChange={(e) => setMessage(e.target.value)}
+                         required
+                         placeholder="Your message here..."
+                         maxLength={5000}
+                         className="min-h-[160px] bg-slate-950/30 border-white/5 text-white placeholder:text-slate-600 focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 focus:bg-slate-950/50 transition-all resize-y rounded-xl p-4 leading-relaxed"
+                       />
+                       <div className="flex justify-end">
+                          <span className="text-[10px] text-slate-600 font-mono">{message.length}/5000</span>
+                       </div>
+                    </div>
+
+                    {error && (
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-200 text-sm flex items-center gap-2"
+                      >
+                        <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {error}
+                      </motion.div>
+                    )}
+
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full h-14 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-lg font-medium rounded-xl shadow-lg shadow-cyan-900/20 hover:shadow-cyan-500/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
+                    >
+                      {loading ? (
+                         <span className="flex items-center gap-2">
+                           <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                           </svg>
+                           Sending...
+                         </span>
+                      ) : (
+                         <span className="flex items-center gap-2">
+                           Send Message
+                           <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                           </svg>
+                         </span>
+                      )}
+                    </Button>
+                  </form>
+                )}
+              </div>
+              </motion.div>
+            </div>
+      </div>
       </section>
     </div>
   );
