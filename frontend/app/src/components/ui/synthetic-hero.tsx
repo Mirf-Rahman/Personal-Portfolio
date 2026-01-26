@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { TextReveal } from "@/components/ui/text-reveal-animation";
 import { GradientText } from "@/components/ui/gradient-text";
+import { WordRotate } from "@/components/ui/word-rotate";
 
 interface ShaderPlaneProps {
   vertexShader: string;
@@ -142,7 +143,7 @@ export function SyntheticHero({
   return (
     <section
       ref={sectionRef}
-      className="relative flex items-center justify-center min-h-screen overflow-hidden pt-24 md:pt-32 pointer-events-none"
+      className="relative flex items-center justify-center min-h-screen overflow-hidden pt-0 pointer-events-none"
     >
       {/* Shader Background - Fixed position for Parallax Effect */}
       <motion.div 
@@ -162,7 +163,7 @@ export function SyntheticHero({
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-transparent via-slate-950/40 to-slate-950/80 pointer-events-none" />
       </motion.div>
 
-      <div className="relative z-10 flex flex-col items-center text-center px-6 max-w-6xl mx-auto pointer-events-auto">
+      <div className="relative z-10 flex flex-col items-center text-center px-6 max-w-6xl mx-auto pointer-events-auto mt-[-5vh]">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -194,14 +195,20 @@ export function SyntheticHero({
           </h1>
         </motion.div>
 
+        {/* Rotating Words Section */}
         <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: false }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="text-cyan-50/80 text-xl md:text-2xl max-w-3xl mx-auto mb-12 font-light leading-relaxed"
+           initial={{ opacity: 0, y: 10 }}
+           whileInView={{ opacity: 1, y: 0 }}
+           viewport={{ once: false }}
+           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
+           className="mb-8 flex flex-col md:flex-row items-center justify-center gap-0:gap-0 text-2xl md:text-3xl font-light text-slate-300"
         >
-          <TextReveal word={description} delay={0.3} />
+          <span>I&apos;m a passionate</span>
+          <WordRotate
+            words={["Full Stack Developer", "Problem Solver", "Creative Thinker", "Backend Engineer", "Data Scientist", "Frontend Developer"]}
+            className="font-mono font-bold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-[#38bdf8] to-[#818cf8] px-1"
+            duration={3000}
+          />
         </motion.div>
 
         <motion.div
