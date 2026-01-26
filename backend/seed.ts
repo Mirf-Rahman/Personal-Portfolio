@@ -88,20 +88,60 @@ async function seed() {
       .insert(schema.projects)
       .values([
         {
-          title: "Personal Portfolio",
+          title: "CityPulse Montréal 2035",
           description:
-            "A modern portfolio website built with Next.js and PostgreSQL",
-          technologies: ["Next.js", "TypeScript", "PostgreSQL", "Docker"],
+            "AI-powered urban stress digital twin for Montréal city planning with real-time visualization and scenario modeling.",
+          technologies: [
+            "Next.js",
+            "TypeScript",
+            "Flask",
+            "GeoPandas",
+            "deck.gl",
+            "MapLibre GL",
+          ],
+          githubUrl: "https://github.com/MBF-YVL/hackathon-project",
+          imageUrl:
+            "https://mirf-portfolio-files.nyc3.cdn.digitaloceanspaces.com/dev/GitHub-Logo.jpg",
           featured: true,
           order: 1,
         },
         {
-          title: "E-Commerce Platform",
+          title: "Aman Skies",
           description:
-            "Full-stack e-commerce solution with real-time inventory management",
-          technologies: ["React", "Node.js", "MongoDB", "Stripe"],
+            "Weather forecast app with integrated prayer times, notifications, and air quality tracking.",
+          technologies: [
+            "React",
+            "TypeScript",
+            "Vite",
+            "OpenWeather API",
+            "Axios",
+            "date-fns",
+            "Vitest",
+          ],
+          githubUrl: "https://github.com/Mirf-Rahman/aman-skies",
+          imageUrl:
+            "https://mirf-portfolio-files.nyc3.cdn.digitaloceanspaces.com/dev/GitHub-Logo.jpg",
           featured: true,
           order: 2,
+        },
+        {
+          title: "Football Microservice",
+          description:
+            "Java Spring Boot microservices architecture demo for a football store with API Gateway and multiple service domains.",
+          technologies: [
+            "Java",
+            "Spring Boot",
+            "Spring Data JPA",
+            "Spring Security",
+            "PostgreSQL",
+            "Docker",
+            "Maven",
+          ],
+          githubUrl: "https://github.com/Mirf-Rahman/football-microservice",
+          imageUrl:
+            "https://mirf-portfolio-files.nyc3.cdn.digitaloceanspaces.com/dev/GitHub-Logo.jpg",
+          featured: true,
+          order: 3,
         },
       ])
       .returning();
@@ -149,16 +189,16 @@ async function seed() {
       .insert(schema.hobbies)
       .values([
         {
-          name: "Photography",
-          description: "Landscape and street photography",
+          name: "Gaming",
+          description: "Story & FPS games on PC",
           order: 1,
         },
         {
-          name: "Reading",
-          description: "Science fiction and technology books",
+          name: "Visual Arts",
+          description: "Traditional painting & digital design",
           order: 2,
         },
-        { name: "Hiking", description: "Exploring nature trails", order: 3 },
+        { name: "Video Editing", description: "Visual storytelling with Premiere Pro", order: 3 },
       ])
       .returning();
     console.log(`✅ Seeded ${hobbiesData.length} hobbies`);
