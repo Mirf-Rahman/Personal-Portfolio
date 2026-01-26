@@ -17,6 +17,7 @@ import {
   ScrollElement,
   StaggeredScrollElement,
 } from "@/components/ui/text-scroll-animation";
+import { TextGradientScroll } from "@/components/ui/text-gradient-scroll";
 import { PremiumTestimonials } from "@/components/ui/premium-testimonials";
 import { SectionHeading } from "@/components/ui/section-heading";
 import {
@@ -101,6 +102,7 @@ interface HomeData {
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const DEFAULT_PROJECT_IMAGE = "https://mirf-portfolio-files.nyc3.cdn.digitaloceanspaces.com/dev/GitHub-Logo.jpg";
 
 function formatDate(dateString: string): string {
   return new Date(dateString).toLocaleDateString("en-US", {
@@ -119,7 +121,24 @@ export default function Home() {
     hobbies: [],
   });
   const [isLoading, setIsLoading] = useState(true);
+  // Check for hash immediately during render to prevent hero flash
+  const [hideHero, setHideHero] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !!window.location.hash;
+    }
+    return false;
+  });
+  // Track which section to show (hide everything above it during hash navigation)
+  const [targetSection, setTargetSection] = useState<string | null>(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      return window.location.hash.slice(1); // Remove # symbol
+    }
+    return null;
+  });
+  // Flag to prevent scroll-to-top during hash navigation
+  const isHashNavigatingRef = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const lenisRef = useRef<Lenis | null>(null);
 
   const { scrollYProgress } = useScroll();
 
@@ -127,6 +146,21 @@ export default function Home() {
   const projectsY = useTransform(scrollYProgress, [0, 1], [0, -50]);
   const skillsY = useTransform(scrollYProgress, [0, 1], [0, -80]);
   const experienceY = useTransform(scrollYProgress, [0, 1], [0, -100]);
+
+  // Prevent browser scroll restoration and scroll to top on page load/refresh
+  useEffect(() => {
+    const hasHash = !!window.location.hash;
+
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+
+    if (!hasHash) {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  }, []);
 
   // Smooth scroll with Lenis
   useEffect(() => {
@@ -136,6 +170,13 @@ export default function Home() {
       orientation: "vertical",
       smoothWheel: true,
     });
+    lenisRef.current = lenis;
+
+    const hasHash = !!window.location.hash;
+    const isHashNavigating = isHashNavigatingRef.current;
+    if (!hasHash && !isHashNavigating) {
+      lenis.scrollTo(0, { immediate: true });
+    }
 
     function raf(time: number) {
       lenis.raf(time);
@@ -143,8 +184,77 @@ export default function Home() {
     }
     requestAnimationFrame(raf);
 
-    return () => lenis.destroy();
+    return () => {
+      lenisRef.current = null;
+      lenis.destroy();
+    };
   }, []);
+
+  // Expose Lenis instance globally for Navbar access
+  useEffect(() => {
+    if (lenisRef.current) {
+      (window as any).__lenis = lenisRef.current;
+    }
+    return () => {
+      delete (window as any).__lenis;
+    };
+  }, [lenisRef.current]);
+
+  // Re-enable hero when logo is clicked (e.g. returning from hash-nav with hero hidden)
+  useEffect(() => {
+    const onShowHero = () => {
+      setHideHero(false);
+      setTargetSection(null);
+    };
+    window.addEventListener('portfolio:show-hero', onShowHero);
+    return () => window.removeEventListener('portfolio:show-hero', onShowHero);
+  }, []);
+
+  // Handle hash scroll after page load (for cross-page navigation)
+  // Store hash and clear from URL to prevent browser auto-scroll
+  const [pendingHash, setPendingHash] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash) {
+      isHashNavigatingRef.current = true;
+      setHideHero(true);
+      const sectionId = hash.slice(1);
+      setTargetSection(sectionId);
+      setPendingHash(hash);
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }, []);
+
+  // Scroll to hash element after data finishes loading and Lenis is ready
+  useEffect(() => {
+    if (pendingHash && !isLoading && lenisRef.current) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const element = document.querySelector(pendingHash);
+          if (element && lenisRef.current) {
+            const rect = element.getBoundingClientRect();
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const targetY = Math.max(0, rect.top + scrollTop - 80);
+
+            window.scrollTo(0, targetY);
+            document.documentElement.scrollTop = targetY;
+            document.body.scrollTop = targetY;
+            lenisRef.current.scrollTo(targetY, { immediate: true });
+
+            // Do NOT re-enable hero/description here. Re-enabling adds DOM, triggers Lenis
+            // to recalculate scroll bounds, and resets scroll to top. Keep user at section.
+            isHashNavigatingRef.current = false;
+          } else {
+            setHideHero(false);
+            setTargetSection(null);
+            isHashNavigatingRef.current = false;
+          }
+          setPendingHash(null);
+        });
+      });
+    }
+  }, [pendingHash, isLoading]);
 
   // Fetch data
   useEffect(() => {
@@ -200,6 +310,18 @@ export default function Home() {
 
   const featuredProjects = data.projects.filter((p) => p.featured);
 
+  // Helper function to determine if a section should be hidden during hash navigation
+  const shouldHideSection = (sectionId: string): boolean => {
+    if (!targetSection) return false;
+    
+    const sectionOrder = ['projects', 'skills', 'experience', 'education', 'testimonials', 'hobbies'];
+    const targetIndex = sectionOrder.indexOf(targetSection);
+    const currentIndex = sectionOrder.indexOf(sectionId);
+    
+    // Hide sections that come before the target section
+    return targetIndex !== -1 && currentIndex !== -1 && currentIndex < targetIndex;
+  };
+
   return (
     <div
       ref={containerRef}
@@ -228,27 +350,40 @@ export default function Home() {
       />
 
       {/* ===== HERO SECTION with Synthetic Hero ===== */}
-      <SyntheticHero
-        title="Hey, I'm Mir Faiyazur Rahman"
-        description="A passionate Full Stack Developer building modern web applications and turning complex problems into elegant solutions."
-        badgeText="Available for Opportunities"
-        badgeLabel="Status"
-        ctaButtons={[
-          {
-            text: "View Projects",
-            href: "#projects",
-            primary: true,
-            isAnchor: true,
-          },
-          {
-            text: "Contact Me",
-            href: "/contact",
-            isAnchor: false,
-          },
-        ]}
-      />
+      {!hideHero && (
+        <SyntheticHero
+          title="Hey, I'm Mir Faiyazur Rahman"
+          description="A passionate Full Stack Developer building modern web applications and turning complex problems into elegant solutions."
+          badgeText="Available for Opportunities"
+          badgeLabel="Status"
+          ctaButtons={[
+            {
+              text: "View Projects",
+              href: "#projects",
+              primary: true,
+              isAnchor: true,
+            },
+            {
+              text: "Contact Me",
+              href: "/contact",
+              isAnchor: false,
+            },
+          ]}
+        />
+      )}
+
+      {/* Description text - hide during hash navigation */}
+      {!hideHero && (
+        <div className="container px-4 md:px-6 mx-auto relative z-10 mb-20 md:mb-32">
+          <TextGradientScroll 
+            text="I am a very determined full stack developer, driven by passion and creativity. Always learning, seeking big challenges, and turning complex problems into elegant solutions."
+            className="text-3xl md:text-5xl lg:text-6xl font-display font-bold tracking-tight"
+          />
+        </div>
+      )}
 
       {/* ===== PROJECTS SECTION ===== */}
+      {(!targetSection || targetSection === 'projects' || !shouldHideSection('projects')) && (
       <section id="projects" className="relative py-32 md:py-40">
         {/* Section ambient glow */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-950/10 to-transparent pointer-events-none" />
@@ -289,18 +424,12 @@ export default function Home() {
                       colorTo="#3b82f6"
                     />
                     <div className="aspect-video w-full bg-slate-900 relative overflow-hidden">
-                      {project.imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={project.imageUrl}
-                          alt={project.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-600">
-                          No Image
-                        </div>
-                      )}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={project.imageUrl || DEFAULT_PROJECT_IMAGE}
+                        alt={project.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                     <div className="p-6">
@@ -311,13 +440,25 @@ export default function Home() {
                         {project.description}
                       </p>
                       <div className="flex gap-2 flex-wrap mb-4">
-                        {project.technologies.slice(0, 3).map((tech, i) => (
-                          <span
+                        {project.technologies.map((tech, i) => (
+                          <motion.span
                             key={i}
-                            className="px-2 py-1 rounded-md bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ 
+                              delay: i * 0.05, 
+                              duration: 0.3,
+                              ease: "easeOut"
+                            }}
+                            whileHover={{ 
+                              scale: 1.1, 
+                              y: -2,
+                              boxShadow: "0 4px 12px rgba(6, 182, 212, 0.3)"
+                            }}
+                            className="px-2.5 py-1 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-medium cursor-default transition-colors hover:border-cyan-400/50 hover:text-cyan-200"
                           >
                             {tech}
-                          </span>
+                          </motion.span>
                         ))}
                       </div>
                       <div className="flex items-center gap-4">
@@ -352,8 +493,10 @@ export default function Home() {
           )}
         </div>
       </section>
+      )}
 
       {/* ===== SKILLS SECTION with LAMP ===== */}
+      {(!targetSection || targetSection === 'skills' || !shouldHideSection('skills')) && (
       <section id="skills" className="relative py-32 md:py-40">
         {/* Section ambient glow */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-950/10 to-transparent pointer-events-none" />
@@ -425,8 +568,10 @@ export default function Home() {
           </div>
         </div>
       </section>
+      )}
 
       {/* ===== EXPERIENCE SECTION ===== */}
+      {(!targetSection || targetSection === 'experience' || !shouldHideSection('experience')) && (
       <section id="experience" className="relative py-32 md:py-40">
         {/* Section ambient glow */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-950/10 to-transparent pointer-events-none" />
@@ -506,8 +651,10 @@ export default function Home() {
           )}
         </div>
       </section>
+      )}
 
       {/* ===== EDUCATION SECTION ===== */}
+      {(!targetSection || targetSection === 'education' || !shouldHideSection('education')) && (
       <section id="education" className="relative py-32 md:py-40">
         {/* Section ambient glow */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-950/10 to-transparent pointer-events-none" />
@@ -569,8 +716,10 @@ export default function Home() {
           )}
         </div>
       </section>
+      )}
 
       {/* ===== TESTIMONIALS SECTION ===== */}
+      {(!targetSection || targetSection === 'testimonials' || !shouldHideSection('testimonials')) && (
       <section id="testimonials" className="relative py-32 md:py-40">
         <SectionHeading
           title="Testimonials"
@@ -628,8 +777,10 @@ export default function Home() {
           </div>
         )}
       </section>
+      )}
 
       {/* ===== HOBBIES & INTERESTS SECTION ===== */}
+      {(!targetSection || targetSection === 'hobbies' || !shouldHideSection('hobbies')) && (
       <section id="hobbies" className="relative py-32 md:py-40">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-green-950/10 to-transparent pointer-events-none" />
 
@@ -691,6 +842,7 @@ export default function Home() {
           )}
         </div>
       </section>
+      )}
     </div>
   );
 }
