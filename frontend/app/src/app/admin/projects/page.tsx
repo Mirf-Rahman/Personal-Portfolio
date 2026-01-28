@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { authenticatedFetch, fetchApi } from "@/lib/api";
 import ImageUpload from "@/components/ImageUpload";
@@ -9,7 +10,9 @@ import ImageUpload from "@/components/ImageUpload";
 interface Project {
   id: string;
   title: string;
+  titleFr?: string | null;
   description: string;
+  descriptionFr?: string | null;
   technologies: string[];
   imageUrl: string | null;
   liveUrl: string | null;
@@ -20,7 +23,9 @@ interface Project {
 
 const emptyForm = {
   title: "",
+  titleFr: "",
   description: "",
+  descriptionFr: "",
   technologies: "",
   imageUrl: "",
   liveUrl: "",
@@ -31,6 +36,7 @@ const emptyForm = {
 
 export default function ProjectsManagementPage() {
   const router = useRouter();
+  const t = useTranslations("admin");
   const { data: session, isPending } = authClient.useSession();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,7 +61,7 @@ export default function ProjectsManagementPage() {
       setProjects(data);
     } catch (err) {
       console.error("Error fetching projects:", err);
-      setError("Failed to load projects. Please refresh the page.");
+      setError(t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -69,11 +75,13 @@ export default function ProjectsManagementPage() {
     try {
       const technologies = formData.technologies
         .split(",")
-        .map((t) => t.trim())
+        .map((tech) => tech.trim())
         .filter(Boolean);
       const payload = {
         title: formData.title,
+        titleFr: formData.titleFr || null,
         description: formData.description,
+        descriptionFr: formData.descriptionFr || null,
         technologies,
         imageUrl: formData.imageUrl || null,
         liveUrl: formData.liveUrl || null,
@@ -82,10 +90,13 @@ export default function ProjectsManagementPage() {
       };
 
       if (editingProject) {
-        await authenticatedFetch<Project>(`/api/projects/${editingProject.id}`, {
-          method: "PUT",
-          body: JSON.stringify(payload),
-        });
+        await authenticatedFetch<Project>(
+          `/api/projects/${editingProject.id}`,
+          {
+            method: "PUT",
+            body: JSON.stringify(payload),
+          },
+        );
       } else {
         await authenticatedFetch<Project>("/api/projects", {
           method: "POST",
@@ -98,7 +109,7 @@ export default function ProjectsManagementPage() {
       setEditingProject(null);
       await fetchProjects();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save project. Please try again.");
+      setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setSubmitting(false);
     }
@@ -108,7 +119,9 @@ export default function ProjectsManagementPage() {
     setEditingProject(project);
     setFormData({
       title: project.title,
+      titleFr: project.titleFr ?? "",
       description: project.description,
+      descriptionFr: project.descriptionFr ?? "",
       technologies: project.technologies.join(", "),
       imageUrl: project.imageUrl || "",
       liveUrl: project.liveUrl || "",
@@ -121,12 +134,12 @@ export default function ProjectsManagementPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this project?")) return;
+    if (!confirm(t("projects.confirmDelete"))) return;
     try {
       await authenticatedFetch(`/api/projects/${id}`, { method: "DELETE" });
       await fetchProjects();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete project");
+      alert(err instanceof Error ? err.message : t("common.error"));
     }
   };
 
@@ -139,7 +152,8 @@ export default function ProjectsManagementPage() {
 
   const handleAddProject = () => {
     setEditingProject(null);
-    const maxOrder = projects.length > 0 ? Math.max(...projects.map((p) => p.order), 0) : 0;
+    const maxOrder =
+      projects.length > 0 ? Math.max(...projects.map((p) => p.order), 0) : 0;
     setFormData({ ...emptyForm, order: maxOrder + 1 });
     setIsEditing(true);
     setError("");
@@ -152,8 +166,7 @@ export default function ProjectsManagementPage() {
       const sorted = [...projects].sort((a, b) => a.order - b.order);
       const idx = sorted.findIndex((p) => p.id === projectId);
       if (idx < 0) return;
-      const other =
-        direction === "up" ? sorted[idx - 1] : sorted[idx + 1];
+      const other = direction === "up" ? sorted[idx - 1] : sorted[idx + 1];
       if (!other) return;
       await authenticatedFetch("/api/projects/swap-order", {
         method: "POST",
@@ -161,7 +174,7 @@ export default function ProjectsManagementPage() {
       });
       await fetchProjects();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to reorder project");
+      alert(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setReordering(null);
     }
@@ -181,41 +194,53 @@ export default function ProjectsManagementPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Projects Management</h1>
-          <p className="text-muted-foreground mt-1">Manage your portfolio projects</p>
+          <h1 className="text-3xl font-bold">{t("projects.title")}</h1>
+          <p className="text-muted-foreground mt-1">
+            {t("projects.description")}
+          </p>
         </div>
         <button
           onClick={handleAddProject}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-medium"
         >
-          + Add Project
+          + {t("projects.addNew")}
         </button>
       </div>
 
       {(isEditing || editingProject) && (
         <div className="rounded-lg border bg-card p-6">
           <h3 className="font-semibold text-lg mb-4">
-            {editingProject ? "Edit Project" : "Add New Project"}
+            {editingProject
+              ? t("projects.editProject")
+              : t("projects.addNewProject")}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium mb-2 block">Title *</label>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("projects.titleLabel")} *
+                </label>
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
                   required
-                  placeholder="My Awesome Project"
+                  placeholder={t("projects.titlePlaceholder")}
                   className="w-full px-3 py-2 border rounded-md bg-background"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">Technologies (comma-separated) *</label>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("projects.technologies")} *
+                </label>
                 <input
                   type="text"
                   value={formData.technologies}
-                  onChange={(e) => setFormData({ ...formData, technologies: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, technologies: e.target.value })
+                  }
                   required
                   placeholder="React, TypeScript, TailwindCSS"
                   className="w-full px-3 py-2 border rounded-md bg-background"
@@ -223,42 +248,86 @@ export default function ProjectsManagementPage() {
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">Description *</label>
+              <label className="text-sm font-medium mb-2 block">
+                {t("projects.projectDescription")} *
+              </label>
               <textarea
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 required
-                placeholder="Project description..."
+                placeholder={t("projects.descriptionPlaceholder")}
                 rows={3}
                 className="w-full px-3 py-2 border rounded-md bg-background"
               />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("projects.titleFr")}
+                </label>
+                <input
+                  type="text"
+                  value={formData.titleFr}
+                  onChange={(e) =>
+                    setFormData({ ...formData, titleFr: e.target.value })
+                  }
+                  placeholder={t("projects.titleFr")}
+                  className="w-full px-3 py-2 border rounded-md bg-background"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("projects.descriptionFr")}
+                </label>
+                <textarea
+                  value={formData.descriptionFr}
+                  onChange={(e) =>
+                    setFormData({ ...formData, descriptionFr: e.target.value })
+                  }
+                  placeholder={t("projects.descriptionFr")}
+                  rows={2}
+                  className="w-full px-3 py-2 border rounded-md bg-background"
+                />
+              </div>
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <ImageUpload
                   value={formData.imageUrl}
-                  onChange={(url) => setFormData({ ...formData, imageUrl: url })}
-                  label="Image URL"
+                  onChange={(url) =>
+                    setFormData({ ...formData, imageUrl: url })
+                  }
+                  label={t("projects.imageUrl")}
                   accept="image/*"
                   maxSize={10}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">Live URL</label>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("projects.liveUrl")}
+                </label>
                 <input
                   type="url"
                   value={formData.liveUrl}
-                  onChange={(e) => setFormData({ ...formData, liveUrl: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, liveUrl: e.target.value })
+                  }
                   placeholder="https://..."
                   className="w-full px-3 py-2 border rounded-md bg-background"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">GitHub URL</label>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("projects.githubUrl")}
+                </label>
                 <input
                   type="url"
                   value={formData.githubUrl}
-                  onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, githubUrl: e.target.value })
+                  }
                   placeholder="https://github.com/..."
                   className="w-full px-3 py-2 border rounded-md bg-background"
                 />
@@ -270,22 +339,28 @@ export default function ProjectsManagementPage() {
                   type="checkbox"
                   id="featured"
                   checked={formData.featured}
-                  onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, featured: e.target.checked })
+                  }
                   className="w-4 h-4"
                 />
-                <label htmlFor="featured" className="text-sm font-medium">Featured Project</label>
+                <label htmlFor="featured" className="text-sm font-medium">
+                  {t("projects.featured")}
+                </label>
               </div>
               {!editingProject && (
                 <div className="p-3 rounded-md bg-muted/50 border border-muted">
                   <p className="text-sm text-muted-foreground">
-                    This project will be added at the end (order: {formData.order})
+                    {t("projects.autoOrderHint")} {formData.order})
                   </p>
                 </div>
               )}
             </div>
             {editingProject && (
               <div>
-                <label className="text-sm font-medium mb-2 block">Position</label>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("projects.position")}
+                </label>
                 <select
                   value={formData.order}
                   onChange={async (e) => {
@@ -294,14 +369,22 @@ export default function ProjectsManagementPage() {
                     try {
                       setSubmitting(true);
                       setError("");
-                      await authenticatedFetch<Project>(`/api/projects/${editingProject.id}`, {
-                        method: "PUT",
-                        body: JSON.stringify({ order: newOrder, shouldSwap: true }),
-                      });
+                      await authenticatedFetch<Project>(
+                        `/api/projects/${editingProject.id}`,
+                        {
+                          method: "PUT",
+                          body: JSON.stringify({
+                            order: newOrder,
+                            shouldSwap: true,
+                          }),
+                        },
+                      );
                       await fetchProjects();
                       setFormData((prev) => ({ ...prev, order: newOrder }));
                     } catch (err) {
-                      setError(err instanceof Error ? err.message : "Failed to update order");
+                      setError(
+                        err instanceof Error ? err.message : t("common.error"),
+                      );
                       e.target.value = String(formData.order);
                     } finally {
                       setSubmitting(false);
@@ -311,25 +394,30 @@ export default function ProjectsManagementPage() {
                   className="w-full px-3 py-2 border rounded-md bg-background disabled:opacity-50"
                 >
                   {(() => {
-                    const uniqueOrders = [...new Set(projects.map((p) => p.order))].sort((a, b) => a - b);
+                    const uniqueOrders = [
+                      ...new Set(projects.map((p) => p.order)),
+                    ].sort((a, b) => a - b);
                     return uniqueOrders.map((position) => {
-                      const projectAtPosition = projects.find((p) => p.order === position);
-                      const isCurrent = projectAtPosition?.id === editingProject.id;
+                      const projectAtPosition = projects.find(
+                        (p) => p.order === position,
+                      );
+                      const isCurrent =
+                        projectAtPosition?.id === editingProject.id;
                       return (
                         <option key={position} value={position}>
-                          Position {position}
+                          {t("projects.positionLabel")} {position}
                           {projectAtPosition && !isCurrent
                             ? ` – ${projectAtPosition.title}`
                             : isCurrent
-                              ? " (Current)"
-                              : " (Empty)"}
+                              ? ` (${t("projects.current")})`
+                              : ` (${t("projects.emptyPosition")})`}
                         </option>
                       );
                     });
                   })()}
                 </select>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Select a position to swap with the project currently at that position
+                  {t("projects.positionHint")}
                 </p>
               </div>
             )}
@@ -347,10 +435,14 @@ export default function ProjectsManagementPage() {
                 {submitting ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
-                    <span>Saving...</span>
+                    <span>{t("common.saving")}</span>
                   </>
                 ) : (
-                  <span>{editingProject ? "Update" : "Create"}</span>
+                  <span>
+                    {editingProject
+                      ? t("projects.update")
+                      : t("projects.create")}
+                  </span>
                 )}
               </button>
               <button
@@ -359,7 +451,7 @@ export default function ProjectsManagementPage() {
                 disabled={submitting}
                 className="px-4 py-2 border rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
             </div>
           </form>
@@ -367,25 +459,40 @@ export default function ProjectsManagementPage() {
       )}
 
       {loading ? (
-        <div className="text-center py-12 text-muted-foreground">Loading...</div>
+        <div className="text-center py-12 text-muted-foreground">
+          {t("common.loading")}
+        </div>
       ) : (
         <div className="rounded-lg border bg-card">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="border-b bg-muted/50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Order</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Title</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Technologies</th>
-                  <th className="px-4 py-3 text-center text-sm font-medium">Featured</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium">Actions</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">
+                    {t("projects.order")}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">
+                    {t("projects.titleLabel")}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">
+                    {t("projects.technologies")}
+                  </th>
+                  <th className="px-4 py-3 text-center text-sm font-medium">
+                    {t("projects.featured")}
+                  </th>
+                  <th className="px-4 py-3 text-right text-sm font-medium">
+                    {t("common.actions")}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {sortedProjects.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                      No projects yet. Add your first project!
+                    <td
+                      colSpan={5}
+                      className="px-4 py-8 text-center text-muted-foreground"
+                    >
+                      {t("projects.empty")}
                     </td>
                   </tr>
                 ) : (
@@ -403,9 +510,11 @@ export default function ProjectsManagementPage() {
                               <button
                                 type="button"
                                 onClick={() => handleReorder(project.id, "up")}
-                                disabled={!canMoveUp || reordering === project.id}
+                                disabled={
+                                  !canMoveUp || reordering === project.id
+                                }
                                 className="p-1 hover:bg-muted rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="Move up"
+                                title={t("projects.moveUp")}
                               >
                                 <svg
                                   className="w-3 h-3"
@@ -423,10 +532,14 @@ export default function ProjectsManagementPage() {
                               </button>
                               <button
                                 type="button"
-                                onClick={() => handleReorder(project.id, "down")}
-                                disabled={!canMoveDown || reordering === project.id}
+                                onClick={() =>
+                                  handleReorder(project.id, "down")
+                                }
+                                disabled={
+                                  !canMoveDown || reordering === project.id
+                                }
                                 className="p-1 hover:bg-muted rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="Move down"
+                                title={t("projects.moveDown")}
                               >
                                 <svg
                                   className="w-3 h-3"
@@ -445,26 +558,30 @@ export default function ProjectsManagementPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 font-medium">{project.title}</td>
+                        <td className="px-4 py-3 font-medium">
+                          {project.title}
+                        </td>
                         <td className="px-4 py-3 text-muted-foreground text-sm">
                           {project.technologies.slice(0, 3).join(", ")}
                           {project.technologies.length > 3 ? "..." : ""}
                         </td>
-                        <td className="px-4 py-3 text-center">{project.featured ? "✓" : ""}</td>
+                        <td className="px-4 py-3 text-center">
+                          {project.featured ? "✓" : ""}
+                        </td>
                         <td className="px-4 py-3 text-right space-x-2">
                           <button
                             type="button"
                             onClick={() => handleEdit(project)}
                             className="text-sm text-primary hover:underline"
                           >
-                            Edit
+                            {t("projects.edit")}
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDelete(project.id)}
                             className="text-sm text-destructive hover:underline"
                           >
-                            Delete
+                            {t("projects.delete")}
                           </button>
                         </td>
                       </tr>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { authenticatedFetch, fetchApi } from "@/lib/api";
 
@@ -9,7 +10,9 @@ interface Experience {
   id: string;
   company: string;
   position: string;
+  positionFr?: string | null;
   description: string;
+  descriptionFr?: string | null;
   location: string;
   startDate: string;
   endDate: string | null;
@@ -26,7 +29,9 @@ function toInputDate(str: string | null): string {
 const emptyForm = {
   company: "",
   position: "",
+  positionFr: "",
   description: "",
+  descriptionFr: "",
   location: "",
   startDate: "",
   endDate: "",
@@ -36,11 +41,14 @@ const emptyForm = {
 
 export default function ExperienceManagementPage() {
   const router = useRouter();
+  const t = useTranslations("admin");
   const { data: session, isPending } = authClient.useSession();
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [editingExperience, setEditingExperience] = useState<Experience | null>(null);
+  const [editingExperience, setEditingExperience] = useState<Experience | null>(
+    null,
+  );
   const [formData, setFormData] = useState(emptyForm);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -60,7 +68,7 @@ export default function ExperienceManagementPage() {
       setExperiences(data);
     } catch (err) {
       console.error("Error fetching experiences:", err);
-      setError("Failed to load experiences. Please refresh the page.");
+      setError(t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -75,7 +83,9 @@ export default function ExperienceManagementPage() {
       const payload = {
         company: formData.company,
         position: formData.position,
+        positionFr: formData.positionFr || null,
         description: formData.description,
+        descriptionFr: formData.descriptionFr || null,
         location: formData.location,
         startDate: formData.startDate,
         endDate: formData.endDate || null,
@@ -83,10 +93,13 @@ export default function ExperienceManagementPage() {
       };
 
       if (editingExperience) {
-        await authenticatedFetch<Experience>(`/api/experiences/${editingExperience.id}`, {
-          method: "PUT",
-          body: JSON.stringify(payload),
-        });
+        await authenticatedFetch<Experience>(
+          `/api/experiences/${editingExperience.id}`,
+          {
+            method: "PUT",
+            body: JSON.stringify(payload),
+          },
+        );
       } else {
         await authenticatedFetch<Experience>("/api/experiences", {
           method: "POST",
@@ -99,7 +112,7 @@ export default function ExperienceManagementPage() {
       setEditingExperience(null);
       await fetchExperiences();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save experience. Please try again.");
+      setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setSubmitting(false);
     }
@@ -110,7 +123,9 @@ export default function ExperienceManagementPage() {
     setFormData({
       company: exp.company,
       position: exp.position,
+      positionFr: exp.positionFr ?? "",
       description: exp.description,
+      descriptionFr: exp.descriptionFr ?? "",
       location: exp.location,
       startDate: toInputDate(exp.startDate),
       endDate: toInputDate(exp.endDate),
@@ -122,12 +137,12 @@ export default function ExperienceManagementPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this experience?")) return;
+    if (!confirm(t("experience.confirmDelete"))) return;
     try {
       await authenticatedFetch(`/api/experiences/${id}`, { method: "DELETE" });
       await fetchExperiences();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete experience");
+      alert(err instanceof Error ? err.message : t("common.error"));
     }
   };
 
@@ -140,13 +155,19 @@ export default function ExperienceManagementPage() {
 
   const handleAddExperience = () => {
     setEditingExperience(null);
-    const maxOrder = experiences.length > 0 ? Math.max(...experiences.map((e) => e.order), 0) : 0;
+    const maxOrder =
+      experiences.length > 0
+        ? Math.max(...experiences.map((e) => e.order), 0)
+        : 0;
     setFormData({ ...emptyForm, order: maxOrder + 1 });
     setIsEditing(true);
     setError("");
   };
 
-  const handleReorder = async (experienceId: string, direction: "up" | "down") => {
+  const handleReorder = async (
+    experienceId: string,
+    direction: "up" | "down",
+  ) => {
     if (reordering) return;
     setReordering(experienceId);
     try {
@@ -157,11 +178,14 @@ export default function ExperienceManagementPage() {
       if (!other) return;
       await authenticatedFetch("/api/experiences/swap-order", {
         method: "POST",
-        body: JSON.stringify({ experienceId1: experienceId, experienceId2: other.id }),
+        body: JSON.stringify({
+          experienceId1: experienceId,
+          experienceId2: other.id,
+        }),
       });
       await fetchExperiences();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to reorder experience");
+      alert(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setReordering(null);
     }
@@ -181,42 +205,54 @@ export default function ExperienceManagementPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Experience Management</h1>
-          <p className="text-muted-foreground mt-1">Manage your work experience</p>
+          <h1 className="text-3xl font-bold">{t("experience.title")}</h1>
+          <p className="text-muted-foreground mt-1">
+            {t("experience.description")}
+          </p>
         </div>
         <button
           type="button"
           onClick={handleAddExperience}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-medium"
         >
-          + Add Experience
+          + {t("experience.addNew")}
         </button>
       </div>
 
       {(isEditing || editingExperience) && (
         <div className="rounded-lg border bg-card p-6">
           <h3 className="font-semibold text-lg mb-4">
-            {editingExperience ? "Edit Experience" : "Add New Experience"}
+            {editingExperience
+              ? t("experience.editExperience")
+              : t("experience.addNewExperience")}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium mb-2 block">Company *</label>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("experience.company")} *
+                </label>
                 <input
                   type="text"
                   value={formData.company}
-                  onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, company: e.target.value })
+                  }
                   required
                   placeholder="Acme Inc."
                   className="w-full px-3 py-2 border rounded-md bg-background"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">Position *</label>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("experience.position")} *
+                </label>
                 <input
                   type="text"
                   value={formData.position}
-                  onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, position: e.target.value })
+                  }
                   required
                   placeholder="Software Developer"
                   className="w-full px-3 py-2 border rounded-md bg-background"
@@ -224,22 +260,60 @@ export default function ExperienceManagementPage() {
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">Description *</label>
+              <label className="text-sm font-medium mb-2 block">
+                {t("experience.experienceDescription")} *
+              </label>
               <textarea
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 required
-                placeholder="Describe your role and achievements..."
+                placeholder={t("experience.descriptionPlaceholder")}
                 rows={3}
                 className="w-full px-3 py-2 border rounded-md bg-background"
               />
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("experience.positionFr")}
+                </label>
+                <input
+                  type="text"
+                  value={formData.positionFr}
+                  onChange={(e) =>
+                    setFormData({ ...formData, positionFr: e.target.value })
+                  }
+                  placeholder={t("experience.positionFr")}
+                  className="w-full px-3 py-2 border rounded-md bg-background"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("experience.descriptionFr")}
+                </label>
+                <textarea
+                  value={formData.descriptionFr}
+                  onChange={(e) =>
+                    setFormData({ ...formData, descriptionFr: e.target.value })
+                  }
+                  placeholder={t("experience.descriptionFr")}
+                  rows={2}
+                  className="w-full px-3 py-2 border rounded-md bg-background"
+                />
+              </div>
+            </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">Location *</label>
+              <label className="text-sm font-medium mb-2 block">
+                {t("experience.location")} *
+              </label>
               <input
                 type="text"
                 value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, location: e.target.value })
+                }
                 required
                 placeholder="Montreal, QC"
                 className="w-full px-3 py-2 border rounded-md bg-background"
@@ -247,21 +321,29 @@ export default function ExperienceManagementPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium mb-2 block">Start date *</label>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("experience.startDate")} *
+                </label>
                 <input
                   type="date"
                   value={formData.startDate}
-                  onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, startDate: e.target.value })
+                  }
                   required
                   className="w-full px-3 py-2 border rounded-md bg-background"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">End date</label>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("experience.endDate")}
+                </label>
                 <input
                   type="date"
                   value={formData.endDate}
-                  onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, endDate: e.target.value })
+                  }
                   disabled={formData.current}
                   className="w-full px-3 py-2 border rounded-md bg-background disabled:opacity-50"
                 />
@@ -283,20 +365,22 @@ export default function ExperienceManagementPage() {
                   className="w-4 h-4"
                 />
                 <label htmlFor="current" className="text-sm font-medium">
-                  Current role
+                  {t("experience.currentRole")}
                 </label>
               </div>
               {!editingExperience && (
                 <div className="p-3 rounded-md bg-muted/50 border border-muted">
                   <p className="text-sm text-muted-foreground">
-                    This experience will be added at the end (order: {formData.order})
+                    {t("experience.autoOrderHint")} {formData.order})
                   </p>
                 </div>
               )}
             </div>
             {editingExperience && (
               <div>
-                <label className="text-sm font-medium mb-2 block">Position</label>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("experience.orderPosition")}
+                </label>
                 <select
                   value={formData.order}
                   onChange={async (e) => {
@@ -309,13 +393,18 @@ export default function ExperienceManagementPage() {
                         `/api/experiences/${editingExperience.id}`,
                         {
                           method: "PUT",
-                          body: JSON.stringify({ order: newOrder, shouldSwap: true }),
-                        }
+                          body: JSON.stringify({
+                            order: newOrder,
+                            shouldSwap: true,
+                          }),
+                        },
                       );
                       await fetchExperiences();
                       setFormData((prev) => ({ ...prev, order: newOrder }));
                     } catch (err) {
-                      setError(err instanceof Error ? err.message : "Failed to update order");
+                      setError(
+                        err instanceof Error ? err.message : t("common.error"),
+                      );
                       e.target.value = String(formData.order);
                     } finally {
                       setSubmitting(false);
@@ -325,33 +414,38 @@ export default function ExperienceManagementPage() {
                   className="w-full px-3 py-2 border rounded-md bg-background disabled:opacity-50"
                 >
                   {(() => {
-                    const uniqueOrders = [...new Set(experiences.map((e) => e.order))].sort(
-                      (a, b) => a - b
-                    );
+                    const uniqueOrders = [
+                      ...new Set(experiences.map((e) => e.order)),
+                    ].sort((a, b) => a - b);
                     return uniqueOrders.map((position) => {
-                      const expAtPosition = experiences.find((e) => e.order === position);
-                      const isCurrent = expAtPosition?.id === editingExperience.id;
+                      const expAtPosition = experiences.find(
+                        (e) => e.order === position,
+                      );
+                      const isCurrent =
+                        expAtPosition?.id === editingExperience.id;
                       return (
                         <option key={position} value={position}>
-                          Position {position}
+                          {t("experience.positionLabel")} {position}
                           {expAtPosition && !isCurrent
                             ? ` – ${expAtPosition.position} at ${expAtPosition.company}`
                             : isCurrent
-                              ? " (Current)"
-                              : " (Empty)"}
+                              ? ` (${t("experience.currentPosition")})`
+                              : ` (${t("experience.emptyPosition")})`}
                         </option>
                       );
                     });
                   })()}
                 </select>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Select a position to swap with the experience currently at that position
+                  {t("experience.positionHint")}
                 </p>
               </div>
             )}
             {error && (
               <div className="p-3 rounded-md bg-red-50 border border-red-200 dark:bg-red-950/30 dark:border-red-800">
-                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  {error}
+                </p>
               </div>
             )}
             <div className="flex gap-2">
@@ -363,10 +457,14 @@ export default function ExperienceManagementPage() {
                 {submitting ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
-                    <span>Saving...</span>
+                    <span>{t("common.saving")}</span>
                   </>
                 ) : (
-                  <span>{editingExperience ? "Update" : "Create"}</span>
+                  <span>
+                    {editingExperience
+                      ? t("experience.update")
+                      : t("experience.create")}
+                  </span>
                 )}
               </button>
               <button
@@ -375,7 +473,7 @@ export default function ExperienceManagementPage() {
                 disabled={submitting}
                 className="px-4 py-2 border rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
             </div>
           </form>
@@ -383,26 +481,43 @@ export default function ExperienceManagementPage() {
       )}
 
       {loading ? (
-        <div className="text-center py-12 text-muted-foreground">Loading...</div>
+        <div className="text-center py-12 text-muted-foreground">
+          {t("common.loading")}
+        </div>
       ) : (
         <div className="rounded-lg border bg-card">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="border-b bg-muted/50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Order</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Position</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Company</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Location</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Dates</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium">Actions</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">
+                    {t("experience.order")}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">
+                    {t("experience.position")}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">
+                    {t("experience.company")}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">
+                    {t("experience.location")}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">
+                    {t("experience.dates")}
+                  </th>
+                  <th className="px-4 py-3 text-right text-sm font-medium">
+                    {t("common.actions")}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {sortedExperiences.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
-                      No experiences yet. Add your first experience!
+                    <td
+                      colSpan={6}
+                      className="px-4 py-8 text-center text-muted-foreground"
+                    >
+                      {t("experience.empty")}
                     </td>
                   </tr>
                 ) : (
@@ -416,7 +531,7 @@ export default function ExperienceManagementPage() {
                         })
                       : "";
                     const end = exp.current
-                      ? "Present"
+                      ? t("common.present")
                       : exp.endDate
                         ? new Date(exp.endDate).toLocaleDateString("en-US", {
                             year: "numeric",
@@ -427,14 +542,16 @@ export default function ExperienceManagementPage() {
                       <tr key={exp.id} className="hover:bg-muted/50">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <span className="text-muted-foreground text-sm w-8">{exp.order}</span>
+                            <span className="text-muted-foreground text-sm w-8">
+                              {exp.order}
+                            </span>
                             <div className="flex flex-col gap-1">
                               <button
                                 type="button"
                                 onClick={() => handleReorder(exp.id, "up")}
                                 disabled={!canMoveUp || reordering === exp.id}
                                 className="p-1 hover:bg-muted rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="Move up"
+                                title={t("experience.moveUp")}
                               >
                                 <svg
                                   className="w-3 h-3"
@@ -455,7 +572,7 @@ export default function ExperienceManagementPage() {
                                 onClick={() => handleReorder(exp.id, "down")}
                                 disabled={!canMoveDown || reordering === exp.id}
                                 className="p-1 hover:bg-muted rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="Move down"
+                                title={t("experience.moveDown")}
                               >
                                 <svg
                                   className="w-3 h-3"
@@ -474,9 +591,15 @@ export default function ExperienceManagementPage() {
                             </div>
                           </div>
                         </td>
-                        <td className="px-4 py-3 font-medium">{exp.position}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{exp.company}</td>
-                        <td className="px-4 py-3 text-muted-foreground text-sm">{exp.location}</td>
+                        <td className="px-4 py-3 font-medium">
+                          {exp.position}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {exp.company}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground text-sm">
+                          {exp.location}
+                        </td>
                         <td className="px-4 py-3 text-muted-foreground text-sm">
                           {start} – {end}
                         </td>
@@ -486,14 +609,14 @@ export default function ExperienceManagementPage() {
                             onClick={() => handleEdit(exp)}
                             className="text-sm text-primary hover:underline"
                           >
-                            Edit
+                            {t("experience.edit")}
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDelete(exp.id)}
                             className="text-sm text-destructive hover:underline"
                           >
-                            Delete
+                            {t("experience.delete")}
                           </button>
                         </td>
                       </tr>

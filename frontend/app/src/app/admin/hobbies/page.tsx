@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { authenticatedFetch, fetchApi } from "@/lib/api";
 import ImageUpload from "@/components/ImageUpload";
@@ -9,20 +10,25 @@ import ImageUpload from "@/components/ImageUpload";
 interface Hobby {
   id: string;
   name: string;
+  nameFr?: string | null;
   description: string | null;
+  descriptionFr?: string | null;
   iconUrl: string | null;
   order: number;
 }
 
 const emptyForm = {
   name: "",
+  nameFr: "",
   description: "",
+  descriptionFr: "",
   iconUrl: "",
   order: 0,
 };
 
 export default function HobbiesManagementPage() {
   const router = useRouter();
+  const t = useTranslations("admin");
   const { data: session, isPending } = authClient.useSession();
   const [hobbies, setHobbies] = useState<Hobby[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +53,7 @@ export default function HobbiesManagementPage() {
       setHobbies(data);
     } catch (err) {
       console.error("Error fetching hobbies:", err);
-      setError("Failed to load hobbies. Please refresh the page.");
+      setError(t("common.error"));
     } finally {
       setLoading(false);
     }
@@ -61,7 +67,9 @@ export default function HobbiesManagementPage() {
     try {
       const payload = {
         name: formData.name,
+        nameFr: formData.nameFr || null,
         description: formData.description || null,
+        descriptionFr: formData.descriptionFr || null,
         iconUrl: formData.iconUrl || null,
       };
 
@@ -82,7 +90,7 @@ export default function HobbiesManagementPage() {
       setEditingHobby(null);
       await fetchHobbies();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save hobby. Please try again.");
+      setError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setSubmitting(false);
     }
@@ -92,7 +100,9 @@ export default function HobbiesManagementPage() {
     setEditingHobby(hobby);
     setFormData({
       name: hobby.name,
+      nameFr: hobby.nameFr ?? "",
       description: hobby.description || "",
+      descriptionFr: hobby.descriptionFr ?? "",
       iconUrl: hobby.iconUrl || "",
       order: hobby.order,
     });
@@ -101,12 +111,12 @@ export default function HobbiesManagementPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this hobby?")) return;
+    if (!confirm(t("hobbies.confirmDelete"))) return;
     try {
       await authenticatedFetch(`/api/hobbies/${id}`, { method: "DELETE" });
       await fetchHobbies();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete hobby");
+      alert(err instanceof Error ? err.message : t("common.error"));
     }
   };
 
@@ -119,7 +129,8 @@ export default function HobbiesManagementPage() {
 
   const handleAddHobby = () => {
     setEditingHobby(null);
-    const maxOrder = hobbies.length > 0 ? Math.max(...hobbies.map((h) => h.order), 0) : 0;
+    const maxOrder =
+      hobbies.length > 0 ? Math.max(...hobbies.map((h) => h.order), 0) : 0;
     setFormData({ ...emptyForm, order: maxOrder + 1 });
     setIsEditing(true);
     setError("");
@@ -140,7 +151,7 @@ export default function HobbiesManagementPage() {
       });
       await fetchHobbies();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to reorder hobby");
+      alert(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setReordering(null);
     }
@@ -160,50 +171,90 @@ export default function HobbiesManagementPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Hobbies Management</h1>
-          <p className="text-muted-foreground mt-1">Manage your hobbies and interests</p>
+          <h1 className="text-3xl font-bold">{t("hobbies.title")}</h1>
+          <p className="text-muted-foreground mt-1">
+            {t("hobbies.description")}
+          </p>
         </div>
         <button
           type="button"
           onClick={handleAddHobby}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-medium"
         >
-          + Add Hobby
+          + {t("hobbies.addNew")}
         </button>
       </div>
 
       {(isEditing || editingHobby) && (
         <div className="rounded-lg border bg-card p-6">
           <h3 className="font-semibold text-lg mb-4">
-            {editingHobby ? "Edit Hobby" : "Add New Hobby"}
+            {editingHobby ? t("hobbies.editHobby") : t("hobbies.addNewHobby")}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">Name *</label>
+              <label className="text-sm font-medium mb-2 block">
+                {t("hobbies.name")} *
+              </label>
               <input
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 required
                 placeholder="e.g. Photography"
                 className="w-full px-3 py-2 border rounded-md bg-background"
               />
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">Description</label>
+              <label className="text-sm font-medium mb-2 block">
+                {t("hobbies.hobbyDescription")}
+              </label>
               <textarea
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 placeholder="Optional short description..."
                 rows={3}
                 className="w-full px-3 py-2 border rounded-md bg-background"
               />
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("hobbies.nameFr")}
+                </label>
+                <input
+                  type="text"
+                  value={formData.nameFr}
+                  onChange={(e) =>
+                    setFormData({ ...formData, nameFr: e.target.value })
+                  }
+                  placeholder={t("hobbies.nameFr")}
+                  className="w-full px-3 py-2 border rounded-md bg-background"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("hobbies.descriptionFr")}
+                </label>
+                <textarea
+                  value={formData.descriptionFr}
+                  onChange={(e) =>
+                    setFormData({ ...formData, descriptionFr: e.target.value })
+                  }
+                  placeholder={t("hobbies.descriptionFr")}
+                  rows={2}
+                  className="w-full px-3 py-2 border rounded-md bg-background"
+                />
+              </div>
+            </div>
             <div>
               <ImageUpload
                 value={formData.iconUrl}
                 onChange={(url) => setFormData({ ...formData, iconUrl: url })}
-                label="Icon URL"
+                label={t("hobbies.iconUrl")}
                 accept="image/*"
                 maxSize={10}
               />
@@ -212,14 +263,16 @@ export default function HobbiesManagementPage() {
               {!editingHobby && (
                 <div className="p-3 rounded-md bg-muted/50 border border-muted">
                   <p className="text-sm text-muted-foreground">
-                    This hobby will be added at the end (order: {formData.order})
+                    {t("hobbies.autoOrderHint")} {formData.order})
                   </p>
                 </div>
               )}
             </div>
             {editingHobby && (
               <div>
-                <label className="text-sm font-medium mb-2 block">Position</label>
+                <label className="text-sm font-medium mb-2 block">
+                  {t("hobbies.position")}
+                </label>
                 <select
                   value={formData.order}
                   onChange={async (e) => {
@@ -228,14 +281,22 @@ export default function HobbiesManagementPage() {
                     try {
                       setSubmitting(true);
                       setError("");
-                      await authenticatedFetch<Hobby>(`/api/hobbies/${editingHobby.id}`, {
-                        method: "PUT",
-                        body: JSON.stringify({ order: newOrder, shouldSwap: true }),
-                      });
+                      await authenticatedFetch<Hobby>(
+                        `/api/hobbies/${editingHobby.id}`,
+                        {
+                          method: "PUT",
+                          body: JSON.stringify({
+                            order: newOrder,
+                            shouldSwap: true,
+                          }),
+                        },
+                      );
                       await fetchHobbies();
                       setFormData((prev) => ({ ...prev, order: newOrder }));
                     } catch (err) {
-                      setError(err instanceof Error ? err.message : "Failed to update order");
+                      setError(
+                        err instanceof Error ? err.message : t("common.error"),
+                      );
                       e.target.value = String(formData.order);
                     } finally {
                       setSubmitting(false);
@@ -245,33 +306,37 @@ export default function HobbiesManagementPage() {
                   className="w-full px-3 py-2 border rounded-md bg-background disabled:opacity-50"
                 >
                   {(() => {
-                    const uniqueOrders = [...new Set(hobbies.map((h) => h.order))].sort(
-                      (a, b) => a - b
-                    );
+                    const uniqueOrders = [
+                      ...new Set(hobbies.map((h) => h.order)),
+                    ].sort((a, b) => a - b);
                     return uniqueOrders.map((position) => {
-                      const hobbyAtPosition = hobbies.find((h) => h.order === position);
+                      const hobbyAtPosition = hobbies.find(
+                        (h) => h.order === position,
+                      );
                       const isCurrent = hobbyAtPosition?.id === editingHobby.id;
                       return (
                         <option key={position} value={position}>
-                          Position {position}
+                          {t("hobbies.positionLabel")} {position}
                           {hobbyAtPosition && !isCurrent
                             ? ` – ${hobbyAtPosition.name}`
                             : isCurrent
-                              ? " (Current)"
-                              : " (Empty)"}
+                              ? ` (${t("hobbies.current")})`
+                              : ` (${t("hobbies.emptyPosition")})`}
                         </option>
                       );
                     });
                   })()}
                 </select>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Select a position to swap with the hobby currently at that position
+                  {t("hobbies.positionHint")}
                 </p>
               </div>
             )}
             {error && (
               <div className="p-3 rounded-md bg-red-50 border border-red-200 dark:bg-red-950/30 dark:border-red-800">
-                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  {error}
+                </p>
               </div>
             )}
             <div className="flex gap-2">
@@ -283,10 +348,12 @@ export default function HobbiesManagementPage() {
                 {submitting ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
-                    <span>Saving...</span>
+                    <span>{t("common.saving")}</span>
                   </>
                 ) : (
-                  <span>{editingHobby ? "Update" : "Create"}</span>
+                  <span>
+                    {editingHobby ? t("hobbies.update") : t("hobbies.create")}
+                  </span>
                 )}
               </button>
               <button
@@ -295,7 +362,7 @@ export default function HobbiesManagementPage() {
                 disabled={submitting}
                 className="px-4 py-2 border rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Cancel
+                {t("common.cancel")}
               </button>
             </div>
           </form>
@@ -303,25 +370,40 @@ export default function HobbiesManagementPage() {
       )}
 
       {loading ? (
-        <div className="text-center py-12 text-muted-foreground">Loading...</div>
+        <div className="text-center py-12 text-muted-foreground">
+          {t("common.loading")}
+        </div>
       ) : (
         <div className="rounded-lg border bg-card">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="border-b bg-muted/50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Order</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Icon</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Name</th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">Description</th>
-                  <th className="px-4 py-3 text-right text-sm font-medium">Actions</th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">
+                    {t("hobbies.order")}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">
+                    {t("hobbies.icon")}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">
+                    {t("hobbies.name")}
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium">
+                    {t("hobbies.hobbyDescription")}
+                  </th>
+                  <th className="px-4 py-3 text-right text-sm font-medium">
+                    {t("common.actions")}
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y">
                 {sortedHobbies.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                      No hobbies yet. Add your first hobby!
+                    <td
+                      colSpan={5}
+                      className="px-4 py-8 text-center text-muted-foreground"
+                    >
+                      {t("hobbies.empty")}
                     </td>
                   </tr>
                 ) : (
@@ -332,14 +414,16 @@ export default function HobbiesManagementPage() {
                       <tr key={hobby.id} className="hover:bg-muted/50">
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <span className="text-muted-foreground text-sm w-8">{hobby.order}</span>
+                            <span className="text-muted-foreground text-sm w-8">
+                              {hobby.order}
+                            </span>
                             <div className="flex flex-col gap-1">
                               <button
                                 type="button"
                                 onClick={() => handleReorder(hobby.id, "up")}
                                 disabled={!canMoveUp || reordering === hobby.id}
                                 className="p-1 hover:bg-muted rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="Move up"
+                                title={t("hobbies.moveUp")}
                               >
                                 <svg
                                   className="w-3 h-3"
@@ -358,9 +442,11 @@ export default function HobbiesManagementPage() {
                               <button
                                 type="button"
                                 onClick={() => handleReorder(hobby.id, "down")}
-                                disabled={!canMoveDown || reordering === hobby.id}
+                                disabled={
+                                  !canMoveDown || reordering === hobby.id
+                                }
                                 className="p-1 hover:bg-muted rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="Move down"
+                                title={t("hobbies.moveDown")}
                               >
                                 <svg
                                   className="w-3 h-3"
@@ -387,11 +473,14 @@ export default function HobbiesManagementPage() {
                               alt={hobby.name}
                               className="w-8 h-8 object-contain"
                               onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = "none";
+                                (e.target as HTMLImageElement).style.display =
+                                  "none";
                               }}
                             />
                           ) : (
-                            <span className="text-muted-foreground text-xs">—</span>
+                            <span className="text-muted-foreground text-xs">
+                              —
+                            </span>
                           )}
                         </td>
                         <td className="px-4 py-3 font-medium">{hobby.name}</td>
@@ -404,14 +493,14 @@ export default function HobbiesManagementPage() {
                             onClick={() => handleEdit(hobby)}
                             className="text-sm text-primary hover:underline"
                           >
-                            Edit
+                            {t("hobbies.edit")}
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDelete(hobby.id)}
                             className="text-sm text-destructive hover:underline"
                           >
-                            Delete
+                            {t("hobbies.delete")}
                           </button>
                         </td>
                       </tr>

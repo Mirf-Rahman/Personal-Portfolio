@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { authenticatedFetch } from "@/lib/api";
 
@@ -17,6 +18,7 @@ interface Message {
 
 export default function MessagesManagementPage() {
   const router = useRouter();
+  const t = useTranslations("admin");
   const { data: session, isPending } = authClient.useSession();
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +46,7 @@ export default function MessagesManagementPage() {
     } catch (err) {
       console.error("Error fetching messages:", err);
       setError(
-        err instanceof Error ? err.message : "Failed to load messages. Please refresh the page."
+        err instanceof Error ? err.message : t("common.error")
       );
     } finally {
       setLoading(false);
@@ -65,7 +67,7 @@ export default function MessagesManagementPage() {
       }
     } catch (err) {
       setActionError(
-        err instanceof Error ? err.message : "Failed to update message"
+        err instanceof Error ? err.message : t("common.error")
       );
     } finally {
       setActionLoading(null);
@@ -73,7 +75,7 @@ export default function MessagesManagementPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this message?")) return;
+    if (!confirm(t("messages.confirmDelete"))) return;
     setActionLoading(id);
     setActionError("");
     try {
@@ -84,7 +86,7 @@ export default function MessagesManagementPage() {
       await fetchMessages();
     } catch (err) {
       setActionError(
-        err instanceof Error ? err.message : "Failed to delete message"
+        err instanceof Error ? err.message : t("common.error")
       );
     } finally {
       setActionLoading(null);
@@ -128,13 +130,13 @@ export default function MessagesManagementPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Messages Inbox</h1>
+        <h1 className="text-3xl font-bold">{t("messages.title")}</h1>
         <p className="text-muted-foreground mt-1">
           {loading
-            ? "Loading messages..."
+            ? t("common.loading")
             : unreadCount > 0
-              ? `${unreadCount} unread message${unreadCount > 1 ? "s" : ""}`
-              : "All messages read"}
+              ? `${unreadCount} ${t("messages.unreadCount")}`
+              : t("messages.allRead")}
         </p>
       </div>
 
@@ -149,7 +151,7 @@ export default function MessagesManagementPage() {
               onClick={fetchMessages}
               className="text-red-600 dark:text-red-400 hover:underline font-medium"
             >
-              Retry
+              {t("messages.retry")}
             </button>
           </div>
         </div>
@@ -166,7 +168,7 @@ export default function MessagesManagementPage() {
               onClick={() => setActionError("")}
               className="text-red-600 dark:text-red-400 hover:underline"
             >
-              Dismiss
+              {t("messages.dismiss")}
             </button>
           </div>
         </div>
@@ -219,9 +221,9 @@ export default function MessagesManagementPage() {
                       d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                     />
                   </svg>
-                  <p className="text-muted-foreground font-medium">No messages yet</p>
+                  <p className="text-muted-foreground font-medium">{t("messages.noMessages")}</p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Messages from the contact form will appear here
+                    {t("messages.messagesWillAppear")}
                   </p>
                 </div>
               ) : (
@@ -312,10 +314,12 @@ export default function MessagesManagementPage() {
                               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                             />
                           </svg>
-                          Updating...
+                          {t("messages.updating")}
                         </span>
+                      ) : selectedMessage.read ? (
+                        t("messages.markAsUnread")
                       ) : (
-                        `Mark as ${selectedMessage.read ? "unread" : "read"}`
+                        t("messages.markAsRead")
                       )}
                     </button>
                     <button
@@ -323,7 +327,7 @@ export default function MessagesManagementPage() {
                       disabled={actionLoading === selectedMessage.id}
                       className="text-sm text-destructive hover:underline disabled:opacity-50"
                     >
-                      Delete
+                      {t("messages.delete")}
                     </button>
                   </div>
                 </div>
@@ -350,7 +354,7 @@ export default function MessagesManagementPage() {
                         d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                       />
                     </svg>
-                    Reply
+                    {t("messages.reply")}
                   </a>
                 </div>
               </div>
@@ -369,8 +373,8 @@ export default function MessagesManagementPage() {
                     d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                   />
                 </svg>
-                <p className="text-lg font-medium">Select a message to view</p>
-                <p className="text-sm mt-1">Choose a message from the list on the left</p>
+                <p className="text-lg font-medium">{t("messages.selectMessage")}</p>
+                <p className="text-sm mt-1">{t("messages.chooseMessage")}</p>
               </div>
             )}
           </div>

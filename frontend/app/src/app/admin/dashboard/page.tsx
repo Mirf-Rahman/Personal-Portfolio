@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { authenticatedFetch, fetchApi } from "@/lib/api";
 import Link from "next/link";
@@ -18,6 +19,7 @@ interface Stats {
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const t = useTranslations("admin");
   const { data: session, isPending } = authClient.useSession();
   const [stats, setStats] = useState<Stats>({
     skills: 0,
@@ -79,20 +81,20 @@ export default function AdminDashboard() {
   }
 
   const cards = [
-    { title: "Skills", count: stats.skills, href: "/admin/skills", icon: "⚡", color: "from-blue-600 to-cyan-600" },
-    { title: "Projects", count: stats.projects, href: "/admin/projects", icon: "🚀", color: "from-purple-600 to-pink-600" },
-    { title: "Experience", count: stats.experiences, href: "/admin/experience", icon: "💼", color: "from-amber-600 to-orange-600" },
-    { title: "Education", count: stats.education, href: "/admin/education", icon: "🎓", color: "from-teal-600 to-cyan-600" },
-    { title: "Hobbies", count: stats.hobbies, href: "/admin/hobbies", icon: "🎯", color: "from-indigo-600 to-violet-600" },
-    { title: "Testimonials", count: stats.testimonials, href: "/admin/testimonials", icon: "💬", color: "from-green-600 to-emerald-600" },
-    { title: "Messages", count: stats.messages, href: "/admin/messages", icon: "📧", color: "from-orange-600 to-red-600" },
+    { titleKey: "sidebar.skills", count: stats.skills, href: "/admin/skills", icon: "⚡", color: "from-blue-600 to-cyan-600" },
+    { titleKey: "sidebar.projects", count: stats.projects, href: "/admin/projects", icon: "🚀", color: "from-purple-600 to-pink-600" },
+    { titleKey: "sidebar.experience", count: stats.experiences, href: "/admin/experience", icon: "💼", color: "from-amber-600 to-orange-600" },
+    { titleKey: "sidebar.education", count: stats.education, href: "/admin/education", icon: "🎓", color: "from-teal-600 to-cyan-600" },
+    { titleKey: "sidebar.hobbies", count: stats.hobbies, href: "/admin/hobbies", icon: "🎯", color: "from-indigo-600 to-violet-600" },
+    { titleKey: "sidebar.testimonials", count: stats.testimonials, href: "/admin/testimonials", icon: "💬", color: "from-green-600 to-emerald-600" },
+    { titleKey: "sidebar.messages", count: stats.messages, href: "/admin/messages", icon: "📧", color: "from-orange-600 to-red-600" },
   ];
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">Welcome back! Here&apos;s an overview of your portfolio.</p>
+        <h1 className="text-3xl font-bold">{t("dashboard.title")}</h1>
+        <p className="text-muted-foreground mt-2">{t("dashboard.welcome")}</p>
       </div>
 
       {loading ? (
@@ -104,18 +106,18 @@ export default function AdminDashboard() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {cards.map((card) => (
-            <Link key={card.title} href={card.href} className="group">
+            <Link key={card.titleKey} href={card.href} className="group">
               <div className="relative overflow-hidden rounded-lg border bg-card p-6 transition-all hover:shadow-lg hover:scale-105">
                 <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${card.color} opacity-10 rounded-full blur-2xl`} />
                 <div className="relative">
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-4xl">{card.icon}</span>
                     <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">
-                      View all →
+                      {t("dashboard.viewAll")}
                     </span>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">{card.title}</p>
+                    <p className="text-sm font-medium text-muted-foreground">{t(card.titleKey)}</p>
                     <p className="text-3xl font-bold">{card.count}</p>
                   </div>
                 </div>
@@ -127,46 +129,46 @@ export default function AdminDashboard() {
 
       <div className="grid gap-6 md:grid-cols-2">
         <div className="rounded-lg border bg-card p-6">
-          <h3 className="font-semibold text-lg mb-4">Quick Actions</h3>
+          <h3 className="font-semibold text-lg mb-4">{t("dashboard.quickActions")}</h3>
           <div className="space-y-2">
             <Link href="/admin/projects" className="flex items-center gap-2 text-sm hover:underline text-primary">
-              <span>→</span> Add New Project
+              <span>→</span> {t("dashboard.addNewProject")}
             </Link>
             <Link href="/admin/skills" className="flex items-center gap-2 text-sm hover:underline text-primary">
-              <span>→</span> Add New Skill
+              <span>→</span> {t("dashboard.addNewSkill")}
             </Link>
             <Link href="/admin/experience" className="flex items-center gap-2 text-sm hover:underline text-primary">
-              <span>→</span> Add Experience
+              <span>→</span> {t("dashboard.addExperience")}
             </Link>
             <Link href="/admin/education" className="flex items-center gap-2 text-sm hover:underline text-primary">
-              <span>→</span> Add Education
+              <span>→</span> {t("dashboard.addEducation")}
             </Link>
             <Link href="/admin/hobbies" className="flex items-center gap-2 text-sm hover:underline text-primary">
-              <span>→</span> Add Hobby
+              <span>→</span> {t("dashboard.addHobby")}
             </Link>
             <Link href="/admin/testimonials" className="flex items-center gap-2 text-sm hover:underline text-primary">
-              <span>→</span> Review Testimonials
+              <span>→</span> {t("dashboard.reviewTestimonials")}
             </Link>
             <Link href="/admin/messages" className="flex items-center gap-2 text-sm hover:underline text-primary">
-              <span>→</span> Check Messages
+              <span>→</span> {t("dashboard.checkMessages")}
             </Link>
           </div>
         </div>
 
         <div className="rounded-lg border bg-card p-6">
-          <h3 className="font-semibold text-lg mb-4">Content Management</h3>
+          <h3 className="font-semibold text-lg mb-4">{t("dashboard.contentManagement")}</h3>
           <div className="grid grid-cols-2 gap-2">
             <Link href="/admin/experience" className="flex items-center justify-center p-3 rounded border hover:bg-accent text-sm">
-              Experience
+              {t("sidebar.experience")}
             </Link>
             <Link href="/admin/education" className="flex items-center justify-center p-3 rounded border hover:bg-accent text-sm">
-              Education
+              {t("sidebar.education")}
             </Link>
             <Link href="/admin/hobbies" className="flex items-center justify-center p-3 rounded border hover:bg-accent text-sm">
-              Hobbies
+              {t("sidebar.hobbies")}
             </Link>
             <Link href="/admin/resume" className="flex items-center justify-center p-3 rounded border hover:bg-accent text-sm">
-              Resume
+              {t("sidebar.resume")}
             </Link>
           </div>
         </div>
