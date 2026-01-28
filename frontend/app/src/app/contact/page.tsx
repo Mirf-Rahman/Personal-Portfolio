@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { FloatingParticles } from "@/components/ui/floating-particles";
@@ -14,8 +14,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Button } from "@/components/ui/button";
 import { Mail } from "lucide-react";
+import { fetchApi } from "@/lib/api";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+
+interface ContactInfo {
+  email: string;
+  linkedIn: string;
+  github: string;
+  twitter?: string;
+}
 
 const LIMITS = { name: 100, email: 255, subject: 200, message: 5000 };
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -27,6 +35,11 @@ interface FieldErrors {
   message?: string;
 }
 
+const DEFAULT_LINKEDIN =
+  "https://www.linkedin.com/in/faiyazur-rahman-mir-828173309/";
+const DEFAULT_GITHUB = "https://github.com/Mirf-Rahman";
+const DEFAULT_EMAIL = "mirfaiyazrahman@gmail.com";
+
 export default function ContactPage() {
   const t = useTranslations("contact");
   const [name, setName] = useState("");
@@ -37,6 +50,13 @@ export default function ContactPage() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [contactInfo, setContactInfo] = useState<ContactInfo | null>(null);
+
+  useEffect(() => {
+    fetchApi<ContactInfo | null>("/api/contact-info")
+      .then((data) => setContactInfo(data ?? null))
+      .catch(() => setContactInfo(null));
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,8 +193,8 @@ export default function ContactPage() {
 
             {/* GitHub */}
             <PinContainer
-              title="https://github.com/Mirf-Rahman"
-              href="https://github.com/Mirf-Rahman"
+              title={contactInfo?.github?.trim() || DEFAULT_GITHUB}
+              href={contactInfo?.github?.trim() || DEFAULT_GITHUB}
             >
               <div className="flex flex-col p-4 tracking-tight text-slate-100/50 w-[18rem] md:w-[20rem] h-[15rem] bg-gradient-to-b from-slate-900/90 to-slate-900/0 backdrop-blur-sm border border-slate-700/50 rounded-2xl group-hover/pin:border-emerald-500/50 transition-colors">
                 <div className="flex items-center gap-2 mb-4">
@@ -220,7 +240,7 @@ export default function ContactPage() {
                     />
                   </svg>
                   <span className="text-lg font-bold text-white">
-                    mirfaiyazrahman@gmail.com
+                    {contactInfo?.email?.trim() || DEFAULT_EMAIL}
                   </span>
                 </div>
               </div>
