@@ -5,6 +5,18 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { authenticatedFetch, fetchApi } from "@/lib/api";
+import { AdminPageHeader } from "@/components/ui/admin-page-header";
+import { 
+  AdminTable, 
+  AdminTableHeader, 
+  AdminTableHead, 
+  AdminTableBody, 
+  AdminTableRow, 
+  AdminTableCell 
+} from "@/components/ui/admin-table";
+import { ShineBorder } from "@/components/ui/shine-border";
+import { Pencil, Trash2, ArrowUp, ArrowDown, X, Save, GraduationCap, School, Calendar, BookOpen, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Education {
   id: string;
@@ -48,9 +60,7 @@ export default function EducationManagementPage() {
   const [education, setEducation] = useState<Education[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [editingEducation, setEditingEducation] = useState<Education | null>(
-    null,
-  );
+  const [editingEducation, setEditingEducation] = useState<Education | null>(null);
   const [formData, setFormData] = useState(emptyForm);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -62,6 +72,7 @@ export default function EducationManagementPage() {
 
   useEffect(() => {
     fetchEducation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchEducation = async () => {
@@ -196,176 +207,168 @@ export default function EducationManagementPage() {
   if (isPending || !session) {
     return (
       <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400" />
       </div>
     );
   }
 
   const sortedEducation = [...education].sort((a, b) => a.order - b.order);
 
+  // Common input styles
+  const inputClass = "w-full pl-4 pr-4 py-3 bg-slate-900/40 border border-white/[0.08] rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-200 shadow-inner hover:border-white/[0.12] hover:bg-slate-900/60";
+  const labelClass = "block text-[11px] font-semibold text-cyan-100/60 uppercase tracking-widest pl-1 font-mono mb-2";
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">{t("education.title")}</h1>
-          <p className="text-muted-foreground mt-1">
-            {t("education.description")}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={handleAddEducation}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-medium"
-        >
-          + {t("education.addNew")}
-        </button>
-      </div>
+      <AdminPageHeader 
+        title={t("education.title")} 
+        description={t("education.description")}
+        customAction={
+          <button
+            onClick={handleAddEducation}
+            className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded-xl border border-cyan-500/20 transition-all text-sm font-semibold"
+          >
+           <Plus className="w-4 h-4" /> {t("education.addNew")}
+          </button>
+        }
+      />
 
       {(isEditing || editingEducation) && (
-        <div className="rounded-lg border bg-card p-6">
-          <h3 className="font-semibold text-lg mb-4">
-            {editingEducation
-              ? t("education.editEducation")
-              : t("education.addNewEducation")}
-          </h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <ShineBorder 
+          className="relative w-full rounded-2xl bg-black/20 border border-white/[0.08] backdrop-blur-xl p-8"
+          shineColor={["#f472b6", "#e879f9", "#c084fc"]}
+        >
+          <div className="flex justify-between items-center mb-6">
+             <h3 className="font-display font-bold text-xl text-white">
+              {editingEducation ? t("education.editEducation") : t("education.addNewEducation")}
+            </h3>
+            <button onClick={handleCancel} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+              <X className="w-5 h-5 text-slate-400" />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="text-sm font-medium mb-2 block">
-                {t("education.institution")} *
-              </label>
-              <input
-                type="text"
-                value={formData.institution}
-                onChange={(e) =>
-                  setFormData({ ...formData, institution: e.target.value })
-                }
-                required
-                placeholder="University Name"
-                className="w-full px-3 py-2 border rounded-md bg-background"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  {t("education.degree")} *
-                </label>
-                <input
+              <label className={labelClass}>{t("education.institution")} *</label>
+              <div className="relative">
+                 <School className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                 <input
                   type="text"
-                  value={formData.degree}
-                  onChange={(e) =>
-                    setFormData({ ...formData, degree: e.target.value })
-                  }
+                  value={formData.institution}
+                  onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
                   required
-                  placeholder="Bachelor of Science"
-                  className="w-full px-3 py-2 border rounded-md bg-background"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">
-                  {t("education.field")} *
-                </label>
-                <input
-                  type="text"
-                  value={formData.field}
-                  onChange={(e) =>
-                    setFormData({ ...formData, field: e.target.value })
-                  }
-                  required
-                  placeholder="Computer Science"
-                  className="w-full px-3 py-2 border rounded-md bg-background"
+                  placeholder="University Name"
+                  className={cn(inputClass, "pl-10")}
                 />
               </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <label className={labelClass}>{t("education.degree")} *</label>
+                <div className="relative">
+                   <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                   <input
+                    type="text"
+                    value={formData.degree}
+                    onChange={(e) => setFormData({ ...formData, degree: e.target.value })}
+                    required
+                    placeholder="Bachelor of Science"
+                    className={cn(inputClass, "pl-10")}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className={labelClass}>{t("education.field")} *</label>
+                <div className="relative">
+                  <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    type="text"
+                    value={formData.field}
+                    onChange={(e) => setFormData({ ...formData, field: e.target.value })}
+                    required
+                    placeholder="Computer Science"
+                    className={cn(inputClass, "pl-10")}
+                  />
+                </div>
+              </div>
+            </div>
+
             <div>
-              <label className="text-sm font-medium mb-2 block">
-                {t("education.educationDescription")}
-              </label>
+              <label className={labelClass}>{t("education.educationDescription")}</label>
               <textarea
                 value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder={t("education.descriptionPlaceholder")}
                 rows={3}
-                className="w-full px-3 py-2 border rounded-md bg-background"
+                className={inputClass}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+
+            <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  {t("education.degreeFr")}
-                </label>
+                <label className={labelClass}>{t("education.degreeFr")}</label>
                 <input
                   type="text"
                   value={formData.degreeFr}
-                  onChange={(e) =>
-                    setFormData({ ...formData, degreeFr: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, degreeFr: e.target.value })}
                   placeholder={t("education.degreeFr")}
-                  className="w-full px-3 py-2 border rounded-md bg-background"
+                  className={inputClass}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  {t("education.fieldFr")}
-                </label>
+                <label className={labelClass}>{t("education.fieldFr")}</label>
                 <input
                   type="text"
                   value={formData.fieldFr}
-                  onChange={(e) =>
-                    setFormData({ ...formData, fieldFr: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, fieldFr: e.target.value })}
                   placeholder={t("education.fieldFr")}
-                  className="w-full px-3 py-2 border rounded-md bg-background"
+                  className={inputClass}
                 />
               </div>
               <div className="col-span-2">
-                <label className="text-sm font-medium mb-2 block">
-                  {t("education.descriptionFr")}
-                </label>
+                <label className={labelClass}>{t("education.descriptionFr")}</label>
                 <textarea
                   value={formData.descriptionFr}
-                  onChange={(e) =>
-                    setFormData({ ...formData, descriptionFr: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, descriptionFr: e.target.value })}
                   placeholder={t("education.descriptionFr")}
                   rows={2}
-                  className="w-full px-3 py-2 border rounded-md bg-background"
+                  className={inputClass}
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+
+            <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  {t("education.startDate")} *
-                </label>
-                <input
-                  type="date"
-                  value={formData.startDate}
-                  onChange={(e) =>
-                    setFormData({ ...formData, startDate: e.target.value })
-                  }
-                  required
-                  className="w-full px-3 py-2 border rounded-md bg-background"
-                />
+                <label className={labelClass}>{t("education.startDate")} *</label>
+                <div className="relative">
+                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                   <input
+                    type="date"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                    required
+                    className={cn(inputClass, "pl-10")}
+                  />
+                </div>
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  {t("education.endDate")}
-                </label>
-                <input
-                  type="date"
-                  value={formData.endDate}
-                  onChange={(e) =>
-                    setFormData({ ...formData, endDate: e.target.value })
-                  }
-                  disabled={formData.current}
-                  className="w-full px-3 py-2 border rounded-md bg-background disabled:opacity-50"
-                />
+                <label className={labelClass}>{t("education.endDate")}</label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    type="date"
+                    value={formData.endDate}
+                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                    disabled={formData.current}
+                    className={cn(inputClass, "pl-10 disabled:opacity-50")}
+                  />
+                </div>
               </div>
             </div>
-            <div className="flex gap-4 items-center">
-              <div className="flex items-center gap-2">
+
+            <div className="flex gap-6 items-center pt-2">
+               <label className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.08] bg-white/[0.02] cursor-pointer hover:bg-white/[0.04] transition-colors">
                 <input
                   type="checkbox"
                   id="current"
@@ -377,25 +380,23 @@ export default function EducationManagementPage() {
                       ...(e.target.checked ? { endDate: "" } : {}),
                     });
                   }}
-                  className="w-4 h-4"
+                  className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500/30"
                 />
-                <label htmlFor="current" className="text-sm font-medium">
-                  {t("education.currentlyStudying")}
-                </label>
-              </div>
+                <span className="text-sm font-medium text-slate-300">{t("education.currentlyStudying")}</span>
+              </label>
+
               {!editingEducation && (
-                <div className="p-3 rounded-md bg-muted/50 border border-muted">
-                  <p className="text-sm text-muted-foreground">
+                <div className="px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                  <p className="text-xs text-purple-300 font-mono">
                     {t("education.autoOrderHint")} {formData.order})
                   </p>
                 </div>
               )}
             </div>
+
             {editingEducation && (
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  {t("education.orderPosition")}
-                </label>
+                <label className={labelClass}>{t("education.orderPosition")}</label>
                 <select
                   value={formData.order}
                   onChange={async (e) => {
@@ -417,16 +418,14 @@ export default function EducationManagementPage() {
                       await fetchEducation();
                       setFormData((prev) => ({ ...prev, order: newOrder }));
                     } catch (err) {
-                      setError(
-                        err instanceof Error ? err.message : t("common.error"),
-                      );
+                      setError(err instanceof Error ? err.message : t("common.error"));
                       e.target.value = String(formData.order);
                     } finally {
                       setSubmitting(false);
                     }
                   }}
                   disabled={submitting}
-                  className="w-full px-3 py-2 border rounded-md bg-background disabled:opacity-50"
+                  className={cn(inputClass, "disabled:opacity-50")}
                 >
                   {(() => {
                     const uniqueOrders = [
@@ -439,7 +438,7 @@ export default function EducationManagementPage() {
                       const isCurrent =
                         eduAtPosition?.id === editingEducation.id;
                       return (
-                        <option key={position} value={position}>
+                        <option key={position} value={position} className="bg-slate-900 text-slate-200">
                           {t("education.positionLabel")} {position}
                           {eduAtPosition && !isCurrent
                             ? ` – ${eduAtPosition.degree} at ${eduAtPosition.institution}`
@@ -451,191 +450,165 @@ export default function EducationManagementPage() {
                     });
                   })()}
                 </select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {t("education.positionHint")}
+                <p className="text-[10px] text-slate-500 mt-1 pl-1">
+                   {t("education.positionHint")}
                 </p>
               </div>
             )}
+
             {error && (
-              <div className="p-3 rounded-md bg-red-50 border border-red-200 dark:bg-red-950/30 dark:border-red-800">
-                <p className="text-sm text-red-600 dark:text-red-400">
-                  {error}
-                </p>
+              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm">
+                 {error}
               </div>
             )}
-            <div className="flex gap-2">
-              <button
+
+            <div className="flex gap-3 pt-4 border-t border-white/[0.08]">
+               <button
                 type="submit"
                 disabled={submitting}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl font-medium shadow-lg hover:shadow-cyan-500/25 hover:from-cyan-500 hover:to-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {submitting ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
                     <span>{t("common.saving")}</span>
                   </>
                 ) : (
-                  <span>
-                    {editingEducation
-                      ? t("education.update")
-                      : t("education.create")}
-                  </span>
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>{editingEducation ? t("education.update") : t("education.create")}</span>
+                  </>
                 )}
               </button>
               <button
                 type="button"
                 onClick={handleCancel}
                 disabled={submitting}
-                className="px-4 py-2 border rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2.5 border border-white/[0.1] bg-white/[0.05] text-slate-300 rounded-xl hover:bg-white/[0.1] hover:text-white transition-all disabled:opacity-50"
               >
                 {t("common.cancel")}
               </button>
             </div>
           </form>
-        </div>
+        </ShineBorder>
       )}
 
       {loading ? (
-        <div className="text-center py-12 text-muted-foreground">
-          {t("common.loading")}
+       <div className="text-center py-12">
+            <div className="animate-pulse flex flex-col items-center">
+                <div className="h-4 bg-white/10 rounded w-1/4 mb-4"></div>
+                <div className="h-64 bg-white/5 rounded-xl w-full"></div>
+            </div>
         </div>
       ) : (
-        <div className="rounded-lg border bg-card">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="border-b bg-muted/50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium">
-                    {t("education.order")}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">
-                    {t("education.degreeField")}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">
-                    {t("education.institution")}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">
-                    {t("education.dates")}
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium">
-                    {t("common.actions")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {sortedEducation.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="px-4 py-8 text-center text-muted-foreground"
-                    >
-                      {t("education.empty")}
-                    </td>
-                  </tr>
-                ) : (
-                  sortedEducation.map((edu, index) => {
-                    const canMoveUp = index > 0;
-                    const canMoveDown = index < sortedEducation.length - 1;
-                    const start = edu.startDate
-                      ? new Date(edu.startDate).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                        })
-                      : "";
-                    const end = edu.current
-                      ? t("common.present")
-                      : edu.endDate
-                        ? new Date(edu.endDate).toLocaleDateString("en-US", {
-                            year: "numeric",
-                            month: "short",
-                          })
-                        : "";
-                    return (
-                      <tr key={edu.id} className="hover:bg-muted/50">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <span className="text-muted-foreground text-sm w-8">
-                              {edu.order}
-                            </span>
-                            <div className="flex flex-col gap-1">
-                              <button
-                                type="button"
-                                onClick={() => handleReorder(edu.id, "up")}
-                                disabled={!canMoveUp || reordering === edu.id}
-                                className="p-1 hover:bg-muted rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                                title={t("education.moveUp")}
-                              >
-                                <svg
-                                  className="w-3 h-3"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M5 15l7-7 7 7"
-                                  />
-                                </svg>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleReorder(edu.id, "down")}
-                                disabled={!canMoveDown || reordering === edu.id}
-                                className="p-1 hover:bg-muted rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                                title={t("education.moveDown")}
-                              >
-                                <svg
-                                  className="w-3 h-3"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M19 9l-7 7-7-7"
-                                  />
-                                </svg>
-                              </button>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 font-medium">
-                          {edu.degree} in {edu.field}
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground">
+        <AdminTable>
+          <AdminTableHeader>
+            <AdminTableHead>{t("education.order")}</AdminTableHead>
+            <AdminTableHead>{t("education.degreeField")}</AdminTableHead>
+            <AdminTableHead>{t("education.institution")}</AdminTableHead>
+            <AdminTableHead>{t("education.dates")}</AdminTableHead>
+            <AdminTableHead className="text-right">{t("common.actions")}</AdminTableHead>
+          </AdminTableHeader>
+          <AdminTableBody>
+             {sortedEducation.length === 0 ? (
+                <AdminTableRow>
+                <AdminTableCell colSpan={5} className="text-center py-12 text-slate-500">
+                  {t("education.empty")}
+                </AdminTableCell>
+              </AdminTableRow>
+            ) : (
+              sortedEducation.map((edu, index) => {
+                const canMoveUp = index > 0;
+                const canMoveDown = index < sortedEducation.length - 1;
+                const start = edu.startDate
+                  ? new Date(edu.startDate).toLocaleDateString("en-US", {
+                      year: "numeric",
+                      month: "short",
+                    })
+                  : "";
+                const end = edu.current
+                  ? t("common.present")
+                  : edu.endDate
+                    ? new Date(edu.endDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                      })
+                    : "";
+                return (
+                  <AdminTableRow key={edu.id}>
+                    <AdminTableCell>
+                      <div className="flex items-center gap-3">
+                        <span className="text-slate-500 text-xs font-mono w-6 text-center bg-white/[0.05] rounded py-1">
+                            {edu.order}
+                        </span>
+                        <div className="flex flex-col gap-1">
+                          <button
+                            onClick={() => handleReorder(edu.id, "up")}
+                            disabled={!canMoveUp || reordering === edu.id}
+                             className="p-1 hover:bg-cyan-500/20 hover:text-cyan-400 rounded transition-colors disabled:opacity-20"
+                            title={t("education.moveUp")}
+                          >
+                           <ArrowUp className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={() => handleReorder(edu.id, "down")}
+                            disabled={!canMoveDown || reordering === edu.id}
+                             className="p-1 hover:bg-cyan-500/20 hover:text-cyan-400 rounded transition-colors disabled:opacity-20"
+                            title={t("education.moveDown")}
+                          >
+                           <ArrowDown className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    </AdminTableCell>
+                    <AdminTableCell>
+                       <div>
+                           <div className="font-medium text-white flex items-center gap-2">
+                              <GraduationCap className="w-4 h-4 text-cyan-400" />
+                              {edu.degree}
+                           </div>
+                           <div className="text-sm text-slate-400 pl-6">{edu.field}</div>
+                           {edu.degreeFr && <div className="text-xs text-slate-600 pl-6 mt-0.5">{edu.degreeFr} - {edu.fieldFr}</div>}
+                       </div>
+                    </AdminTableCell>
+                    <AdminTableCell>
+                       <div className="flex items-center gap-2 text-slate-300">
+                         <School className="w-4 h-4 text-slate-500" />
                           {edu.institution}
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground text-sm">
+                       </div>
+                    </AdminTableCell>
+                    <AdminTableCell>
+                        <div className="flex items-center gap-2 text-xs font-mono text-slate-400 bg-white/[0.03] px-2 py-1 rounded w-fit">
+                          <Calendar className="w-3 h-3 text-slate-600" />
                           {start} – {end}
-                        </td>
-                        <td className="px-4 py-3 text-right space-x-2">
+                       </div>
+                    </AdminTableCell>
+                    <AdminTableCell>
+                        <div className="flex justify-end gap-2">
                           <button
                             type="button"
                             onClick={() => handleEdit(edu)}
-                            className="text-sm text-primary hover:underline"
+                            className="p-2 hover:bg-blue-500/10 text-slate-400 hover:text-blue-400 rounded-lg transition-colors border border-transparent hover:border-blue-500/20"
+                            title={t("education.edit")}
                           >
-                            {t("education.edit")}
+                            <Pencil className="w-4 h-4" />
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDelete(edu.id)}
-                            className="text-sm text-destructive hover:underline"
+                            className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors border border-transparent hover:border-red-500/20"
+                            title={t("education.delete")}
                           >
-                            {t("education.delete")}
+                            <Trash2 className="w-4 h-4" />
                           </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                        </div>
+                    </AdminTableCell>
+                  </AdminTableRow>
+                );
+              })
+            )}
+          </AdminTableBody>
+        </AdminTable>
       )}
     </div>
   );
