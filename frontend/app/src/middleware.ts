@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// This middleware protects /admin routes
-// Only authenticated ADMIN users can access admin pages
+// This middleware handles admin route protection
+// i18n locale is handled via cookies read in i18n/request.ts
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -27,6 +27,8 @@ export async function middleware(request: NextRequest) {
 // Configure which routes to run middleware on
 export const config = {
   matcher: [
+    // Only match admin routes for protection
     '/admin/:path*',
   ],
 };
+
