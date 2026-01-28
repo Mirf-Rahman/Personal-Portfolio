@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Github, Linkedin, Mail } from "lucide-react";
@@ -38,6 +39,9 @@ const footerLinkKeys = [
 export function Footer() {
   const t = useTranslations('nav');
   const tFooter = useTranslations('footer');
+  const pathname = usePathname();
+
+  if (pathname?.startsWith("/admin")) return null;
   
   return (
     <footer className="relative border-t border-white/5 bg-gradient-to-b from-background to-muted/20">
