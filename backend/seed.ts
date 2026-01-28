@@ -14,6 +14,21 @@ async function seed() {
     // Check if data already exists
     const existingSkills = await db.query.skills.findMany();
     if (existingSkills.length > 0) {
+      // Ensure contact info exists (for DBs seeded before contact_info was added)
+      const existingContact = await db
+        .select()
+        .from(schema.contactInfo)
+        .limit(1);
+      if (existingContact.length === 0) {
+        await db.insert(schema.contactInfo).values({
+          email: "mirfaiyazrahman@gmail.com",
+          location: "Montreal, QC",
+          linkedIn:
+            "https://www.linkedin.com/in/faiyazur-rahman-mir-828173309/",
+          github: "https://github.com/Mirf-Rahman",
+        });
+        console.log("✅ Seeded contact info.");
+      }
       console.log("✅ Database already seeded. Skipping...");
       await client.end();
       return;
@@ -291,6 +306,18 @@ async function seed() {
       ])
       .returning();
     console.log(`✅ Seeded ${testimonialsData.length} testimonials`);
+
+    // Seed contact info (singleton)
+    const existingContact = await db.select().from(schema.contactInfo).limit(1);
+    if (existingContact.length === 0) {
+      await db.insert(schema.contactInfo).values({
+        email: "mirfaiyazrahman@gmail.com",
+        location: "Montreal, QC",
+        linkedIn: "https://www.linkedin.com/in/faiyazur-rahman-mir-828173309/",
+        github: "https://github.com/Mirf-Rahman",
+      });
+      console.log("✅ Seeded contact info.");
+    }
 
     console.log("🎉 Database seeding completed successfully!");
 
