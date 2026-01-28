@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { FloatingParticles } from "@/components/ui/floating-particles";
 import { BackgroundPaths } from "@/components/ui/background-paths";
 import { StarsBackground } from "@/components/ui/stars-background";
@@ -28,6 +29,7 @@ interface ValidationError {
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export default function TestimonialsClient() {
+  const t = useTranslations("testimonials");
   const [name, setName] = useState("");
   const [position, setPosition] = useState("");
   const [company, setCompany] = useState("");
@@ -46,37 +48,37 @@ export default function TestimonialsClient() {
     content: { min: 10, max: 2000 },
   };
 
-  // Validate individual field
+  // Validate individual field (uses t from closure for locale-aware messages)
   const validateField = (field: string, value: string): string | undefined => {
     switch (field) {
       case "name":
-        if (!value.trim()) return "Name is required";
+        if (!value.trim()) return t("validation.nameRequired");
         const trimmedName = value.trim();
         if (trimmedName.length < LIMITS.name.min)
-          return `Name must be at least ${LIMITS.name.min} characters`;
+          return t("validation.nameMin", { min: LIMITS.name.min });
         if (trimmedName.length > LIMITS.name.max)
-          return `Name must be no more than ${LIMITS.name.max} characters`;
+          return t("validation.nameMax", { max: LIMITS.name.max });
         if (!/^[\p{L}\p{M}\s\-'\.]+$/u.test(trimmedName))
-          return "Name contains invalid characters";
+          return t("validation.nameInvalid");
         return undefined;
 
       case "position":
         if (value.trim() && value.trim().length > LIMITS.position.max)
-          return `Position must be no more than ${LIMITS.position.max} characters`;
+          return t("validation.positionMax", { max: LIMITS.position.max });
         return undefined;
 
       case "company":
         if (value.trim() && value.trim().length > LIMITS.company.max)
-          return `Company must be no more than ${LIMITS.company.max} characters`;
+          return t("validation.companyMax", { max: LIMITS.company.max });
         return undefined;
 
       case "content":
-        if (!value.trim()) return "Testimonial content is required";
+        if (!value.trim()) return t("validation.contentRequired");
         const trimmedContent = value.trim();
         if (trimmedContent.length < LIMITS.content.min)
-          return `Testimonial content must be at least ${LIMITS.content.min} characters`;
+          return t("validation.contentMin", { min: LIMITS.content.min });
         if (trimmedContent.length > LIMITS.content.max)
-          return `Testimonial content must be no more than ${LIMITS.content.max} characters`;
+          return t("validation.contentMax", { max: LIMITS.content.max });
         return undefined;
 
       default:
@@ -88,38 +90,49 @@ export default function TestimonialsClient() {
   useEffect(() => {
     if (touched.name) {
       const error = validateField("name", name);
-      setFieldErrors((prev) => (error ? { ...prev, name: error } : { ...prev, name: undefined }));
+      setFieldErrors((prev) =>
+        error ? { ...prev, name: error } : { ...prev, name: undefined },
+      );
     }
   }, [name, touched.name]);
 
   useEffect(() => {
     if (touched.position) {
       const error = validateField("position", position);
-      setFieldErrors((prev) => (error ? { ...prev, position: error } : { ...prev, position: undefined }));
+      setFieldErrors((prev) =>
+        error ? { ...prev, position: error } : { ...prev, position: undefined },
+      );
     }
   }, [position, touched.position]);
 
   useEffect(() => {
     if (touched.company) {
       const error = validateField("company", company);
-      setFieldErrors((prev) => (error ? { ...prev, company: error } : { ...prev, company: undefined }));
+      setFieldErrors((prev) =>
+        error ? { ...prev, company: error } : { ...prev, company: undefined },
+      );
     }
   }, [company, touched.company]);
 
   useEffect(() => {
     if (touched.content) {
       const error = validateField("content", content);
-      setFieldErrors((prev) => (error ? { ...prev, content: error } : { ...prev, content: undefined }));
+      setFieldErrors((prev) =>
+        error ? { ...prev, content: error } : { ...prev, content: undefined },
+      );
     }
   }, [content, touched.content]);
 
   const handleBlur = (field: string) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
     const value =
-      field === "name" ? name :
-      field === "position" ? position :
-      field === "company" ? company :
-      content;
+      field === "name"
+        ? name
+        : field === "position"
+          ? position
+          : field === "company"
+            ? company
+            : content;
     const error = validateField(field, value);
     setFieldErrors((prev) => {
       const updated = { ...prev };
@@ -174,7 +187,9 @@ export default function TestimonialsClient() {
         data = await res.json();
       } else {
         const text = await res.text();
-        throw new Error(`Server error (${res.status}): ${text || "Unexpected response format"}`);
+        throw new Error(
+          `Server error (${res.status}): ${text || "Unexpected response format"}`,
+        );
       }
 
       if (!res.ok) {
@@ -184,11 +199,11 @@ export default function TestimonialsClient() {
             serverErrors[err.field as keyof FieldErrors] = err.message;
           });
           setFieldErrors(serverErrors);
-          setError("Please fix the errors below");
+          setError(t("validation.fixErrors"));
         } else if (data.code === "RATE_LIMIT_EXCEEDED") {
-          setError(`Too many requests. Please try again later.`);
+          setError(t("validation.rateLimit"));
         } else {
-          setError(data.error || "Failed to submit testimonial");
+          setError(data.error || t("validation.submitFailed"));
         }
         return;
       }
@@ -201,32 +216,38 @@ export default function TestimonialsClient() {
       setFieldErrors({});
       setTouched({});
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+      setError(err instanceof Error ? err.message : t("validation.generic"));
     } finally {
       setLoading(false);
     }
   };
 
-  const isFormValid = name.trim() && content.trim() && Object.keys(fieldErrors).length === 0;
+  const isFormValid =
+    name.trim() && content.trim() && Object.keys(fieldErrors).length === 0;
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-cyan-500/30">
-      
       {/* Global Background Layers */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <StarsBackground className="absolute inset-0 opacity-50" />
-        <ShootingStars className="absolute inset-0" minDelay={2000} maxDelay={5000} starColor="#22d3ee" trailColor="#0f172a" />
+        <ShootingStars
+          className="absolute inset-0"
+          minDelay={2000}
+          maxDelay={5000}
+          starColor="#22d3ee"
+          trailColor="#0f172a"
+        />
         <BackgroundPaths />
       </div>
 
       {/* Hero Section */}
       <section className="relative h-[35vh] min-h-[300px] w-full flex flex-col items-center justify-center overflow-hidden">
         <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
-          <SectionHeading 
-             title="Leave a Testimonial" 
-             description="Your feedback helps me grow and deliver better solutions."
-             icon={Quote}
-             gradient="from-cyan-400 via-blue-500 to-purple-500"
+          <SectionHeading
+            title={t("title")}
+            description={t("subtitle")}
+            icon={Quote}
+            gradient="from-cyan-400 via-blue-500 to-purple-500"
           />
         </div>
       </section>
@@ -240,40 +261,48 @@ export default function TestimonialsClient() {
             transition={{ duration: 0.8 }}
             className="backdrop-blur-xl bg-slate-900/40 border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl relative overflow-hidden group"
           >
-             {/* Decorative Backgrounds */}
-             <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent opacity-50" />
-             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-purple-500/5 pointer-events-none transition-opacity duration-500 group-hover:opacity-100 opacity-50" />
+            {/* Decorative Backgrounds */}
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent opacity-50" />
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-purple-500/5 pointer-events-none transition-opacity duration-500 group-hover:opacity-100 opacity-50" />
 
             {success ? (
               <div className="text-center py-16 relative z-10">
-                <motion.div 
-                   initial={{ scale: 0 }} 
-                   animate={{ scale: 1 }}
-                   transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                   className="w-24 h-24 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 mx-auto mb-8 flex items-center justify-center shadow-lg shadow-green-500/10"
-                 >
-                   <Send className="w-10 h-10 text-green-400" />
-                 </motion.div>
-                <h3 className="text-3xl font-bold text-white mb-4">Review Submitted!</h3>
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                  className="w-24 h-24 rounded-full bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 mx-auto mb-8 flex items-center justify-center shadow-lg shadow-green-500/10"
+                >
+                  <Send className="w-10 h-10 text-green-400" />
+                </motion.div>
+                <h3 className="text-3xl font-bold text-white mb-4">
+                  {t("success.title")}
+                </h3>
                 <p className="text-slate-300 text-lg mb-10 max-w-md mx-auto">
-                  Thank you for sharing your experience. Your testimonial is under review and will be live soon.
+                  {t("success.message")}
                 </p>
-                <Button 
-                   onClick={() => setSuccess(false)}
-                   variant="outline"
-                   className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300"
-                 >
-                   Submit another
-                 </Button>
+                <Button
+                  onClick={() => setSuccess(false)}
+                  variant="outline"
+                  className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300"
+                >
+                  {t("success.another")}
+                </Button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
-                
+              <form
+                onSubmit={handleSubmit}
+                className="space-y-8 relative z-10"
+                noValidate
+              >
                 {/* Personal Info Group */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2.5">
-                    <Label htmlFor="name" className="text-cyan-100/80 text-xs font-semibold tracking-wider uppercase pl-1 flex items-center gap-2">
-                      <User className="w-3 h-3" /> Name
+                    <Label
+                      htmlFor="name"
+                      className="text-cyan-100/80 text-xs font-semibold tracking-wider uppercase pl-1 flex items-center gap-2"
+                    >
+                      <User className="w-3 h-3" /> {t("form.name")}
                     </Label>
                     <Input
                       id="name"
@@ -281,51 +310,74 @@ export default function TestimonialsClient() {
                       onChange={(e) => setName(e.target.value)}
                       onBlur={() => handleBlur("name")}
                       required
-                      placeholder="Alex Smith"
+                      placeholder={t("form.namePlaceholder")}
                       maxLength={LIMITS.name.max}
                       className={`h-12 bg-slate-950/30 border-white/5 text-white placeholder:text-slate-600 focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 focus:bg-slate-950/50 transition-all rounded-xl ${
-                        fieldErrors.name ? "border-red-500/50 focus:border-red-500/50" : ""
+                        fieldErrors.name
+                          ? "border-red-500/50 focus:border-red-500/50"
+                          : ""
                       }`}
                     />
-                    {fieldErrors.name && <p className="text-xs text-red-400 pl-1">{fieldErrors.name}</p>}
+                    {fieldErrors.name && (
+                      <p className="text-xs text-red-400 pl-1">
+                        {fieldErrors.name}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2.5">
-                    <Label htmlFor="company" className="text-cyan-100/80 text-xs font-semibold tracking-wider uppercase pl-1 flex items-center gap-2">
-                      <Building2 className="w-3 h-3" /> Company (Optional)
+                    <Label
+                      htmlFor="company"
+                      className="text-cyan-100/80 text-xs font-semibold tracking-wider uppercase pl-1 flex items-center gap-2"
+                    >
+                      <Building2 className="w-3 h-3" /> {t("form.company")}
                     </Label>
-                     <Input
+                    <Input
                       id="company"
                       value={company}
                       onChange={(e) => setCompany(e.target.value)}
                       onBlur={() => handleBlur("company")}
-                      placeholder="Tech Corp"
+                      placeholder={t("form.companyPlaceholder")}
                       maxLength={LIMITS.company.max}
                       className="h-12 bg-slate-950/30 border-white/5 text-white placeholder:text-slate-600 focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 focus:bg-slate-950/50 transition-all rounded-xl"
                     />
-                     {fieldErrors.company && <p className="text-xs text-red-400 pl-1">{fieldErrors.company}</p>}
+                    {fieldErrors.company && (
+                      <p className="text-xs text-red-400 pl-1">
+                        {fieldErrors.company}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div className="space-y-2.5">
-                    <Label htmlFor="position" className="text-cyan-100/80 text-xs font-semibold tracking-wider uppercase pl-1 flex items-center gap-2">
-                       <Briefcase className="w-3 h-3" /> Position (Optional)
-                    </Label>
-                    <Input
-                      id="position"
-                      value={position}
-                      onChange={(e) => setPosition(e.target.value)}
-                      onBlur={() => handleBlur("position")}
-                      placeholder="Product Manager"
-                      maxLength={LIMITS.position.max}
-                      className="h-12 bg-slate-950/30 border-white/5 text-white placeholder:text-slate-600 focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 focus:bg-slate-950/50 transition-all rounded-xl"
-                    />
-                    {fieldErrors.position && <p className="text-xs text-red-400 pl-1">{fieldErrors.position}</p>}
+                  <Label
+                    htmlFor="position"
+                    className="text-cyan-100/80 text-xs font-semibold tracking-wider uppercase pl-1 flex items-center gap-2"
+                  >
+                    <Briefcase className="w-3 h-3" /> {t("form.position")}
+                  </Label>
+                  <Input
+                    id="position"
+                    value={position}
+                    onChange={(e) => setPosition(e.target.value)}
+                    onBlur={() => handleBlur("position")}
+                    placeholder={t("form.positionPlaceholder")}
+                    maxLength={LIMITS.position.max}
+                    className="h-12 bg-slate-950/30 border-white/5 text-white placeholder:text-slate-600 focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 focus:bg-slate-950/50 transition-all rounded-xl"
+                  />
+                  {fieldErrors.position && (
+                    <p className="text-xs text-red-400 pl-1">
+                      {fieldErrors.position}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2.5">
-                  <Label htmlFor="content" className="text-cyan-100/80 text-xs font-semibold tracking-wider uppercase pl-1 flex items-center gap-2">
-                    <Quote className="w-3 h-3" /> Testimonial
+                  <Label
+                    htmlFor="content"
+                    className="text-cyan-100/80 text-xs font-semibold tracking-wider uppercase pl-1 flex items-center gap-2"
+                  >
+                    <Quote className="w-3 h-3" /> {t("form.content")}
                   </Label>
                   <Textarea
                     id="content"
@@ -333,20 +385,30 @@ export default function TestimonialsClient() {
                     onChange={(e) => setContent(e.target.value)}
                     onBlur={() => handleBlur("content")}
                     required
-                    placeholder="Share your experience working with me..."
+                    placeholder={t("form.contentPlaceholder")}
                     maxLength={LIMITS.content.max}
                     className={`min-h-[180px] bg-slate-950/30 border-white/5 text-white placeholder:text-slate-600 focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 focus:bg-slate-950/50 transition-all resize-y rounded-xl p-4 leading-relaxed ${
-                         fieldErrors.content ? "border-red-500/50 focus:border-red-500/50" : ""
+                      fieldErrors.content
+                        ? "border-red-500/50 focus:border-red-500/50"
+                        : ""
                     }`}
                   />
                   <div className="flex justify-between px-1">
-                     {fieldErrors.content ? <p className="text-xs text-red-400">{fieldErrors.content}</p> : <span />}
-                     <span className="text-[10px] text-slate-600 font-mono">{content.length}/{LIMITS.content.max}</span>
+                    {fieldErrors.content ? (
+                      <p className="text-xs text-red-400">
+                        {fieldErrors.content}
+                      </p>
+                    ) : (
+                      <span />
+                    )}
+                    <span className="text-[10px] text-slate-600 font-mono">
+                      {content.length}/{LIMITS.content.max}
+                    </span>
                   </div>
                 </div>
 
                 {error && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-200 text-sm flex items-center gap-2"
@@ -362,16 +424,31 @@ export default function TestimonialsClient() {
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
-                       <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                       </svg>
-                       Submitting...
+                      <svg
+                        className="animate-spin h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        />
+                      </svg>
+                      {t("form.submitting")}
                     </span>
                   ) : (
                     <span className="flex items-center gap-2">
-                       Submit Testimonial
-                       <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      {t("form.submit")}
+                      <Send className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </span>
                   )}
                 </Button>
