@@ -6,6 +6,18 @@ import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { authenticatedFetch, fetchApi } from "@/lib/api";
 import ImageUpload from "@/components/ImageUpload";
+import { AdminPageHeader } from "@/components/ui/admin-page-header";
+import { 
+  AdminTable, 
+  AdminTableHeader, 
+  AdminTableHead, 
+  AdminTableBody, 
+  AdminTableRow, 
+  AdminTableCell 
+} from "@/components/ui/admin-table";
+import { ShineBorder } from "@/components/ui/shine-border";
+import { Pencil, Trash2, ArrowUp, ArrowDown, X, Save, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Project {
   id: string;
@@ -51,10 +63,6 @@ export default function ProjectsManagementPage() {
     if (!isPending && !session) router.push("/login");
   }, [session, isPending, router]);
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
-
   const fetchProjects = async () => {
     try {
       const data = await fetchApi<Project[]>("/api/projects");
@@ -66,6 +74,11 @@ export default function ProjectsManagementPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchProjects();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -183,184 +196,163 @@ export default function ProjectsManagementPage() {
   if (isPending || !session) {
     return (
       <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400" />
       </div>
     );
   }
 
   const sortedProjects = [...projects].sort((a, b) => a.order - b.order);
 
+  // Common input styles
+  const inputClass = "w-full pl-4 pr-4 py-3 bg-slate-900/40 border border-white/[0.08] rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-200 shadow-inner hover:border-white/[0.12] hover:bg-slate-900/60";
+  const labelClass = "block text-[11px] font-semibold text-cyan-100/60 uppercase tracking-widest pl-1 font-mono mb-2";
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">{t("projects.title")}</h1>
-          <p className="text-muted-foreground mt-1">
-            {t("projects.description")}
-          </p>
-        </div>
-        <button
-          onClick={handleAddProject}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-medium"
-        >
-          + {t("projects.addNew")}
-        </button>
-      </div>
+      <AdminPageHeader 
+        title={t("projects.title")} 
+        description={t("projects.description")}
+        customAction={
+          <button
+            onClick={handleAddProject}
+            className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded-xl border border-cyan-500/20 transition-all text-sm font-semibold"
+          >
+            <span className="text-lg leading-none">+</span> {t("projects.addNew")}
+          </button>
+        }
+      />
 
       {(isEditing || editingProject) && (
-        <div className="rounded-lg border bg-card p-6">
-          <h3 className="font-semibold text-lg mb-4">
-            {editingProject
-              ? t("projects.editProject")
-              : t("projects.addNewProject")}
-          </h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+        <ShineBorder 
+          className="relative w-full rounded-2xl bg-black/20 border border-white/[0.08] backdrop-blur-xl p-8"
+          shineColor={["#f472b6", "#e879f9", "#c084fc"]}
+        >
+          <div className="flex justify-between items-center mb-6">
+             <h3 className="font-display font-bold text-xl text-white">
+              {editingProject ? t("projects.editProject") : t("projects.addNewProject")}
+            </h3>
+            <button onClick={handleCancel} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+              <X className="w-5 h-5 text-slate-400" />
+            </button>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  {t("projects.titleLabel")} *
-                </label>
+                <label className={labelClass}>{t("projects.titleLabel")} *</label>
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
                   placeholder={t("projects.titlePlaceholder")}
-                  className="w-full px-3 py-2 border rounded-md bg-background"
+                  className={inputClass}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  {t("projects.technologies")} *
-                </label>
+                <label className={labelClass}>{t("projects.technologies")} *</label>
                 <input
                   type="text"
                   value={formData.technologies}
-                  onChange={(e) =>
-                    setFormData({ ...formData, technologies: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, technologies: e.target.value })}
                   required
                   placeholder="React, TypeScript, TailwindCSS"
-                  className="w-full px-3 py-2 border rounded-md bg-background"
+                  className={inputClass}
                 />
               </div>
             </div>
+
             <div>
-              <label className="text-sm font-medium mb-2 block">
-                {t("projects.projectDescription")} *
-              </label>
+              <label className={labelClass}>{t("projects.projectDescription")} *</label>
               <textarea
                 value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 required
                 placeholder={t("projects.descriptionPlaceholder")}
                 rows={3}
-                className="w-full px-3 py-2 border rounded-md bg-background"
+                className={inputClass}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+
+            <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  {t("projects.titleFr")}
-                </label>
+                <label className={labelClass}>{t("projects.titleFr")}</label>
                 <input
                   type="text"
                   value={formData.titleFr}
-                  onChange={(e) =>
-                    setFormData({ ...formData, titleFr: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, titleFr: e.target.value })}
                   placeholder={t("projects.titleFr")}
-                  className="w-full px-3 py-2 border rounded-md bg-background"
+                  className={inputClass}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  {t("projects.descriptionFr")}
-                </label>
+                <label className={labelClass}>{t("projects.descriptionFr")}</label>
                 <textarea
                   value={formData.descriptionFr}
-                  onChange={(e) =>
-                    setFormData({ ...formData, descriptionFr: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, descriptionFr: e.target.value })}
                   placeholder={t("projects.descriptionFr")}
                   rows={2}
-                  className="w-full px-3 py-2 border rounded-md bg-background"
+                  className={inputClass}
                 />
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+
+            <div className="grid grid-cols-3 gap-6">
               <div>
+                <label className={labelClass}>{t("projects.imageUrl")}</label>
                 <ImageUpload
                   value={formData.imageUrl}
-                  onChange={(url) =>
-                    setFormData({ ...formData, imageUrl: url })
-                  }
+                  onChange={(url) => setFormData({ ...formData, imageUrl: url })}
                   label={t("projects.imageUrl")}
                   accept="image/*"
                   maxSize={10}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  {t("projects.liveUrl")}
-                </label>
+                <label className={labelClass}>{t("projects.liveUrl")}</label>
                 <input
                   type="url"
                   value={formData.liveUrl}
-                  onChange={(e) =>
-                    setFormData({ ...formData, liveUrl: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, liveUrl: e.target.value })}
                   placeholder="https://..."
-                  className="w-full px-3 py-2 border rounded-md bg-background"
+                  className={inputClass}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  {t("projects.githubUrl")}
-                </label>
+                <label className={labelClass}>{t("projects.githubUrl")}</label>
                 <input
                   type="url"
                   value={formData.githubUrl}
-                  onChange={(e) =>
-                    setFormData({ ...formData, githubUrl: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
                   placeholder="https://github.com/..."
-                  className="w-full px-3 py-2 border rounded-md bg-background"
+                  className={inputClass}
                 />
               </div>
             </div>
-            <div className="flex gap-4 items-center">
-              <div className="flex items-center gap-2">
+
+            <div className="flex gap-6 items-center pt-2">
+              <label className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.08] bg-white/[0.02] cursor-pointer hover:bg-white/[0.04] transition-colors">
                 <input
                   type="checkbox"
-                  id="featured"
                   checked={formData.featured}
-                  onChange={(e) =>
-                    setFormData({ ...formData, featured: e.target.checked })
-                  }
-                  className="w-4 h-4"
+                  onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                  className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500/30"
                 />
-                <label htmlFor="featured" className="text-sm font-medium">
-                  {t("projects.featured")}
-                </label>
-              </div>
-              {!editingProject && (
-                <div className="p-3 rounded-md bg-muted/50 border border-muted">
-                  <p className="text-sm text-muted-foreground">
+                <span className="text-sm font-medium text-slate-300">{t("projects.featured")}</span>
+              </label>
+
+               {!editingProject && (
+                <div className="px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                  <p className="text-xs text-purple-300 font-mono">
                     {t("projects.autoOrderHint")} {formData.order})
                   </p>
                 </div>
               )}
             </div>
-            {editingProject && (
+
+             {editingProject && (
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  {t("projects.position")}
-                </label>
+                <label className={labelClass}>{t("projects.position")}</label>
                 <select
                   value={formData.order}
                   onChange={async (e) => {
@@ -382,29 +374,22 @@ export default function ProjectsManagementPage() {
                       await fetchProjects();
                       setFormData((prev) => ({ ...prev, order: newOrder }));
                     } catch (err) {
-                      setError(
-                        err instanceof Error ? err.message : t("common.error"),
-                      );
+                      setError(err instanceof Error ? err.message : t("common.error"));
                       e.target.value = String(formData.order);
                     } finally {
                       setSubmitting(false);
                     }
                   }}
                   disabled={submitting}
-                  className="w-full px-3 py-2 border rounded-md bg-background disabled:opacity-50"
+                  className={cn(inputClass, "disabled:opacity-50")}
                 >
                   {(() => {
-                    const uniqueOrders = [
-                      ...new Set(projects.map((p) => p.order)),
-                    ].sort((a, b) => a - b);
+                    const uniqueOrders = [...new Set(projects.map((p) => p.order))].sort((a, b) => a - b);
                     return uniqueOrders.map((position) => {
-                      const projectAtPosition = projects.find(
-                        (p) => p.order === position,
-                      );
-                      const isCurrent =
-                        projectAtPosition?.id === editingProject.id;
+                      const projectAtPosition = projects.find((p) => p.order === position);
+                      const isCurrent = projectAtPosition?.id === editingProject.id;
                       return (
-                        <option key={position} value={position}>
+                        <option key={position} value={position} className="bg-slate-900 text-slate-200">
                           {t("projects.positionLabel")} {position}
                           {projectAtPosition && !isCurrent
                             ? ` – ${projectAtPosition.title}`
@@ -416,182 +401,147 @@ export default function ProjectsManagementPage() {
                     });
                   })()}
                 </select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {t("projects.positionHint")}
-                </p>
               </div>
             )}
+
             {error && (
-              <div className="p-3 rounded-md bg-red-50 border border-red-200">
-                <p className="text-sm text-red-600">{error}</p>
+              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm">
+                {error}
               </div>
             )}
-            <div className="flex gap-2">
+
+            <div className="flex gap-3 pt-4 border-t border-white/[0.08]">
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl font-medium shadow-lg hover:shadow-cyan-500/25 hover:from-cyan-500 hover:to-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {submitting ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
                     <span>{t("common.saving")}</span>
                   </>
                 ) : (
-                  <span>
-                    {editingProject
-                      ? t("projects.update")
-                      : t("projects.create")}
-                  </span>
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>{editingProject ? t("projects.update") : t("projects.create")}</span>
+                  </>
                 )}
               </button>
               <button
                 type="button"
                 onClick={handleCancel}
                 disabled={submitting}
-                className="px-4 py-2 border rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2.5 border border-white/[0.1] bg-white/[0.05] text-slate-300 rounded-xl hover:bg-white/[0.1] hover:text-white transition-all disabled:opacity-50"
               >
                 {t("common.cancel")}
               </button>
             </div>
           </form>
-        </div>
+        </ShineBorder>
       )}
 
       {loading ? (
-        <div className="text-center py-12 text-muted-foreground">
-          {t("common.loading")}
+        <div className="text-center py-12">
+            <div className="animate-pulse flex flex-col items-center">
+                <div className="h-4 bg-white/10 rounded w-1/4 mb-4"></div>
+                <div className="h-64 bg-white/5 rounded-xl w-full"></div>
+            </div>
         </div>
       ) : (
-        <div className="rounded-lg border bg-card">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="border-b bg-muted/50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium">
-                    {t("projects.order")}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">
-                    {t("projects.titleLabel")}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">
-                    {t("projects.technologies")}
-                  </th>
-                  <th className="px-4 py-3 text-center text-sm font-medium">
-                    {t("projects.featured")}
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium">
-                    {t("common.actions")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {sortedProjects.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="px-4 py-8 text-center text-muted-foreground"
-                    >
-                      {t("projects.empty")}
-                    </td>
-                  </tr>
-                ) : (
-                  sortedProjects.map((project, index) => {
-                    const canMoveUp = index > 0;
-                    const canMoveDown = index < sortedProjects.length - 1;
-                    return (
-                      <tr key={project.id} className="hover:bg-muted/50">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <span className="text-muted-foreground text-sm w-8">
-                              {project.order}
-                            </span>
-                            <div className="flex flex-col gap-1">
-                              <button
-                                type="button"
-                                onClick={() => handleReorder(project.id, "up")}
-                                disabled={
-                                  !canMoveUp || reordering === project.id
-                                }
-                                className="p-1 hover:bg-muted rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                                title={t("projects.moveUp")}
-                              >
-                                <svg
-                                  className="w-3 h-3"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M5 15l7-7 7 7"
-                                  />
-                                </svg>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleReorder(project.id, "down")
-                                }
-                                disabled={
-                                  !canMoveDown || reordering === project.id
-                                }
-                                className="p-1 hover:bg-muted rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                                title={t("projects.moveDown")}
-                              >
-                                <svg
-                                  className="w-3 h-3"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M19 9l-7 7-7-7"
-                                  />
-                                </svg>
-                              </button>
-                            </div>
+        <AdminTable>
+          <AdminTableHeader>
+            <AdminTableHead>{t("projects.order")}</AdminTableHead>
+            <AdminTableHead>{t("projects.titleLabel")}</AdminTableHead>
+            <AdminTableHead>{t("projects.technologies")}</AdminTableHead>
+            <AdminTableHead className="text-center">{t("projects.featured")}</AdminTableHead>
+            <AdminTableHead className="text-right">{t("common.actions")}</AdminTableHead>
+          </AdminTableHeader>
+          <AdminTableBody>
+            {sortedProjects.length === 0 ? (
+              <AdminTableRow>
+                <AdminTableCell className="text-center py-12 text-slate-500" colSpan={5}>
+                   {t("projects.empty")}
+                </AdminTableCell>
+              </AdminTableRow>
+            ) : (
+              sortedProjects.map((project, index) => {
+                const canMoveUp = index > 0;
+                const canMoveDown = index < sortedProjects.length - 1;
+                return (
+                  <AdminTableRow key={project.id}>
+                    <AdminTableCell>
+                      <div className="flex items-center gap-3">
+                        <span className="text-slate-500 text-xs font-mono w-6 text-center bg-white/[0.05] rounded py-1">
+                          {project.order}
+                        </span>
+                        <div className="flex flex-col gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleReorder(project.id, "up")}
+                            disabled={!canMoveUp || reordering === project.id}
+                            className="p-1 hover:bg-cyan-500/20 hover:text-cyan-400 rounded transition-colors disabled:opacity-20"
+                          >
+                            <ArrowUp className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleReorder(project.id, "down")}
+                            disabled={!canMoveDown || reordering === project.id}
+                            className="p-1 hover:bg-cyan-500/20 hover:text-cyan-400 rounded transition-colors disabled:opacity-20"
+                          >
+                            <ArrowDown className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    </AdminTableCell>
+                    <AdminTableCell>
+                        <div className="font-medium text-white">{project.title}</div>
+                        {project.titleFr && <div className="text-xs text-slate-500 mt-0.5">{project.titleFr}</div>}
+                    </AdminTableCell>
+                    <AdminTableCell>
+                      <div className="flex flex-wrap gap-1">
+                         {project.technologies.slice(0, 3).map(tech => (
+                             <span key={tech} className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.05] text-slate-400">
+                                 {tech}
+                             </span>
+                         ))}
+                         {project.technologies.length > 3 && (
+                             <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.05] text-slate-500">+{project.technologies.length - 3}</span>
+                         )}
+                      </div>
+                    </AdminTableCell>
+                    <AdminTableCell className="text-center">
+                      {project.featured && (
+                          <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-500/20 text-purple-400">
+                              <Check className="w-3.5 h-3.5" />
                           </div>
-                        </td>
-                        <td className="px-4 py-3 font-medium">
-                          {project.title}
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground text-sm">
-                          {project.technologies.slice(0, 3).join(", ")}
-                          {project.technologies.length > 3 ? "..." : ""}
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          {project.featured ? "✓" : ""}
-                        </td>
-                        <td className="px-4 py-3 text-right space-x-2">
+                      )}
+                    </AdminTableCell>
+                    <AdminTableCell>
+                        <div className="flex justify-end gap-2">
                           <button
-                            type="button"
                             onClick={() => handleEdit(project)}
-                            className="text-sm text-primary hover:underline"
+                            className="p-2 hover:bg-blue-500/10 text-slate-400 hover:text-blue-400 rounded-lg transition-colors border border-transparent hover:border-blue-500/20"
+                            title={t("projects.edit")}
                           >
-                            {t("projects.edit")}
+                            <Pencil className="w-4 h-4" />
                           </button>
                           <button
-                            type="button"
                             onClick={() => handleDelete(project.id)}
-                            className="text-sm text-destructive hover:underline"
+                            className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors border border-transparent hover:border-red-500/20"
+                            title={t("projects.delete")}
                           >
-                            {t("projects.delete")}
+                            <Trash2 className="w-4 h-4" />
                           </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                        </div>
+                    </AdminTableCell>
+                  </AdminTableRow>
+                );
+              })
+            )}
+          </AdminTableBody>
+        </AdminTable>
       )}
     </div>
   );
