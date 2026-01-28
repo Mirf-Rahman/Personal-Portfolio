@@ -6,6 +6,20 @@ import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { authenticatedFetch, fetchApi } from "@/lib/api";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { ShineBorder } from "@/components/ui/shine-border";
+import { 
+  LayoutDashboard, 
+  Code2, 
+  FolderKanban, 
+  Briefcase, 
+  GraduationCap, 
+  Gamepad2, 
+  Quote, 
+  MessageSquare,
+  ArrowRight,
+  Plus
+} from "lucide-react";
 
 interface Stats {
   skills: number;
@@ -72,107 +86,136 @@ export default function AdminDashboard() {
     }
   }, [session]);
 
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const item = {
+    hidden: { y: 20, opacity: 0 },
+    show: { y: 0, opacity: 1 }
+  };
+
   if (isPending || !session) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-cyan-400" />
       </div>
     );
   }
 
   const cards = [
-    { titleKey: "sidebar.skills", count: stats.skills, href: "/admin/skills", icon: "⚡", color: "from-blue-600 to-cyan-600" },
-    { titleKey: "sidebar.projects", count: stats.projects, href: "/admin/projects", icon: "🚀", color: "from-purple-600 to-pink-600" },
-    { titleKey: "sidebar.experience", count: stats.experiences, href: "/admin/experience", icon: "💼", color: "from-amber-600 to-orange-600" },
-    { titleKey: "sidebar.education", count: stats.education, href: "/admin/education", icon: "🎓", color: "from-teal-600 to-cyan-600" },
-    { titleKey: "sidebar.hobbies", count: stats.hobbies, href: "/admin/hobbies", icon: "🎯", color: "from-indigo-600 to-violet-600" },
-    { titleKey: "sidebar.testimonials", count: stats.testimonials, href: "/admin/testimonials", icon: "💬", color: "from-green-600 to-emerald-600" },
-    { titleKey: "sidebar.messages", count: stats.messages, href: "/admin/messages", icon: "📧", color: "from-orange-600 to-red-600" },
+    { titleKey: "sidebar.skills", count: stats.skills, href: "/admin/skills", icon: Code2, color: ["#38bdf8", "#818cf8", "#c084fc"] },
+    { titleKey: "sidebar.projects", count: stats.projects, href: "/admin/projects", icon: FolderKanban, color: ["#f472b6", "#e879f9", "#c084fc"] },
+    { titleKey: "sidebar.experience", count: stats.experiences, href: "/admin/experience", icon: Briefcase, color: ["#fbbf24", "#fb923c", "#f87171"] },
+    { titleKey: "sidebar.education", count: stats.education, href: "/admin/education", icon: GraduationCap, color: ["#2dd4bf", "#38bdf8", "#818cf8"] },
+    { titleKey: "sidebar.hobbies", count: stats.hobbies, href: "/admin/hobbies", icon: Gamepad2, color: ["#a78bfa", "#818cf8", "#6366f1"] },
+    { titleKey: "sidebar.testimonials", count: stats.testimonials, href: "/admin/testimonials", icon: Quote, color: ["#4ade80", "#2dd4bf", "#38bdf8"] },
+    { titleKey: "sidebar.messages", count: stats.messages, href: "/admin/messages", icon: MessageSquare, color: ["#fb923c", "#f87171", "#f472b6"] },
   ];
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">{t("dashboard.title")}</h1>
-        <p className="text-muted-foreground mt-2">{t("dashboard.welcome")}</p>
-      </div>
+    <div className="space-y-10">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="space-y-2"
+      >
+        <h1 className="text-4xl font-bold font-display tracking-tight text-white">
+          {t("dashboard.title")}
+        </h1>
+        <p className="text-slate-400 font-light tracking-wide">
+          {t("dashboard.welcome")}
+        </p>
+      </motion.div>
 
       {loading ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-            <div key={i} className="h-32 bg-muted animate-pulse rounded-lg" />
+            <div key={i} className="h-40 bg-white/[0.02] border border-white/[0.05] rounded-2xl animate-pulse" />
           ))}
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {cards.map((card) => (
-            <Link key={card.titleKey} href={card.href} className="group">
-              <div className="relative overflow-hidden rounded-lg border bg-card p-6 transition-all hover:shadow-lg hover:scale-105">
-                <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${card.color} opacity-10 rounded-full blur-2xl`} />
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-4xl">{card.icon}</span>
-                    <span className="text-xs text-muted-foreground group-hover:text-foreground transition-colors">
-                      {t("dashboard.viewAll")}
-                    </span>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">{t(card.titleKey)}</p>
-                    <p className="text-3xl font-bold">{card.count}</p>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+        <motion.div 
+          variants={container}
+          initial="hidden"
+          animate="show"
+          className="grid gap-6 md:grid-cols-2 lg:grid-cols-4"
+        >
+          {cards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <motion.div key={card.titleKey} variants={item}>
+                <Link href={card.href} className="group block h-full">
+                  <ShineBorder
+                    className="relative h-full w-full p-6 rounded-2xl bg-white/[0.02] backdrop-blur-sm border-white/[0.05] hover:bg-white/[0.04] transition-colors"
+                    shineColor={card.color}
+                    borderWidth={1.5}
+                    duration={10}
+                  >
+                    <div className="flex items-start justify-between mb-8">
+                       <div className="p-3 rounded-xl bg-white/[0.05] border border-white/[0.05] group-hover:scale-110 transition-transform duration-300">
+                         <Icon className="w-6 h-6 text-slate-300 group-hover:text-white transition-colors" />
+                       </div>
+                       <span className="text-xs font-medium text-slate-500 flex items-center gap-1 group-hover:text-cyan-400 transition-colors">
+                         View All <ArrowRight className="w-3 h-3" />
+                       </span>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">
+                        {t(card.titleKey)}
+                      </h3>
+                      <p className="text-4xl font-bold text-white font-display">
+                        {card.count}
+                      </p>
+                    </div>
+                  </ShineBorder>
+                </Link>
+              </motion.div>
+            );
+          })}
+        </motion.div>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-lg border bg-card p-6">
-          <h3 className="font-semibold text-lg mb-4">{t("dashboard.quickActions")}</h3>
-          <div className="space-y-2">
-            <Link href="/admin/projects" className="flex items-center gap-2 text-sm hover:underline text-primary">
-              <span>→</span> {t("dashboard.addNewProject")}
-            </Link>
-            <Link href="/admin/skills" className="flex items-center gap-2 text-sm hover:underline text-primary">
-              <span>→</span> {t("dashboard.addNewSkill")}
-            </Link>
-            <Link href="/admin/experience" className="flex items-center gap-2 text-sm hover:underline text-primary">
-              <span>→</span> {t("dashboard.addExperience")}
-            </Link>
-            <Link href="/admin/education" className="flex items-center gap-2 text-sm hover:underline text-primary">
-              <span>→</span> {t("dashboard.addEducation")}
-            </Link>
-            <Link href="/admin/hobbies" className="flex items-center gap-2 text-sm hover:underline text-primary">
-              <span>→</span> {t("dashboard.addHobby")}
-            </Link>
-            <Link href="/admin/testimonials" className="flex items-center gap-2 text-sm hover:underline text-primary">
-              <span>→</span> {t("dashboard.reviewTestimonials")}
-            </Link>
-            <Link href="/admin/messages" className="flex items-center gap-2 text-sm hover:underline text-primary">
-              <span>→</span> {t("dashboard.checkMessages")}
-            </Link>
+      <div className="grid gap-8 md:grid-cols-2">
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.4 }}
+          className="rounded-3xl border border-white/[0.08] bg-black/20 backdrop-blur-xl p-8"
+        >
+          <h3 className="font-display font-semibold text-xl text-white mb-6 flex items-center gap-2">
+            <span className="w-1 h-6 bg-cyan-500 rounded-full" />
+            {t("dashboard.quickActions")}
+          </h3>
+          <div className="grid gap-3">
+             {[
+               { href: "/admin/projects", label: t("dashboard.addNewProject"), icon: Plus },
+               { href: "/admin/skills", label: t("dashboard.addNewSkill"), icon: Plus },
+               { href: "/admin/experience", label: t("dashboard.addExperience"), icon: Plus },
+             ].map((action, idx) => (
+                <Link 
+                  key={idx} 
+                  href={action.href}
+                  className="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/[0.05] hover:bg-white/[0.08] hover:border-cyan-500/30 group transition-all"
+                >
+                  <span className="text-slate-300 group-hover:text-white font-medium">{action.label}</span>
+                  <div className="h-8 w-8 rounded-full bg-white/[0.05] flex items-center justify-center group-hover:bg-cyan-500 group-hover:text-black transition-colors">
+                    <action.icon className="w-4 h-4" />
+                  </div>
+                </Link>
+             ))}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="rounded-lg border bg-card p-6">
-          <h3 className="font-semibold text-lg mb-4">{t("dashboard.contentManagement")}</h3>
-          <div className="grid grid-cols-2 gap-2">
-            <Link href="/admin/experience" className="flex items-center justify-center p-3 rounded border hover:bg-accent text-sm">
-              {t("sidebar.experience")}
-            </Link>
-            <Link href="/admin/education" className="flex items-center justify-center p-3 rounded border hover:bg-accent text-sm">
-              {t("sidebar.education")}
-            </Link>
-            <Link href="/admin/hobbies" className="flex items-center justify-center p-3 rounded border hover:bg-accent text-sm">
-              {t("sidebar.hobbies")}
-            </Link>
-            <Link href="/admin/resume" className="flex items-center justify-center p-3 rounded border hover:bg-accent text-sm">
-              {t("sidebar.resume")}
-            </Link>
-          </div>
-        </div>
       </div>
     </div>
   );
 }
+
