@@ -24,6 +24,7 @@ export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const t = useTranslations('nav');
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { data: session, isPending } = authClient.useSession();
   const isAdmin = (session?.user as { role?: string })?.role === "ADMIN";
@@ -74,6 +75,8 @@ export function Navbar() {
       }
     }
   };
+
+
 
   return (
     <>
