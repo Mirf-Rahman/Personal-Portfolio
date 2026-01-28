@@ -89,8 +89,11 @@ async function seed() {
       .values([
         {
           title: "CityPulse Montréal 2035",
+          titleFr: "CityPulse Montréal 2035",
           description:
             "AI-powered urban stress digital twin for Montréal city planning with real-time visualization and scenario modeling.",
+          descriptionFr:
+            "Jumeau numérique du stress urbain alimenté par l'IA pour l'urbanisme montréalais, avec visualisation en temps réel et modélisation de scénarios.",
           technologies: [
             "Next.js",
             "TypeScript",
@@ -107,8 +110,11 @@ async function seed() {
         },
         {
           title: "Aman Skies",
+          titleFr: "Aman Skies",
           description:
             "Weather forecast app with integrated prayer times, notifications, and air quality tracking.",
+          descriptionFr:
+            "Application météo avec heures de prière, notifications et suivi de la qualité de l'air.",
           technologies: [
             "React",
             "TypeScript",
@@ -126,8 +132,11 @@ async function seed() {
         },
         {
           title: "Football Microservice",
+          titleFr: "Microservice Football",
           description:
             "Java Spring Boot microservices architecture demo for a football store with API Gateway and multiple service domains.",
+          descriptionFr:
+            "Démo d'architecture microservices Java Spring Boot pour une boutique football avec passerelle API et plusieurs domaines.",
           technologies: [
             "Java",
             "Spring Boot",
@@ -154,11 +163,15 @@ async function seed() {
         {
           institution: "Champlain College Saint-Lambert",
           degree: "DEC",
+          degreeFr: "DEC",
           field: "Computer Science",
+          fieldFr: "Informatique",
           startDate: new Date("2023-08-01"),
           endDate: new Date("2026-06-15"),
           current: false,
           description: "Focused on software engineering and data structures",
+          descriptionFr:
+            "Concentration en génie logiciel et structures de données",
           order: 1,
         },
       ])
@@ -172,8 +185,11 @@ async function seed() {
         {
           company: "L'Original (Artur.art)",
           position: "Junior Full Stack Developer (Internship)",
+          positionFr: "Développeur Full Stack Junior (Stage)",
           description:
             "Led development of enterprise web applications using React and Next.js",
+          descriptionFr:
+            "Direction du développement d'applications web d'entreprise avec React et Next.js",
           location: "Montreal, QC",
           startDate: new Date("2026-02-01"),
           endDate: null,
@@ -190,15 +206,25 @@ async function seed() {
       .values([
         {
           name: "Gaming",
+          nameFr: "Jeux vidéo",
           description: "Story & FPS games on PC",
+          descriptionFr: "Jeux narratifs et FPS sur PC",
           order: 1,
         },
         {
           name: "Visual Arts",
+          nameFr: "Arts visuels",
           description: "Traditional painting & digital design",
+          descriptionFr: "Peinture traditionnelle et design numérique",
           order: 2,
         },
-        { name: "Video Editing", description: "Visual storytelling with Premiere Pro", order: 3 },
+        {
+          name: "Video Editing",
+          nameFr: "Montage vidéo",
+          description: "Visual storytelling with Premiere Pro",
+          descriptionFr: "Raconter des histoires en vidéo avec Premiere Pro",
+          order: 3,
+        },
       ])
       .returning();
     console.log(`✅ Seeded ${hobbiesData.length} hobbies`);
@@ -213,6 +239,8 @@ async function seed() {
           company: "TechCorp Inc.",
           content:
             "Working with this developer was an absolute pleasure. They delivered high-quality code on time and showed exceptional problem-solving skills. Their attention to detail and commitment to best practices really set them apart.",
+          contentFr:
+            "Travailler avec ce développeur a été un réel plaisir. Livraison de code de qualité à temps, et d'excellentes compétences en résolution de problèmes. Le souci du détail et les bonnes pratiques le distinguent vraiment.",
           approved: true,
           order: 1,
         },
@@ -222,6 +250,8 @@ async function seed() {
           company: "StartupHub",
           content:
             "Exceptional technical skills combined with great communication. They quickly understood our complex requirements and delivered a scalable solution that exceeded our expectations. Would definitely work with them again!",
+          contentFr:
+            "Compétences techniques exceptionnelles et excellente communication. Ils ont vite saisi nos besoins complexes et livré une solution évolutive au-delà de nos attentes. Je retravaillerais volontiers avec eux !",
           approved: true,
           order: 2,
         },
@@ -231,6 +261,8 @@ async function seed() {
           company: "Digital Solutions Ltd.",
           content:
             "One of the most talented developers I've had the pleasure of working with. Their expertise in full-stack development and modern frameworks helped us launch our product ahead of schedule. Highly recommended!",
+          contentFr:
+            "L'un des développeurs les plus talentueux avec qui j'ai travaillé. Leur maîtrise du full-stack et des frameworks modernes nous a permis de lancer notre produit en avance. Je recommande vivement !",
           approved: true,
           order: 3,
         },
@@ -240,6 +272,8 @@ async function seed() {
           company: "InnovateLab",
           content:
             "Not only did they deliver excellent code, but they also provided valuable insights on architecture and user experience. Their proactive approach and dedication to the project made all the difference. A true professional!",
+          contentFr:
+            "En plus d'un excellent code, ils ont apporté des idées précieuses sur l'architecture et l'expérience utilisateur. Leur approche proactive et leur dévouement ont tout changé. Un vrai professionnel !",
           approved: true,
           order: 4,
         },
@@ -249,6 +283,8 @@ async function seed() {
           company: "CloudTech Solutions",
           content:
             "Impressive technical abilities and a genuine passion for creating elegant solutions. They tackled challenging problems with creativity and efficiency. Their collaborative nature made them a valuable team member throughout the project.",
+          contentFr:
+            "Capacités techniques impressionnantes et une vraie passion pour des solutions élégantes. Ils ont abordé des problèmes complexes avec créativité et efficacité. Leur esprit collaboratif en a fait un atout pour l'équipe.",
           approved: true,
           order: 5,
         },
