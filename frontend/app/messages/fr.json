@@ -179,6 +179,7 @@
       "hobbies": "Loisirs",
       "testimonials": "Témoignages",
       "messages": "Messages",
+      "contactInfo": "Coordonnées",
       "resume": "CV"
     },
     "dashboard": {
@@ -410,6 +411,27 @@
       "updating": "Mise à jour...",
       "selectMessage": "Sélectionnez un message pour le consulter",
       "chooseMessage": "Choisissez un message dans la liste de gauche"
+    },
+    "contactInfo": {
+      "title": "Coordonnées",
+      "description": "Modifiez les coordonnées affichées sur la page Contact (e-mail, réseaux, etc.).",
+      "email": "E-mail",
+      "emailPlaceholder": "vous@exemple.com",
+      "phone": "Téléphone",
+      "phonePlaceholder": "+1 234 567 8900",
+      "location": "Lieu",
+      "locationPlaceholder": "Ville, Pays",
+      "linkedIn": "URL LinkedIn",
+      "linkedInPlaceholder": "https://linkedin.com/in/username",
+      "github": "URL GitHub",
+      "githubPlaceholder": "https://github.com/username",
+      "twitter": "URL Twitter / X",
+      "twitterPlaceholder": "https://twitter.com/username",
+      "save": "Enregistrer",
+      "saving": "Enregistrement...",
+      "success": "Coordonnées mises à jour.",
+      "loadError": "Impossible de charger les coordonnées",
+      "emailRequired": "L'e-mail est requis."
     },
     "common": {
       "save": "Enregistrer",

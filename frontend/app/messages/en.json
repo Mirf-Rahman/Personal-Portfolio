@@ -168,6 +168,7 @@
     }
   },
   "admin": {
+    "logout": "Logout",
     "panel": "Admin Panel",
     "backToSite": "← Back to Site",
     "sidebar": {
@@ -179,6 +180,7 @@
       "hobbies": "Hobbies",
       "testimonials": "Testimonials",
       "messages": "Messages",
+      "contactInfo": "Contact information",
       "resume": "Resume"
     },
     "dashboard": {
@@ -410,6 +412,27 @@
       "updating": "Updating...",
       "selectMessage": "Select a message to view",
       "chooseMessage": "Choose a message from the list on the left"
+    },
+    "contactInfo": {
+      "title": "Contact information",
+      "description": "Edit the contact details shown on your contact page (email, social links, etc.).",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "phone": "Phone",
+      "phonePlaceholder": "+1 234 567 8900",
+      "location": "Location",
+      "locationPlaceholder": "City, Country",
+      "linkedIn": "LinkedIn URL",
+      "linkedInPlaceholder": "https://linkedin.com/in/username",
+      "github": "GitHub URL",
+      "githubPlaceholder": "https://github.com/username",
+      "twitter": "Twitter / X URL",
+      "twitterPlaceholder": "https://twitter.com/username",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "success": "Contact information updated.",
+      "loadError": "Failed to load contact information",
+      "emailRequired": "Email is required."
     },
     "common": {
       "save": "Save",
