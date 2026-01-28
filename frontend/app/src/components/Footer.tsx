@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Github, Linkedin, Twitter, Heart, Mail } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Github, Linkedin, Mail } from "lucide-react";
 
 const socialLinks = [
   {
@@ -25,15 +26,19 @@ const socialLinks = [
   },
 ];
 
-const footerLinks = [
-  { href: "/#projects", label: "Projects" },
-  { href: "/#skills", label: "Skills" },
-  { href: "/#experience", label: "Experience" },
-  { href: "/contact", label: "Contact" },
-  { href: "/testimonials", label: "Testimonials" },
+// Footer links with translation keys
+const footerLinkKeys = [
+  { href: "/#projects", labelKey: "projects" },
+  { href: "/#skills", labelKey: "skills" },
+  { href: "/#experience", labelKey: "experience" },
+  { href: "/contact", labelKey: "contact" },
+  { href: "/testimonials", labelKey: "testimonials" },
 ];
 
 export function Footer() {
+  const t = useTranslations('nav');
+  const tFooter = useTranslations('footer');
+  
   return (
     <footer className="relative border-t border-white/5 bg-gradient-to-b from-background to-muted/20">
       {/* Gradient line at top */}
@@ -49,24 +54,23 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
-              Full Stack Developer passionate about building modern web
-              applications and turning ideas into reality.
+              {tFooter('description')}
             </p>
           </div>
 
           {/* Quick Links */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground">
-              Quick Links
+              {tFooter('quickLinks')}
             </h3>
             <nav className="flex flex-wrap gap-x-6 gap-y-2">
-              {footerLinks.map((link) => (
+              {footerLinkKeys.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   className="text-sm text-muted-foreground hover:text-cyan-400 transition-colors"
                 >
-                  {link.label}
+                  {t(link.labelKey)}
                 </Link>
               ))}
             </nav>
@@ -74,7 +78,7 @@ export function Footer() {
 
           {/* Social Links */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-foreground">Connect</h3>
+            <h3 className="text-sm font-semibold text-foreground">{tFooter('connect')}</h3>
             <div className="flex gap-3">
               {socialLinks.map((social) => (
                 <motion.div
@@ -107,10 +111,10 @@ export function Footer() {
         <div className="mt-12 pt-8 border-t border-white/5">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground flex items-center gap-1">
-              © {new Date().getFullYear()} Mir Faiyazur Rahman.
+              {tFooter('copyright', { year: new Date().getFullYear() })}
             </p>
             <p className="text-xs text-muted-foreground/60">
-              Designed & Developed by Mir Faiyazur Rahman
+              {tFooter('designedBy')}
             </p>
           </div>
         </div>
@@ -118,3 +122,4 @@ export function Footer() {
     </footer>
   );
 }
+

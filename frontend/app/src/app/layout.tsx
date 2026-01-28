@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getMessages } from "next-intl/server";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import "./globals.css";
@@ -15,21 +17,26 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="en" className="dark">
+    <html lang={locale} className="dark">
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="antialiased min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-1 relative z-0">{children}</main>
-        <Footer />
+        <NextIntlClientProvider messages={messages}>
+          <Navbar />
+          <main className="flex-1 relative z-0">{children}</main>
+          <Footer />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

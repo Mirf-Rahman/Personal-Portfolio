@@ -137,6 +137,20 @@ module.exports = {
           "50%": { bottom: "25%", right: "40%" },
           "90%": { bottom: "50%", right: "25%" },
         },
+        "shine": {
+          "0%": { "background-position": "0% 0%" },
+          "50%": { "background-position": "100% 100%" },
+          "to": { "background-position": "0% 0%" }
+        },
+        "shimmer-slide": {
+          "to": { "transform": "translate(calc(100cqw - 100%), 0)" }
+        },
+        "spin-around": {
+          "0%": { "transform": "translateZ(0) rotate(0)" },
+          "15%, 35%": { "transform": "translateZ(0) rotate(90deg)" },
+          "65%, 85%": { "transform": "translateZ(0) rotate(270deg)" },
+          "100%": { "transform": "translateZ(0) rotate(360deg)" }
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -150,6 +164,9 @@ module.exports = {
         "scale-in": "scale-in 0.5s ease-out forwards",
         orbit: "orbit calc(var(--duration)*1s) linear infinite",
         "border-beam": "border-beam calc(var(--duration)*1s) infinite linear",
+        "shine": "shine var(--duration) infinite linear",
+        "shimmer-slide": "shimmer-slide var(--speed) ease-in-out infinite alternate",
+        "spin-around": "spin-around calc(var(--speed) * 2) infinite linear",
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
