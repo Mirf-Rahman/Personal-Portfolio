@@ -4,9 +4,16 @@ import { authClient } from "@/lib/auth-client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { ShaderBackground } from "@/components/ui/shader-background";
+import { ShineBorder } from "@/components/ui/shine-border";
+import { ShimmerButton } from "@/components/ui/shimmer-button";
+import { Lock, Mail, Eye, EyeOff, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function LoginPage() {
   const router = useRouter();
+  const t = useTranslations("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -25,7 +32,7 @@ export default function LoginPage() {
       });
 
       if (result.error) {
-        setError(result.error.message || "Login failed. Please check your credentials.");
+        setError(t("errors.invalid"));
         setLoading(false);
         return;
       }
@@ -34,7 +41,7 @@ export default function LoginPage() {
       const session = await authClient.getSession();
       const userRole = (session.data?.user as { role?: string })?.role;
       if (userRole !== "ADMIN") {
-        setError("Access denied. Admin privileges required.");
+        setError(t("errors.invalid"));
         await authClient.signOut();
         setLoading(false);
         return;
@@ -43,72 +50,64 @@ export default function LoginPage() {
       // Success - redirect to admin dashboard
       router.push("/admin/dashboard");
     } catch (err) {
-      setError("An error occurred during login. Please try again.");
+      setError(t("errors.generic"));
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
-      </div>
-
-      {/* Grid Pattern Overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px]" />
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-slate-950 font-sans">
+      {/* Reused Shader Background */}
+      <ShaderBackground opacity={0.8} />
 
       {/* Login Card */}
-      <div className="relative w-full max-w-md mx-4">
-        {/* Glassmorphism Card */}
-        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl shadow-2xl p-8 space-y-6">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="relative z-10 w-full max-w-[400px] mx-4"
+      >
+        <ShineBorder
+          className="relative flex flex-col items-center justify-center w-full p-8 rounded-3xl border border-white/[0.08] bg-slate-950/60 backdrop-blur-2xl shadow-2xl"
+          shineColor={["#38bdf8", "#818cf8", "#c084fc"]}
+          borderWidth={1.5}
+          duration={8}
+        >
           {/* Header */}
-          <div className="text-center space-y-2">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 mb-4 shadow-lg">
-              <svg
-                className="w-8 h-8 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                />
-              </svg>
+          <div className="text-center space-y-6 mb-8 w-full">
+            <motion.div 
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-500/10 to-blue-500/10 border border-white/[0.08] shadow-[0_0_15px_-3px_rgba(56,189,248,0.2)] relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <Lock className="w-7 h-7 text-cyan-200/90 relative z-10" />
+            </motion.div>
+
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold font-display tracking-tight text-white">
+                {t("title")}
+              </h1>
+              <p className="text-sm text-slate-400 font-light tracking-wide">
+                {t("subtitle")}
+              </p>
             </div>
-            <h1 className="text-2xl font-bold text-white">Admin Portal</h1>
-            <p className="text-sm text-slate-300">
-              Sign in to manage your portfolio content
-            </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="w-full space-y-5">
             {/* Email Field */}
-            <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-slate-200">
-                Email Address
+            <div className="space-y-2 group">
+              <label
+                htmlFor="email"
+                className="block text-[11px] font-semibold text-cyan-100/60 uppercase tracking-widest pl-1 font-mono transition-colors group-focus-within:text-cyan-400"
+              >
+                {t("email")}
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg
-                    className="w-5 h-5 text-slate-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
-                    />
-                  </svg>
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Mail className="w-4 h-4 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
                 </div>
                 <input
                   id="email"
@@ -116,32 +115,23 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
-                  placeholder="admin@portfolio.com"
+                  className="w-full pl-11 pr-4 py-3.5 bg-slate-900/40 border border-white/[0.08] rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-200 shadow-inner group-hover:border-white/[0.12] group-hover:bg-slate-900/60"
+                  placeholder={t("emailPlaceholder")}
                 />
               </div>
             </div>
 
             {/* Password Field */}
-            <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-medium text-slate-200">
-                Password
+            <div className="space-y-2 group">
+              <label
+                htmlFor="password"
+                className="block text-[11px] font-semibold text-cyan-100/60 uppercase tracking-widest pl-1 font-mono transition-colors group-focus-within:text-indigo-400"
+              >
+                {t("password")}
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg
-                    className="w-5 h-5 text-slate-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                    />
-                  </svg>
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Lock className="w-4 h-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
                 </div>
                 <input
                   id="password"
@@ -149,23 +139,18 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-10 pr-12 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
-                  placeholder="••••••••"
+                  className="w-full pl-11 pr-12 py-3.5 bg-slate-900/40 border border-white/[0.08] rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-200 shadow-inner group-hover:border-white/[0.12] group-hover:bg-slate-900/60"
+                  placeholder={t("passwordPlaceholder")}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 transition-colors"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-slate-300 transition-colors"
                 >
                   {showPassword ? (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
+                    <EyeOff className="w-4 h-4" />
                   ) : (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
+                    <Eye className="w-4 h-4" />
                   )}
                 </button>
               </div>
@@ -173,57 +158,58 @@ export default function LoginPage() {
 
             {/* Error Message */}
             {error && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/20 border border-red-500/30 text-red-200 text-sm">
-                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-200 text-xs backdrop-blur-sm"
+              >
+                <div className="w-1 h-1 rounded-full bg-red-500 box-content border-2 border-red-500/30" />
                 <span>{error}</span>
-              </div>
+              </motion.div>
             )}
 
             {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-medium rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                  </svg>
-                  <span>Signing in...</span>
-                </>
-              ) : (
-                <>
-                  <span>Sign In</span>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </>
-              )}
-            </button>
+            <div className="pt-2">
+              <ShimmerButton
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 shadow-[0_0_20px_-5px_rgba(56,189,248,0.3)] hover:shadow-[0_0_25px_-5px_rgba(56,189,248,0.5)] transition-shadow duration-300"
+                shimmerColor="rgba(255, 255, 255, 0.3)"
+                shimmerSize="0.15em"
+                shimmerDuration="2.5s"
+                background="#38bdf8"
+                borderRadius="12px"
+              >
+                {loading ? (
+                  <div className="flex items-center gap-2 text-slate-950">
+                    <Loader2 className="animate-spin h-4 w-4" />
+                    <span className="text-sm font-semibold">
+                      {t("submitting")}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-sm font-bold tracking-wide font-display text-slate-950 uppercase">
+                    {t("submit")}
+                  </span>
+                )}
+              </ShimmerButton>
+            </div>
           </form>
 
           {/* Footer */}
-          <div className="pt-4 border-t border-white/10 text-center">
+          <div className="mt-8 pt-6 border-t border-white/[0.06] text-center w-full">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
+              className="inline-flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-cyan-400 transition-colors group px-4 py-2 rounded-full hover:bg-white/[0.03]"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Back to Portfolio
+              <span className="group-hover:-translate-x-0.5 transition-transform">
+                ←
+              </span>
+              {t("backToHome")}
             </Link>
           </div>
-        </div>
-
-        {/* Decorative Elements */}
-        <div className="absolute -top-4 -left-4 w-24 h-24 bg-gradient-to-br from-blue-500/30 to-purple-500/30 rounded-full blur-xl" />
-        <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-gradient-to-br from-purple-500/30 to-pink-500/30 rounded-full blur-xl" />
-      </div>
+        </ShineBorder>
+      </motion.div>
     </div>
   );
 }
