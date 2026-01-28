@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { useTranslations, useLocale } from "next-intl";
 import Lenis from "lenis";
 import { BackgroundPaths } from "@/components/ui/background-paths";
 import { ShootingStars } from "@/components/ui/shooting-stars";
@@ -35,7 +36,9 @@ import {
 interface Project {
   id: string;
   title: string;
+  titleFr?: string | null;
   description: string;
+  descriptionFr?: string | null;
   technologies: string[];
   imageUrl: string | null;
   liveUrl: string | null;
@@ -54,7 +57,9 @@ interface Experience {
   id: string;
   company: string;
   position: string;
+  positionFr?: string | null;
   description: string;
+  descriptionFr?: string | null;
   startDate: string;
   endDate: string | null;
   current: boolean;
@@ -65,11 +70,14 @@ interface Education {
   id: string;
   institution: string;
   degree: string;
+  degreeFr?: string | null;
   field: string;
+  fieldFr?: string | null;
   startDate: string;
   endDate: string | null;
   current: boolean;
   description: string | null;
+  descriptionFr?: string | null;
 }
 
 interface Testimonial {
@@ -78,6 +86,7 @@ interface Testimonial {
   position: string | null;
   company: string | null;
   content: string;
+  contentFr?: string | null;
   imageUrl: string | null;
   order: number;
 }
@@ -102,16 +111,23 @@ interface HomeData {
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-const DEFAULT_PROJECT_IMAGE = "https://mirf-portfolio-files.nyc3.cdn.digitaloceanspaces.com/dev/GitHub-Logo.jpg";
+const DEFAULT_PROJECT_IMAGE =
+  "https://mirf-portfolio-files.nyc3.cdn.digitaloceanspaces.com/dev/GitHub-Logo.jpg";
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-  });
+function formatDate(dateString: string, locale: string): string {
+  return new Date(dateString).toLocaleDateString(
+    locale === "fr" ? "fr-CA" : "en-US",
+    {
+      year: "numeric",
+      month: "short",
+    },
+  );
 }
 
 export default function Home() {
+  const t = useTranslations("home");
+  const tNav = useTranslations("nav");
+  const locale = useLocale();
   const [data, setData] = useState<HomeData>({
     projects: [],
     skills: [],
@@ -123,19 +139,15 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   // Check for hash immediately during render to prevent hero flash
   const [hideHero, setHideHero] = useState(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       return !!window.location.hash;
     }
     return false;
   });
-  // Track which section to show (hide everything above it during hash navigation)
-  const [targetSection, setTargetSection] = useState<string | null>(() => {
-    if (typeof window !== 'undefined' && window.location.hash) {
-      return window.location.hash.slice(1); // Remove # symbol
-    }
-    return null;
-  });
-  // Flag to prevent scroll-to-top during hash navigation
+  // Section to scroll to after hero is re-enabled (so we stay at target after layout change)
+  const [sectionToScrollAfterReveal, setSectionToScrollAfterReveal] = useState<
+    string | null
+  >(null);
   const isHashNavigatingRef = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const lenisRef = useRef<Lenis | null>(null);
@@ -151,8 +163,8 @@ export default function Home() {
   useEffect(() => {
     const hasHash = !!window.location.hash;
 
-    if ('scrollRestoration' in history) {
-      history.scrollRestoration = 'manual';
+    if ("scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
     }
 
     if (!hasHash) {
@@ -202,25 +214,43 @@ export default function Home() {
 
   // Re-enable hero when logo is clicked (e.g. returning from hash-nav with hero hidden)
   useEffect(() => {
-    const onShowHero = () => {
-      setHideHero(false);
-      setTargetSection(null);
-    };
-    window.addEventListener('portfolio:show-hero', onShowHero);
-    return () => window.removeEventListener('portfolio:show-hero', onShowHero);
+    const onShowHero = () => setHideHero(false);
+    window.addEventListener("portfolio:show-hero", onShowHero);
+    return () => window.removeEventListener("portfolio:show-hero", onShowHero);
   }, []);
+
+  // After hero/description are re-enabled, scroll back to the target section so we don't jump to top
+  useEffect(() => {
+    if (!sectionToScrollAfterReveal || hideHero || !lenisRef.current) return;
+    const hash = sectionToScrollAfterReveal.startsWith("#")
+      ? sectionToScrollAfterReveal
+      : `#${sectionToScrollAfterReveal}`;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = document.querySelector(hash);
+        if (el && lenisRef.current) {
+          const rect = el.getBoundingClientRect();
+          const top = window.pageYOffset || document.documentElement.scrollTop;
+          const y = Math.max(0, rect.top + top - 80);
+          window.scrollTo(0, y);
+          document.documentElement.scrollTop = y;
+          document.body.scrollTop = y;
+          lenisRef.current.scrollTo(y, { immediate: true });
+        }
+        setSectionToScrollAfterReveal(null);
+      });
+    });
+  }, [sectionToScrollAfterReveal, hideHero]);
 
   // Handle hash scroll after page load (for cross-page navigation)
   // Store hash and clear from URL to prevent browser auto-scroll
   const [pendingHash, setPendingHash] = useState<string | null>(null);
-  
+
   useEffect(() => {
     const hash = window.location.hash;
     if (hash) {
       isHashNavigatingRef.current = true;
       setHideHero(true);
-      const sectionId = hash.slice(1);
-      setTargetSection(sectionId);
       setPendingHash(hash);
       window.history.replaceState(null, "", window.location.pathname);
     }
@@ -234,7 +264,8 @@ export default function Home() {
           const element = document.querySelector(pendingHash);
           if (element && lenisRef.current) {
             const rect = element.getBoundingClientRect();
-            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollTop =
+              window.pageYOffset || document.documentElement.scrollTop;
             const targetY = Math.max(0, rect.top + scrollTop - 80);
 
             window.scrollTo(0, targetY);
@@ -242,12 +273,13 @@ export default function Home() {
             document.body.scrollTop = targetY;
             lenisRef.current.scrollTo(targetY, { immediate: true });
 
-            // Do NOT re-enable hero/description here. Re-enabling adds DOM, triggers Lenis
-            // to recalculate scroll bounds, and resets scroll to top. Keep user at section.
             isHashNavigatingRef.current = false;
+            // Re-enable hero/description after a brief moment, then scroll to section again
+            // so the user can scroll up to see hero but stays at the target section.
+            setSectionToScrollAfterReveal(pendingHash);
+            setTimeout(() => setHideHero(false), 100);
           } else {
             setHideHero(false);
-            setTargetSection(null);
             isHashNavigatingRef.current = false;
           }
           setPendingHash(null);
@@ -276,29 +308,42 @@ export default function Home() {
           fetch(`${API_URL}/api/hobbies`, { cache: "no-store" }),
         ]);
 
-        const [projects, skills, experiences, education, testimonials, hobbies] =
-          await Promise.all([
-            projectsRes.status === "fulfilled" && projectsRes.value.ok
-              ? projectsRes.value.json().catch(() => [])
-              : [],
-            skillsRes.status === "fulfilled" && skillsRes.value.ok
-              ? skillsRes.value.json().catch(() => [])
-              : [],
-            experiencesRes.status === "fulfilled" && experiencesRes.value.ok
-              ? experiencesRes.value.json().catch(() => [])
-              : [],
-            educationRes.status === "fulfilled" && educationRes.value.ok
-              ? educationRes.value.json().catch(() => [])
-              : [],
-            testimonialsRes.status === "fulfilled" && testimonialsRes.value.ok
-              ? testimonialsRes.value.json().catch(() => [])
-              : [],
-            hobbiesRes.status === "fulfilled" && hobbiesRes.value.ok
-              ? hobbiesRes.value.json().catch(() => [])
-              : [],
-          ]);
+        const [
+          projects,
+          skills,
+          experiences,
+          education,
+          testimonials,
+          hobbies,
+        ] = await Promise.all([
+          projectsRes.status === "fulfilled" && projectsRes.value.ok
+            ? projectsRes.value.json().catch(() => [])
+            : [],
+          skillsRes.status === "fulfilled" && skillsRes.value.ok
+            ? skillsRes.value.json().catch(() => [])
+            : [],
+          experiencesRes.status === "fulfilled" && experiencesRes.value.ok
+            ? experiencesRes.value.json().catch(() => [])
+            : [],
+          educationRes.status === "fulfilled" && educationRes.value.ok
+            ? educationRes.value.json().catch(() => [])
+            : [],
+          testimonialsRes.status === "fulfilled" && testimonialsRes.value.ok
+            ? testimonialsRes.value.json().catch(() => [])
+            : [],
+          hobbiesRes.status === "fulfilled" && hobbiesRes.value.ok
+            ? hobbiesRes.value.json().catch(() => [])
+            : [],
+        ]);
 
-        setData({ projects, skills, experiences, education, testimonials, hobbies });
+        setData({
+          projects,
+          skills,
+          experiences,
+          education,
+          testimonials,
+          hobbies,
+        });
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -309,18 +354,6 @@ export default function Home() {
   }, []);
 
   const featuredProjects = data.projects.filter((p) => p.featured);
-
-  // Helper function to determine if a section should be hidden during hash navigation
-  const shouldHideSection = (sectionId: string): boolean => {
-    if (!targetSection) return false;
-    
-    const sectionOrder = ['projects', 'skills', 'experience', 'education', 'testimonials', 'hobbies'];
-    const targetIndex = sectionOrder.indexOf(targetSection);
-    const currentIndex = sectionOrder.indexOf(sectionId);
-    
-    // Hide sections that come before the target section
-    return targetIndex !== -1 && currentIndex !== -1 && currentIndex < targetIndex;
-  };
 
   return (
     <div
@@ -352,19 +385,21 @@ export default function Home() {
       {/* ===== HERO SECTION with Synthetic Hero ===== */}
       {!hideHero && (
         <SyntheticHero
-          title="Hey, I'm Mir Faiyazur Rahman"
-          description="A passionate Full Stack Developer building modern web applications and turning complex problems into elegant solutions."
-          badgeText="Available for Opportunities"
-          badgeLabel="Status"
+          title={t("hero.title")}
+          description={t("hero.description")}
+          badgeText={t("hero.badge")}
+          badgeLabel={t("hero.badgeLabel")}
+          passionateText={t("hero.passionate")}
+          rotatingWords={t.raw("hero.rotatingWords") as string[]}
           ctaButtons={[
             {
-              text: "View Projects",
+              text: t("hero.viewProjects"),
               href: "#projects",
               primary: true,
               isAnchor: true,
             },
             {
-              text: "Contact Me",
+              text: tNav("contact"),
               href: "/contact",
               isAnchor: false,
             },
@@ -375,23 +410,22 @@ export default function Home() {
       {/* Description text - hide during hash navigation */}
       {!hideHero && (
         <div className="container px-4 md:px-6 mx-auto relative z-10 mb-20 md:mb-32">
-          <TextGradientScroll 
-            text="I am a very determined full stack developer, driven by passion and creativity. Always learning, seeking big challenges, and turning complex problems into elegant solutions."
+          <TextGradientScroll
+            text={t("hero.scrollText")}
             className="text-3xl md:text-5xl lg:text-6xl font-display font-bold tracking-tight"
           />
         </div>
       )}
 
       {/* ===== PROJECTS SECTION ===== */}
-      {(!targetSection || targetSection === 'projects' || !shouldHideSection('projects')) && (
       <section id="projects" className="relative py-32 md:py-40">
         {/* Section ambient glow */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-950/10 to-transparent pointer-events-none" />
 
         <div className="container px-4 md:px-6 mx-auto relative z-10">
-          <SectionHeading 
-            title="Featured Projects" 
-            description="A selection of projects showcasing my skills."
+          <SectionHeading
+            title={t("sections.projects.title")}
+            description={t("sections.projects.description")}
             className="mb-20"
           />
 
@@ -427,17 +461,25 @@ export default function Home() {
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={project.imageUrl || DEFAULT_PROJECT_IMAGE}
-                        alt={project.title}
+                        alt={
+                          locale === "fr" && project.titleFr
+                            ? project.titleFr
+                            : project.title
+                        }
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     </div>
                     <div className="p-6">
                       <h3 className="text-xl font-bold mb-2 text-white group-hover:text-cyan-400 transition-colors">
-                        {project.title}
+                        {locale === "fr" && project.titleFr
+                          ? project.titleFr
+                          : project.title}
                       </h3>
-                      <p className="text-slate-400 mb-4 line-clamp-2">
-                        {project.description}
+                      <p className="text-slate-400 mb-4">
+                        {locale === "fr" && project.descriptionFr
+                          ? project.descriptionFr
+                          : project.description}
                       </p>
                       <div className="flex gap-2 flex-wrap mb-4">
                         {project.technologies.map((tech, i) => (
@@ -445,15 +487,15 @@ export default function Home() {
                             key={i}
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            transition={{ 
-                              delay: i * 0.05, 
+                            transition={{
+                              delay: i * 0.05,
                               duration: 0.3,
-                              ease: "easeOut"
+                              ease: "easeOut",
                             }}
-                            whileHover={{ 
-                              scale: 1.1, 
+                            whileHover={{
+                              scale: 1.1,
                               y: -2,
-                              boxShadow: "0 4px 12px rgba(6, 182, 212, 0.3)"
+                              boxShadow: "0 4px 12px rgba(6, 182, 212, 0.3)",
                             }}
                             className="px-2.5 py-1 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-medium cursor-default transition-colors hover:border-cyan-400/50 hover:text-cyan-200"
                           >
@@ -468,7 +510,8 @@ export default function Home() {
                             target="_blank"
                             className="inline-flex items-center gap-1.5 text-sm text-cyan-400 hover:text-cyan-300"
                           >
-                            <ExternalLink className="w-4 h-4" /> Live
+                            <ExternalLink className="w-4 h-4" />{" "}
+                            {t("sections.live")}
                           </Link>
                         )}
                         {project.githubUrl && (
@@ -488,23 +531,21 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-center py-12 text-slate-500">
-              No featured projects yet.
+              {t("sections.projects.empty")}
             </div>
           )}
         </div>
       </section>
-      )}
 
       {/* ===== SKILLS SECTION with LAMP ===== */}
-      {(!targetSection || targetSection === 'skills' || !shouldHideSection('skills')) && (
       <section id="skills" className="relative py-32 md:py-40">
         {/* Section ambient glow */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-950/10 to-transparent pointer-events-none" />
 
         <div className="container px-4 md:px-6 mx-auto relative z-10">
-          <SectionHeading 
-            title="Skills & Expertise" 
-            description="Technologies and tools I work with."
+          <SectionHeading
+            title={t("sections.skills.title")}
+            description={t("sections.skills.description")}
             className="mb-20 relative z-20"
           />
 
@@ -562,23 +603,21 @@ export default function Home() {
               </div>
             ) : (
               <div className="text-center py-8 text-slate-500">
-                Skills coming soon...
+                {t("sections.skills.empty")}
               </div>
             )}
           </div>
         </div>
       </section>
-      )}
 
       {/* ===== EXPERIENCE SECTION ===== */}
-      {(!targetSection || targetSection === 'experience' || !shouldHideSection('experience')) && (
       <section id="experience" className="relative py-32 md:py-40">
         {/* Section ambient glow */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-950/10 to-transparent pointer-events-none" />
 
         <div className="container px-4 md:px-6 mx-auto relative z-10">
           <SectionHeading
-            title="Work Experience"
+            title={t("sections.experience.title")}
             icon={Briefcase}
             className="mb-20"
             gradient="from-cyan-400 via-blue-500 to-purple-500"
@@ -621,14 +660,16 @@ export default function Home() {
                       <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 hover:border-cyan-500/30 hover:bg-white/10 hover:shadow-xl hover:shadow-cyan-500/10 transition-all group">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3">
                           <h3 className="text-xl font-bold text-white group-hover:text-cyan-400 transition-colors">
-                            {exp.position}
+                            {locale === "fr" && exp.positionFr
+                              ? exp.positionFr
+                              : exp.position}
                           </h3>
                           <span className="px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs mt-2 sm:mt-0">
-                            {formatDate(exp.startDate)} -{" "}
+                            {formatDate(exp.startDate, locale)} -{" "}
                             {exp.current
-                              ? "Present"
+                              ? t("sections.present")
                               : exp.endDate
-                                ? formatDate(exp.endDate)
+                                ? formatDate(exp.endDate, locale)
                                 : ""}
                           </span>
                         </div>
@@ -636,7 +677,9 @@ export default function Home() {
                           {exp.company} • {exp.location}
                         </p>
                         <p className="text-slate-400 leading-relaxed">
-                          {exp.description}
+                          {locale === "fr" && exp.descriptionFr
+                            ? exp.descriptionFr
+                            : exp.description}
                         </p>
                       </div>
                     </div>
@@ -646,22 +689,20 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-center py-8 text-slate-500">
-              Experience coming soon...
+              {t("sections.experience.empty")}
             </div>
           )}
         </div>
       </section>
-      )}
 
       {/* ===== EDUCATION SECTION ===== */}
-      {(!targetSection || targetSection === 'education' || !shouldHideSection('education')) && (
       <section id="education" className="relative py-32 md:py-40">
         {/* Section ambient glow */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-950/10 to-transparent pointer-events-none" />
 
         <div className="container px-4 md:px-6 mx-auto relative z-10">
           <SectionHeading
-            title="Education"
+            title={t("sections.education.title")}
             icon={GraduationCap}
             className="mb-20"
             gradient="from-blue-400 via-indigo-500 to-cyan-500"
@@ -686,23 +727,31 @@ export default function Home() {
                   >
                     <div className="md:w-1/4 flex-shrink-0">
                       <span className="px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-sm">
-                        {formatDate(edu.startDate)} -{" "}
+                        {formatDate(edu.startDate, locale)} -{" "}
                         {edu.current
-                          ? "Present"
+                          ? t("sections.present")
                           : edu.endDate
-                            ? formatDate(edu.endDate)
+                            ? formatDate(edu.endDate, locale)
                             : ""}
                       </span>
                     </div>
                     <div className="md:w-3/4">
                       <h3 className="text-xl font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">
-                        {edu.degree} in {edu.field}
+                        {locale === "fr" && edu.degreeFr && edu.fieldFr
+                          ? `${edu.degreeFr} – ${edu.fieldFr}`
+                          : `${edu.degree} in ${edu.field}`}
                       </h3>
                       <p className="text-blue-400 font-medium mb-2">
                         {edu.institution}
                       </p>
-                      {edu.description && (
-                        <p className="text-slate-400">{edu.description}</p>
+                      {(locale === "fr"
+                        ? edu.descriptionFr
+                        : edu.description) && (
+                        <p className="text-slate-400">
+                          {locale === "fr" && edu.descriptionFr
+                            ? edu.descriptionFr
+                            : edu.description}
+                        </p>
                       )}
                     </div>
                   </motion.div>
@@ -711,19 +760,17 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-center py-8 text-slate-500">
-              Education coming soon...
+              {t("sections.education.empty")}
             </div>
           )}
         </div>
       </section>
-      )}
 
       {/* ===== TESTIMONIALS SECTION ===== */}
-      {(!targetSection || targetSection === 'testimonials' || !shouldHideSection('testimonials')) && (
       <section id="testimonials" className="relative py-32 md:py-40">
         <SectionHeading
-          title="Testimonials"
-          description="Feedback from people I know and I have collaborated with."
+          title={t("sections.testimonials.title")}
+          description={t("sections.testimonials.description")}
           icon={MessageSquareQuote}
           className="mb-12"
           gradient="from-purple-400 via-pink-500 to-red-500"
@@ -734,14 +781,17 @@ export default function Home() {
           <div className="relative">
             <ScrollElement delay={0.2}>
               <PremiumTestimonials
-                testimonials={data.testimonials.map((t) => ({
-                  id: t.id,
-                  name: t.name,
-                  role: t.position || "",
-                  company: t.company || "",
-                  text: t.content,
+                testimonials={data.testimonials.map((testimonial) => ({
+                  id: testimonial.id,
+                  name: testimonial.name,
+                  role: testimonial.position || "",
+                  company: testimonial.company || "",
+                  text:
+                    locale === "fr" && testimonial.contentFr
+                      ? testimonial.contentFr
+                      : testimonial.content,
                   rating: 0,
-                  avatar: t.imageUrl || "",
+                  avatar: testimonial.imageUrl || "",
                   results: [],
                 }))}
               />
@@ -757,7 +807,7 @@ export default function Home() {
                 asChild
               >
                 <a href="/testimonials" className="inline-flex items-center">
-                  Leave a Testimonial
+                  {t("sections.testimonials.cta")}
                   <ChevronRight className="w-4 h-4 ml-2" />
                 </a>
               </Button>
@@ -766,28 +816,26 @@ export default function Home() {
         ) : (
           <div className="container px-4 md:px-6 mx-auto relative z-10 text-center">
             <p className="text-slate-500 mb-6">
-              No testimonials yet. Be the first!
+              {t("sections.testimonials.empty")}
             </p>
             <Button
               className="bg-gradient-to-r from-purple-500 to-pink-500 text-white"
               asChild
             >
-              <a href="/testimonials">Leave a Testimonial</a>
+              <a href="/testimonials">{t("sections.testimonials.cta")}</a>
             </Button>
           </div>
         )}
       </section>
-      )}
 
       {/* ===== HOBBIES & INTERESTS SECTION ===== */}
-      {(!targetSection || targetSection === 'hobbies' || !shouldHideSection('hobbies')) && (
       <section id="hobbies" className="relative py-32 md:py-40">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-green-950/10 to-transparent pointer-events-none" />
 
         <div className="container px-4 md:px-6 mx-auto relative z-10">
           <SectionHeading
-            title="Hobbies & Interests"
-            description="Beyond code – what I love to do in my free time."
+            title={t("sections.hobbies.title")}
+            description={t("sections.hobbies.description")}
             icon={Sparkles}
             className="mb-20"
             gradient="from-green-400 via-emerald-500 to-teal-500"
@@ -797,8 +845,11 @@ export default function Home() {
           {data.hobbies.length > 0 ? (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
               {data.hobbies.map((hobby, index) => {
-                const isImageUrl = hobby.iconUrl && (hobby.iconUrl.startsWith('http://') || hobby.iconUrl.startsWith('https://'));
-                
+                const isImageUrl =
+                  hobby.iconUrl &&
+                  (hobby.iconUrl.startsWith("http://") ||
+                    hobby.iconUrl.startsWith("https://"));
+
                 return (
                   <StaggeredScrollElement
                     key={hobby.id}
@@ -812,9 +863,13 @@ export default function Home() {
                       {hobby.iconUrl && (
                         <div className="mb-4 flex items-center justify-center w-16 h-16 rounded-xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/20 group-hover:scale-110 transition-transform overflow-hidden">
                           {isImageUrl ? (
-                            <img 
-                              src={hobby.iconUrl} 
-                              alt={hobby.name}
+                            <img
+                              src={hobby.iconUrl}
+                              alt={
+                                locale === "fr" && hobby.nameFr
+                                  ? hobby.nameFr
+                                  : hobby.name
+                              }
                               className="w-full h-full object-cover"
                             />
                           ) : (
@@ -823,11 +878,17 @@ export default function Home() {
                         </div>
                       )}
                       <h3 className="text-xl font-bold mb-3 bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
-                        {hobby.name}
+                        {locale === "fr" && hobby.nameFr
+                          ? hobby.nameFr
+                          : hobby.name}
                       </h3>
-                      {hobby.description && (
+                      {(locale === "fr"
+                        ? hobby.descriptionFr
+                        : hobby.description) && (
                         <p className="text-slate-400 text-sm leading-relaxed">
-                          {hobby.description}
+                          {locale === "fr" && hobby.descriptionFr
+                            ? hobby.descriptionFr
+                            : hobby.description}
                         </p>
                       )}
                     </motion.div>
@@ -837,12 +898,11 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-center">
-              <p className="text-slate-500">No hobbies added yet.</p>
+              <p className="text-slate-500">{t("sections.hobbies.empty")}</p>
             </div>
           )}
         </div>
       </section>
-      )}
     </div>
   );
 }

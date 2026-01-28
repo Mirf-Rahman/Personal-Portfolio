@@ -4,21 +4,26 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence, useScroll, useTransform, useMotionTemplate } from "framer-motion";
+import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { Menu, X, LayoutDashboard, LogOut } from "lucide-react";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
-const navLinks = [
-  { href: "/#projects", label: "Projects", isAnchor: true },
-  { href: "/#skills", label: "Skills", isAnchor: true },
-  { href: "/#experience", label: "Experience", isAnchor: true },
-  { href: "/#hobbies", label: "Hobbies", isAnchor: true },
-  { href: "/testimonials", label: "Testimonials", isAnchor: false },
-  { href: "/contact", label: "Contact", isAnchor: false },
+// Nav links with translation keys instead of hardcoded labels
+const navLinkKeys = [
+  { href: "/#projects", labelKey: "projects", isAnchor: true },
+  { href: "/#skills", labelKey: "skills", isAnchor: true },
+  { href: "/#experience", labelKey: "experience", isAnchor: true },
+  { href: "/#education", labelKey: "education", isAnchor: true },
+  { href: "/#hobbies", labelKey: "hobbies", isAnchor: true },
+  { href: "/testimonials", labelKey: "testimonials", isAnchor: false },
+  { href: "/contact", labelKey: "contact", isAnchor: false },
 ];
 
 export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
+  const t = useTranslations('nav');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { data: session, isPending } = authClient.useSession();
   const isAdmin = (session?.user as { role?: string })?.role === "ADMIN";
@@ -117,7 +122,7 @@ export function Navbar() {
             </Link>
 
             <nav className="hidden lg:flex items-center space-x-1">
-              {navLinks.map((link) => {
+              {navLinkKeys.map((link) => {
                 const baseClass =
                   "relative px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors group cursor-pointer";
                 if (link.isAnchor) {
@@ -127,7 +132,7 @@ export function Navbar() {
                       onClick={() => handleNavigation(link.href, true)}
                       className={baseClass}
                     >
-                      {link.label}
+                      {t(link.labelKey)}
                       <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-cyan-400 group-hover:w-3/4 transition-all duration-300" />
                     </button>
                   );
@@ -139,7 +144,7 @@ export function Navbar() {
                       href={link.href}
                       className={baseClass}
                     >
-                      {link.label}
+                      {t(link.labelKey)}
                       <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-cyan-400 group-hover:w-3/4 transition-all duration-300" />
                     </a>
                   );
@@ -150,7 +155,7 @@ export function Navbar() {
                     onClick={() => handleNavigation(link.href, false)}
                     className={baseClass}
                   >
-                    {link.label}
+                    {t(link.labelKey)}
                     <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-cyan-400 group-hover:w-3/4 transition-all duration-300" />
                   </button>
                 );
@@ -159,26 +164,27 @@ export function Navbar() {
 
             <div className="flex items-center space-x-3">
               <div className="hidden md:flex items-center space-x-3">
+                <LanguageSwitcher />
                 {isPending ? (
                   <div className="h-9 w-20 bg-slate-800/50 animate-pulse rounded-lg" />
                 ) : isAdmin ? (
                   <>
                     <span className="px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-medium">
-                      Admin
+                      {t('admin')}
                     </span>
                     <button
                       onClick={() => router.push("/admin/dashboard")}
                       className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 text-sm font-medium hover:bg-white/10 cursor-pointer"
                     >
                       <LayoutDashboard className="w-4 h-4" />
-                      Dashboard
+                      {t('dashboard')}
                     </button>
                     <button
                       onClick={handleLogout}
                       className="inline-flex h-9 items-center gap-2 rounded-lg bg-red-500/10 border border-red-500/20 px-4 text-sm font-medium text-red-400 hover:bg-red-500/20"
                     >
                       <LogOut className="w-4 h-4" />
-                      Logout
+                      {t('logout')}
                     </button>
                   </>
                 ) : pathname === "/" ? (
@@ -186,14 +192,14 @@ export function Navbar() {
                     href="/login"
                     className="inline-flex h-9 items-center rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-6 text-sm font-medium text-cyan-400 hover:bg-cyan-500/20 transition-colors cursor-pointer"
                   >
-                    Login
+                    {t('login')}
                   </a>
                 ) : (
                   <button
                     onClick={() => router.push("/login")}
                     className="inline-flex h-9 items-center rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-6 text-sm font-medium text-cyan-400 hover:bg-cyan-500/20 transition-colors cursor-pointer"
                   >
-                    Login
+                    {t('login')}
                   </button>
                 )}
               </div>
@@ -228,7 +234,7 @@ export function Navbar() {
             >
               <div className="flex flex-col h-full">
                 <div className="flex items-center justify-between p-4 border-b border-white/10">
-                  <span className="text-lg font-bold">Menu</span>
+                  <span className="text-lg font-bold">{t('menu')}</span>
                   <button
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center"
@@ -237,7 +243,7 @@ export function Navbar() {
                   </button>
                 </div>
                 <nav className="flex-1 py-4">
-                  {navLinks.map((link) => {
+                  {navLinkKeys.map((link) => {
                     const navClass =
                       "flex items-center w-full text-left px-6 py-4 text-lg font-medium text-slate-400 hover:text-white hover:bg-white/5";
                     if (link.isAnchor) {
@@ -250,7 +256,7 @@ export function Navbar() {
                           }}
                           className={navClass}
                         >
-                          {link.label}
+                          {t(link.labelKey)}
                         </button>
                       );
                     }
@@ -262,7 +268,7 @@ export function Navbar() {
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={navClass}
                         >
-                          {link.label}
+                          {t(link.labelKey)}
                         </a>
                       );
                     }
@@ -275,12 +281,15 @@ export function Navbar() {
                         }}
                         className={navClass}
                       >
-                        {link.label}
+                        {t(link.labelKey)}
                       </button>
                     );
                   })}
                 </nav>
-                <div className="p-4 border-t border-white/10">
+                <div className="p-4 border-t border-white/10 space-y-4">
+                  <div className="flex justify-center">
+                    <LanguageSwitcher />
+                  </div>
                   {!isPending && !isAdmin &&
                     (pathname === "/" ? (
                       <a
@@ -288,7 +297,7 @@ export function Navbar() {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className="flex items-center justify-center w-full h-12 rounded-lg border border-cyan-500/30 bg-cyan-500/10 font-medium text-cyan-400"
                       >
-                        Login
+                        {t('login')}
                       </a>
                     ) : (
                       <button
@@ -298,7 +307,7 @@ export function Navbar() {
                         }}
                         className="flex items-center justify-center w-full h-12 rounded-lg border border-cyan-500/30 bg-cyan-500/10 font-medium text-cyan-400"
                       >
-                        Login
+                        {t('login')}
                       </button>
                     ))}
                 </div>
