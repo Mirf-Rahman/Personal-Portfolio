@@ -6,6 +6,18 @@ import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { authenticatedFetch, fetchApi } from "@/lib/api";
 import ImageUpload from "@/components/ImageUpload";
+import { AdminPageHeader } from "@/components/ui/admin-page-header";
+import { 
+  AdminTable, 
+  AdminTableHeader, 
+  AdminTableHead, 
+  AdminTableBody, 
+  AdminTableRow, 
+  AdminTableCell 
+} from "@/components/ui/admin-table";
+import { ShineBorder } from "@/components/ui/shine-border";
+import { Pencil, Trash2, ArrowUp, ArrowDown, X, Save, Palette, FileText, Image as ImageIcon, Plus } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Hobby {
   id: string;
@@ -45,6 +57,7 @@ export default function HobbiesManagementPage() {
 
   useEffect(() => {
     fetchHobbies();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchHobbies = async () => {
@@ -160,119 +173,123 @@ export default function HobbiesManagementPage() {
   if (isPending || !session) {
     return (
       <div className="flex justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400" />
       </div>
     );
   }
 
   const sortedHobbies = [...hobbies].sort((a, b) => a.order - b.order);
 
+  // Common input styles
+  const inputClass = "w-full pl-4 pr-4 py-3 bg-slate-900/40 border border-white/[0.08] rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-200 shadow-inner hover:border-white/[0.12] hover:bg-slate-900/60";
+  const labelClass = "block text-[11px] font-semibold text-cyan-100/60 uppercase tracking-widest pl-1 font-mono mb-2";
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">{t("hobbies.title")}</h1>
-          <p className="text-muted-foreground mt-1">
-            {t("hobbies.description")}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={handleAddHobby}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 font-medium"
-        >
-          + {t("hobbies.addNew")}
-        </button>
-      </div>
+      <AdminPageHeader 
+        title={t("hobbies.title")} 
+        description={t("hobbies.description")}
+        customAction={
+          <button
+            onClick={handleAddHobby}
+            className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded-xl border border-cyan-500/20 transition-all text-sm font-semibold"
+          >
+           <Plus className="w-4 h-4" /> {t("hobbies.addNew")}
+          </button>
+        }
+      />
 
       {(isEditing || editingHobby) && (
-        <div className="rounded-lg border bg-card p-6">
-          <h3 className="font-semibold text-lg mb-4">
-            {editingHobby ? t("hobbies.editHobby") : t("hobbies.addNewHobby")}
-          </h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                {t("hobbies.name")} *
-              </label>
-              <input
-                type="text"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                required
-                placeholder="e.g. Photography"
-                className="w-full px-3 py-2 border rounded-md bg-background"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-2 block">
-                {t("hobbies.hobbyDescription")}
-              </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                placeholder="Optional short description..."
-                rows={3}
-                className="w-full px-3 py-2 border rounded-md bg-background"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
+        <ShineBorder 
+          className="relative w-full rounded-2xl bg-black/20 border border-white/[0.08] backdrop-blur-xl p-8"
+          shineColor={["#f472b6", "#e879f9", "#c084fc"]}
+        >
+          <div className="flex justify-between items-center mb-6">
+             <h3 className="font-display font-bold text-xl text-white">
+              {editingHobby ? t("hobbies.editHobby") : t("hobbies.addNewHobby")}
+            </h3>
+            <button onClick={handleCancel} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+              <X className="w-5 h-5 text-slate-400" />
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-2 gap-6">
+               <div>
+                <label className={labelClass}>{t("hobbies.name")} *</label>
+                <div className="relative">
+                   <Palette className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                   <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                    placeholder="e.g. Photography"
+                    className={cn(inputClass, "pl-10")}
+                  />
+                </div>
+              </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  {t("hobbies.nameFr")}
-                </label>
+                <label className={labelClass}>{t("hobbies.nameFr")}</label>
                 <input
                   type="text"
                   value={formData.nameFr}
-                  onChange={(e) =>
-                    setFormData({ ...formData, nameFr: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, nameFr: e.target.value })}
                   placeholder={t("hobbies.nameFr")}
-                  className="w-full px-3 py-2 border rounded-md bg-background"
+                  className={inputClass}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <label className={labelClass}>{t("hobbies.hobbyDescription")}</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Optional short description..."
+                  rows={3}
+                  className={inputClass}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  {t("hobbies.descriptionFr")}
-                </label>
+                <label className={labelClass}>{t("hobbies.descriptionFr")}</label>
                 <textarea
                   value={formData.descriptionFr}
-                  onChange={(e) =>
-                    setFormData({ ...formData, descriptionFr: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, descriptionFr: e.target.value })}
                   placeholder={t("hobbies.descriptionFr")}
-                  rows={2}
-                  className="w-full px-3 py-2 border rounded-md bg-background"
+                  rows={3}
+                  className={inputClass}
                 />
               </div>
             </div>
+
             <div>
-              <ImageUpload
-                value={formData.iconUrl}
-                onChange={(url) => setFormData({ ...formData, iconUrl: url })}
-                label={t("hobbies.iconUrl")}
-                accept="image/*"
-                maxSize={10}
-              />
+               <label className={labelClass}>{t("hobbies.iconUrl")}</label>
+               <div className="p-4 rounded-xl border border-white/[0.08] bg-slate-900/20">
+                  <ImageUpload
+                    value={formData.iconUrl}
+                    onChange={(url) => setFormData({ ...formData, iconUrl: url })}
+                    label={t("hobbies.iconUrl")}
+                    accept="image/*"
+                    maxSize={10}
+                  />
+               </div>
             </div>
-            <div className="flex gap-4 items-center">
+
+            <div className="flex gap-6 items-center pt-2">
               {!editingHobby && (
-                <div className="p-3 rounded-md bg-muted/50 border border-muted">
-                  <p className="text-sm text-muted-foreground">
+                 <div className="px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                  <p className="text-xs text-purple-300 font-mono">
                     {t("hobbies.autoOrderHint")} {formData.order})
                   </p>
                 </div>
               )}
             </div>
+
             {editingHobby && (
               <div>
-                <label className="text-sm font-medium mb-2 block">
-                  {t("hobbies.position")}
-                </label>
+                <label className={labelClass}>{t("hobbies.orderPosition")}</label>
                 <select
                   value={formData.order}
                   onChange={async (e) => {
@@ -294,16 +311,14 @@ export default function HobbiesManagementPage() {
                       await fetchHobbies();
                       setFormData((prev) => ({ ...prev, order: newOrder }));
                     } catch (err) {
-                      setError(
-                        err instanceof Error ? err.message : t("common.error"),
-                      );
+                      setError(err instanceof Error ? err.message : t("common.error"));
                       e.target.value = String(formData.order);
                     } finally {
                       setSubmitting(false);
                     }
                   }}
                   disabled={submitting}
-                  className="w-full px-3 py-2 border rounded-md bg-background disabled:opacity-50"
+                  className={cn(inputClass, "disabled:opacity-50")}
                 >
                   {(() => {
                     const uniqueOrders = [
@@ -315,7 +330,7 @@ export default function HobbiesManagementPage() {
                       );
                       const isCurrent = hobbyAtPosition?.id === editingHobby.id;
                       return (
-                        <option key={position} value={position}>
+                        <option key={position} value={position} className="bg-slate-900 text-slate-200">
                           {t("hobbies.positionLabel")} {position}
                           {hobbyAtPosition && !isCurrent
                             ? ` – ${hobbyAtPosition.name}`
@@ -327,190 +342,160 @@ export default function HobbiesManagementPage() {
                     });
                   })()}
                 </select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {t("hobbies.positionHint")}
+                <p className="text-[10px] text-slate-500 mt-1 pl-1">
+                   {t("hobbies.positionHint")}
                 </p>
               </div>
             )}
+
             {error && (
-              <div className="p-3 rounded-md bg-red-50 border border-red-200 dark:bg-red-950/30 dark:border-red-800">
-                <p className="text-sm text-red-600 dark:text-red-400">
-                  {error}
-                </p>
+               <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm">
+                 {error}
               </div>
             )}
-            <div className="flex gap-2">
-              <button
+
+            <div className="flex gap-3 pt-4 border-t border-white/[0.08]">
+               <button
                 type="submit"
                 disabled={submitting}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-6 py-2.5 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl font-medium shadow-lg hover:shadow-cyan-500/25 hover:from-cyan-500 hover:to-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {submitting ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
                     <span>{t("common.saving")}</span>
                   </>
                 ) : (
-                  <span>
-                    {editingHobby ? t("hobbies.update") : t("hobbies.create")}
-                  </span>
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>{editingHobby ? t("hobbies.update") : t("hobbies.create")}</span>
+                  </>
                 )}
               </button>
               <button
                 type="button"
                 onClick={handleCancel}
                 disabled={submitting}
-                className="px-4 py-2 border rounded-md hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2.5 border border-white/[0.1] bg-white/[0.05] text-slate-300 rounded-xl hover:bg-white/[0.1] hover:text-white transition-all disabled:opacity-50"
               >
                 {t("common.cancel")}
               </button>
             </div>
           </form>
-        </div>
+        </ShineBorder>
       )}
 
       {loading ? (
-        <div className="text-center py-12 text-muted-foreground">
-          {t("common.loading")}
+        <div className="text-center py-12">
+            <div className="animate-pulse flex flex-col items-center">
+                <div className="h-4 bg-white/10 rounded w-1/4 mb-4"></div>
+                <div className="h-64 bg-white/5 rounded-xl w-full"></div>
+            </div>
         </div>
       ) : (
-        <div className="rounded-lg border bg-card">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="border-b bg-muted/50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-medium">
-                    {t("hobbies.order")}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">
-                    {t("hobbies.icon")}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">
-                    {t("hobbies.name")}
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium">
-                    {t("hobbies.hobbyDescription")}
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium">
-                    {t("common.actions")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {sortedHobbies.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="px-4 py-8 text-center text-muted-foreground"
-                    >
-                      {t("hobbies.empty")}
-                    </td>
-                  </tr>
-                ) : (
-                  sortedHobbies.map((hobby, index) => {
-                    const canMoveUp = index > 0;
-                    const canMoveDown = index < sortedHobbies.length - 1;
-                    return (
-                      <tr key={hobby.id} className="hover:bg-muted/50">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <span className="text-muted-foreground text-sm w-8">
-                              {hobby.order}
-                            </span>
-                            <div className="flex flex-col gap-1">
-                              <button
-                                type="button"
-                                onClick={() => handleReorder(hobby.id, "up")}
-                                disabled={!canMoveUp || reordering === hobby.id}
-                                className="p-1 hover:bg-muted rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                                title={t("hobbies.moveUp")}
-                              >
-                                <svg
-                                  className="w-3 h-3"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M5 15l7-7 7 7"
-                                  />
-                                </svg>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleReorder(hobby.id, "down")}
-                                disabled={
-                                  !canMoveDown || reordering === hobby.id
-                                }
-                                className="p-1 hover:bg-muted rounded disabled:opacity-30 disabled:cursor-not-allowed"
-                                title={t("hobbies.moveDown")}
-                              >
-                                <svg
-                                  className="w-3 h-3"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M19 9l-7 7-7-7"
-                                  />
-                                </svg>
-                              </button>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          {hobby.iconUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={hobby.iconUrl}
-                              alt={hobby.name}
-                              className="w-8 h-8 object-contain"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).style.display =
-                                  "none";
-                              }}
-                            />
-                          ) : (
-                            <span className="text-muted-foreground text-xs">
-                              —
-                            </span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 font-medium">{hobby.name}</td>
-                        <td className="px-4 py-3 text-muted-foreground text-sm max-w-[200px] truncate">
-                          {hobby.description || "—"}
-                        </td>
-                        <td className="px-4 py-3 text-right space-x-2">
+        <AdminTable>
+          <AdminTableHeader>
+            <AdminTableHead>{t("hobbies.order")}</AdminTableHead>
+            <AdminTableHead>{t("hobbies.icon")}</AdminTableHead>
+            <AdminTableHead>{t("hobbies.name")}</AdminTableHead>
+            <AdminTableHead>{t("hobbies.hobbyDescription")}</AdminTableHead>
+            <AdminTableHead className="text-right">{t("common.actions")}</AdminTableHead>
+          </AdminTableHeader>
+          <AdminTableBody>
+            {sortedHobbies.length === 0 ? (
+               <AdminTableRow>
+                <AdminTableCell colSpan={5} className="text-center py-12 text-slate-500">
+                  {t("hobbies.empty")}
+                </AdminTableCell>
+              </AdminTableRow>
+            ) : (
+              sortedHobbies.map((hobby, index) => {
+                const canMoveUp = index > 0;
+                const canMoveDown = index < sortedHobbies.length - 1;
+                return (
+                  <AdminTableRow key={hobby.id}>
+                    <AdminTableCell>
+                       <div className="flex items-center gap-3">
+                        <span className="text-slate-500 text-xs font-mono w-6 text-center bg-white/[0.05] rounded py-1">
+                            {hobby.order}
+                        </span>
+                        <div className="flex flex-col gap-1">
+                          <button
+                            onClick={() => handleReorder(hobby.id, "up")}
+                            disabled={!canMoveUp || reordering === hobby.id}
+                             className="p-1 hover:bg-cyan-500/20 hover:text-cyan-400 rounded transition-colors disabled:opacity-20"
+                            title={t("hobbies.moveUp")}
+                          >
+                           <ArrowUp className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={() => handleReorder(hobby.id, "down")}
+                            disabled={
+                              !canMoveDown || reordering === hobby.id
+                            }
+                             className="p-1 hover:bg-cyan-500/20 hover:text-cyan-400 rounded transition-colors disabled:opacity-20"
+                            title={t("hobbies.moveDown")}
+                          >
+                            <ArrowDown className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    </AdminTableCell>
+                    <AdminTableCell>
+                      {hobby.iconUrl ? (
+                         <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 p-1">
+                           {/* eslint-disable-next-line @next/next/no-img-element */}
+                           <img
+                             src={hobby.iconUrl}
+                             alt={hobby.name}
+                             className="w-full h-full object-contain"
+                             onError={(e) => {
+                               (e.target as HTMLImageElement).style.display =
+                                 "none";
+                             }}
+                           />
+                        </div>
+                      ) : (
+                        <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 text-slate-500">
+                           <ImageIcon className="w-5 h-5" />
+                        </div>
+                      )}
+                    </AdminTableCell>
+                    <AdminTableCell>
+                       <div className="font-medium text-white">{hobby.name}</div>
+                       {hobby.nameFr && <div className="text-xs text-slate-500 mt-0.5">{hobby.nameFr}</div>}
+                    </AdminTableCell>
+                    <AdminTableCell>
+                       <div className="text-sm text-slate-400 max-w-[300px] truncate">
+                           {hobby.description || "—"}
+                       </div>
+                    </AdminTableCell>
+                    <AdminTableCell>
+                        <div className="flex justify-end gap-2">
                           <button
                             type="button"
                             onClick={() => handleEdit(hobby)}
-                            className="text-sm text-primary hover:underline"
+                            className="p-2 hover:bg-blue-500/10 text-slate-400 hover:text-blue-400 rounded-lg transition-colors border border-transparent hover:border-blue-500/20"
+                            title={t("hobbies.edit")}
                           >
-                            {t("hobbies.edit")}
+                            <Pencil className="w-4 h-4" />
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDelete(hobby.id)}
-                            className="text-sm text-destructive hover:underline"
+                            className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors border border-transparent hover:border-red-500/20"
+                            title={t("hobbies.delete")}
                           >
-                            {t("hobbies.delete")}
+                            <Trash2 className="w-4 h-4" />
                           </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                        </div>
+                    </AdminTableCell>
+                  </AdminTableRow>
+                );
+              })
+            )}
+          </AdminTableBody>
+        </AdminTable>
       )}
     </div>
   );
