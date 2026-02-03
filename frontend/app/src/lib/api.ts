@@ -12,7 +12,8 @@ export async function fetchApi<T>(
   const response = await fetch(url, {
     ...options,
     headers: {
-      "Content-Type": "application/json",
+      // Only set Content-Type if not already set (FormData should not have it)
+      ...(options.headers && !(options.body instanceof FormData) && { "Content-Type": "application/json" }),
       ...options.headers,
     },
   });
@@ -43,19 +44,33 @@ export async function fetchApi<T>(
 // Authenticated fetch that automatically includes JWT token
 export async function authenticatedFetch<T>(
   endpoint: string,
-  options: RequestInit = {},
+  options: RequestInit & { isFormData?: boolean } = {},
 ): Promise<T> {
   const token = await getAuthToken();
   if (!token) {
     throw new Error("Not authenticated. Please log in again.");
   }
 
+  const { isFormData, ...fetchOptions } = options;
+
+  // If it's FormData, don't set Content-Type (browser will set it with boundary)
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  // Add existing headers
+  if (options.headers) {
+    const existingHeaders = options.headers as Record<string, string>;
+    Object.assign(headers, existingHeaders);
+  }
+
+  if (!isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
+
   return fetchApi<T>(endpoint, {
-    ...options,
-    headers: {
-      ...options.headers,
-      Authorization: `Bearer ${token}`,
-    },
+    ...fetchOptions,
+    headers,
   });
 }
 

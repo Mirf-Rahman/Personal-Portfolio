@@ -96,9 +96,6 @@ export interface Resume {
 
 export interface ContactInfo {
   email: string;
-  phone?: string;
-  location?: string;
   linkedIn?: string;
   github?: string;
-  twitter?: string;
 }
