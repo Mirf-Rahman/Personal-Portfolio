@@ -15,11 +15,8 @@ export async function GET() {
     return NextResponse.json({
       id: row.id,
       email: row.email,
-      phone: row.phone ?? "",
-      location: row.location ?? "",
       linkedIn: row.linkedIn ?? "",
       github: row.github ?? "",
-      twitter: row.twitter ?? "",
       updatedAt: row.updatedAt,
     });
   } catch (error) {
@@ -40,7 +37,7 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { email, phone, location, linkedIn, github, twitter } = body;
+    const { email, linkedIn, github } = body;
 
     if (!email || typeof email !== "string" || !email.trim()) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
@@ -50,11 +47,8 @@ export async function PATCH(request: NextRequest) {
 
     const payload = {
       email: String(email).trim(),
-      phone: phone != null ? String(phone).trim() || null : null,
-      location: location != null ? String(location).trim() || null : null,
       linkedIn: linkedIn != null ? String(linkedIn).trim() || null : null,
       github: github != null ? String(github).trim() || null : null,
-      twitter: twitter != null ? String(twitter).trim() || null : null,
       updatedAt: new Date(),
     };
 
