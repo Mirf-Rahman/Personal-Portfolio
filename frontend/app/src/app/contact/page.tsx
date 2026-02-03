@@ -22,7 +22,6 @@ interface ContactInfo {
   email: string;
   linkedIn: string;
   github: string;
-  twitter?: string;
 }
 
 const LIMITS = { name: 100, email: 255, subject: 200, message: 5000 };
@@ -131,16 +130,16 @@ export default function ContactPage() {
       </div>
 
       {/* Hero Section with Particles */}
-      <section className="relative h-[55vh] min-h-[500px] w-full flex flex-col items-center justify-center overflow-hidden">
+      <section className="relative h-[35vh] min-h-[300px] w-full flex flex-col items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 pointer-events-none z-10 [mask-image:linear-gradient(to_bottom,black_40%,transparent_100%)]">
             <FloatingParticles
-              particleCount={3000}
+              particleCount={800}
               particleColor1="#22d3ee" // Cyan-400
               particleColor2="#34d399" // Emerald-400
               cameraDistance={1000}
-              rotationSpeed={0.05}
-              particleSize={20}
+              rotationSpeed={0.02}
+              particleSize={8}
               antigravityForce={10}
               activationRate={10}
               className="w-full h-full"
@@ -162,14 +161,14 @@ export default function ContactPage() {
       </section>
 
       {/* Main Content Section */}
-      <section className="relative w-full py-24 px-4 overflow-hidden z-10">
-        <div className="container mx-auto relative z-10 max-w-7xl space-y-24">
+      <section className="relative w-full py-12 px-4 overflow-hidden z-10 -mt-10">
+        <div className="container mx-auto relative z-10 max-w-7xl space-y-16">
           {/* Social Pins */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 justify-items-center">
             {/* LinkedIn */}
             <PinContainer
-              title="LinkedIn"
-              href="https://www.linkedin.com/in/faiyazur-rahman-mir-828173309/"
+              title={contactInfo?.linkedIn?.trim() || DEFAULT_LINKEDIN}
+              href={contactInfo?.linkedIn?.trim() || DEFAULT_LINKEDIN}
             >
               <div className="flex flex-col p-4 tracking-tight text-slate-100/50 w-[18rem] md:w-[20rem] h-[15rem] bg-gradient-to-b from-slate-900/90 to-slate-900/0 backdrop-blur-sm border border-slate-700/50 rounded-2xl group-hover/pin:border-cyan-500/50 transition-colors">
                 <div className="flex items-center gap-2 mb-4">
@@ -217,7 +216,10 @@ export default function ContactPage() {
             </PinContainer>
 
             {/* Email */}
-            <PinContainer title="Email" href="mailto:mirfaiyazrahman@gmail.com">
+            <PinContainer
+              title={contactInfo?.email?.trim() || DEFAULT_EMAIL}
+              href={`mailto:${contactInfo?.email?.trim() || DEFAULT_EMAIL}`}
+            >
               <div className="flex flex-col p-4 tracking-tight text-slate-100/50 w-[18rem] md:w-[20rem] h-[15rem] bg-gradient-to-b from-slate-900/90 to-slate-900/0 backdrop-blur-sm border border-slate-700/50 rounded-2xl group-hover/pin:border-purple-500/50 transition-colors">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="h-2 w-2 rounded-full bg-purple-400 animate-pulse" />
@@ -250,7 +252,7 @@ export default function ContactPage() {
           {/* Contact Form Section */}
           <div className="w-full max-w-4xl mx-auto">
             <SectionHeading
-              title={t("getInTouch")}
+              title={t("formTitle")}
               description={t("description")}
               icon={Mail}
               className="mb-12"
