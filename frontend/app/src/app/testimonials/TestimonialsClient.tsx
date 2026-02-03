@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { FloatingParticles } from "@/components/ui/floating-particles";
@@ -12,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Quote, Send, User, Briefcase, Building2 } from "lucide-react";
+import { Quote, Send, User, Briefcase, Building2, ArrowLeft } from "lucide-react";
 
 interface FieldErrors {
   name?: string;
@@ -30,6 +31,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
 export default function TestimonialsClient() {
   const t = useTranslations("testimonials");
+  const router = useRouter();
   const [name, setName] = useState("");
   const [position, setPosition] = useState("");
   const [company, setCompany] = useState("");
@@ -252,8 +254,22 @@ export default function TestimonialsClient() {
         </div>
       </section>
 
+      {/* Back Button */}
+      <div className="relative z-10 container mx-auto max-w-3xl px-4 -mt-8 mb-6">
+        <motion.button
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          onClick={() => router.push("/#testimonials")}
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm text-slate-400 hover:text-cyan-400 transition-colors group"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span>{t("backToTestimonials")}</span>
+        </motion.button>
+      </div>
+
       {/* Form Section */}
-      <section className="relative w-full pb-24 px-4 overflow-hidden z-10 -mt-10">
+      <section className="relative w-full pb-24 px-4 overflow-hidden z-10">
         <div className="container mx-auto max-w-3xl">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
