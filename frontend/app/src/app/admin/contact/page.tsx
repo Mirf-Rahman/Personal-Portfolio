@@ -7,28 +7,30 @@ import { authClient } from "@/lib/auth-client";
 import { authenticatedFetch, fetchApi } from "@/lib/api";
 import { AdminPageHeader } from "@/components/ui/admin-page-header";
 import { ShineBorder } from "@/components/ui/shine-border";
-import { Mail, Phone, MapPin, Linkedin, Github, Twitter, Save, AlertCircle, CheckCircle2, Globe, Loader2 } from "lucide-react";
+import {
+  Mail,
+  Linkedin,
+  Github,
+  Save,
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ContactInfo {
   id: string;
   email: string;
-  phone: string;
-  location: string;
   linkedIn: string;
   github: string;
-  twitter: string;
   updatedAt: string;
 }
 
 const defaultContact: ContactInfo = {
   id: "",
   email: "",
-  phone: "",
-  location: "",
   linkedIn: "",
   github: "",
-  twitter: "",
   updatedAt: "",
 };
 
@@ -63,11 +65,8 @@ export default function ContactInfoManagementPage() {
       setForm({
         id: info.id ?? "",
         email: info.email ?? "",
-        phone: info.phone ?? "",
-        location: info.location ?? "",
         linkedIn: info.linkedIn ?? "",
         github: info.github ?? "",
-        twitter: info.twitter ?? "",
         updatedAt: info.updatedAt ?? "",
       });
     } catch (err) {
@@ -93,11 +92,8 @@ export default function ContactInfoManagementPage() {
         method: "PATCH",
         body: JSON.stringify({
           email: form.email.trim(),
-          phone: form.phone.trim() || null,
-          location: form.location.trim() || null,
           linkedIn: form.linkedIn.trim() || null,
           github: form.github.trim() || null,
-          twitter: form.twitter.trim() || null,
         }),
       });
       setSuccess(true);
@@ -118,170 +114,142 @@ export default function ContactInfoManagementPage() {
   }
 
   // Common input styles
-  const inputClass = "w-full pl-10 pr-4 py-3 bg-slate-900/40 border border-white/[0.08] rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-200 shadow-inner hover:border-white/[0.12] hover:bg-slate-900/60";
-  const labelClass = "block text-[11px] font-semibold text-cyan-100/60 uppercase tracking-widest pl-1 font-mono mb-2";
+  const inputClass =
+    "w-full pl-10 pr-4 py-3 bg-slate-900/40 border border-white/[0.08] rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-200 shadow-inner hover:border-white/[0.12] hover:bg-slate-900/60";
+  const labelClass =
+    "block text-[11px] font-semibold text-cyan-100/60 uppercase tracking-widest pl-1 font-mono mb-2";
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
-      <AdminPageHeader 
-        title={t("contactInfo.title")} 
+      <AdminPageHeader
+        title={t("contactInfo.title")}
         description={t("contactInfo.description")}
         // No create action needed
       />
 
       {loading ? (
         <div className="rounded-2xl border border-white/[0.08] bg-black/20 p-8 animate-pulse space-y-8">
-           <div className="space-y-4">
-              <div className="h-4 bg-white/5 rounded w-1/4"></div>
-              <div className="h-10 bg-white/5 rounded"></div>
-           </div>
-           <div className="grid grid-cols-2 gap-8">
-              <div className="h-10 bg-white/5 rounded"></div>
-              <div className="h-10 bg-white/5 rounded"></div>
-           </div>
-           <div className="h-10 bg-white/5 rounded w-1/3"></div>
+          <div className="space-y-4">
+            <div className="h-4 bg-white/5 rounded w-1/4"></div>
+            <div className="h-10 bg-white/5 rounded"></div>
+          </div>
+          <div className="grid grid-cols-2 gap-8">
+            <div className="h-10 bg-white/5 rounded"></div>
+            <div className="h-10 bg-white/5 rounded"></div>
+          </div>
+          <div className="h-10 bg-white/5 rounded w-1/3"></div>
         </div>
       ) : (
-        <ShineBorder 
-            className="relative w-full rounded-2xl bg-black/20 border border-white/[0.08] backdrop-blur-xl p-8"
-            shineColor={["#22d3ee", "#38bdf8", "#818cf8"]}
+        <ShineBorder
+          className="relative w-full rounded-2xl bg-black/20 border border-white/[0.08] backdrop-blur-xl p-8"
+          shineColor={["#22d3ee", "#38bdf8", "#818cf8"]}
         >
           <form onSubmit={handleSubmit} className="space-y-8">
             {error && (
-                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm flex items-center gap-3">
-                   <AlertCircle className="w-5 h-5 text-red-400" />
-                   {error}
-                </div>
+              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-red-400" />
+                {error}
+              </div>
             )}
 
             {success && (
-                <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-300 text-sm flex items-center gap-3">
-                   <CheckCircle2 className="w-5 h-5 text-green-400" />
-                   {t("contactInfo.success")}
-                </div>
+              <div className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-300 text-sm flex items-center gap-3">
+                <CheckCircle2 className="w-5 h-5 text-green-400" />
+                {t("contactInfo.success")}
+              </div>
             )}
 
             <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-display font-medium text-white mb-4 border-b border-white/[0.08] pb-2">
-                     General Information
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                     <div>
-                        <label htmlFor="email" className={labelClass}>{t("contactInfo.email")}</label>
-                        <div className="relative">
-                           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                           <input
-                              id="email"
-                              type="email"
-                              value={form.email}
-                              onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
-                              placeholder={t("contactInfo.emailPlaceholder")}
-                              required
-                              className={inputClass}
-                           />
-                        </div>
-                     </div>
-                     <div>
-                        <label htmlFor="phone" className={labelClass}>{t("contactInfo.phone")}</label>
-                        <div className="relative">
-                           <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                           <input
-                              id="phone"
-                              type="text"
-                              value={form.phone}
-                              onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))}
-                              placeholder={t("contactInfo.phonePlaceholder")}
-                              className={inputClass}
-                           />
-                        </div>
-                     </div>
-                     <div className="md:col-span-2">
-                        <label htmlFor="location" className={labelClass}>{t("contactInfo.location")}</label>
-                        <div className="relative">
-                           <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                           <input
-                              id="location"
-                              type="text"
-                              value={form.location}
-                              onChange={(e) => setForm((p) => ({ ...p, location: e.target.value }))}
-                              placeholder={t("contactInfo.locationPlaceholder")}
-                              className={inputClass}
-                           />
-                        </div>
-                     </div>
+              <div>
+                <h3 className="text-lg font-display font-medium text-white mb-4 border-b border-white/[0.08] pb-2">
+                  {t("contactInfo.sectionTitle")}
+                </h3>
+                <div className="grid grid-cols-1 gap-6">
+                  <div>
+                    <label htmlFor="email" className={labelClass}>
+                      {t("contactInfo.email")}
+                    </label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <input
+                        id="email"
+                        type="email"
+                        value={form.email}
+                        onChange={(e) =>
+                          setForm((p) => ({ ...p, email: e.target.value }))
+                        }
+                        placeholder={t("contactInfo.emailPlaceholder")}
+                        required
+                        className={inputClass}
+                      />
+                    </div>
                   </div>
                 </div>
+              </div>
 
-                <div>
-                   <h3 className="text-lg font-display font-medium text-white mb-4 border-b border-white/[0.08] pb-2 pt-2">
-                     Social Profiles
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <label htmlFor="linkedIn" className={labelClass}>{t("contactInfo.linkedIn")}</label>
-                        <div className="relative">
-                           <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                           <input
-                              id="linkedIn"
-                              type="url"
-                              value={form.linkedIn}
-                              onChange={(e) => setForm((p) => ({ ...p, linkedIn: e.target.value }))}
-                              placeholder={t("contactInfo.linkedInPlaceholder")}
-                              className={inputClass}
-                           />
-                        </div>
-                     </div>
-                     <div>
-                        <label htmlFor="github" className={labelClass}>{t("contactInfo.github")}</label>
-                        <div className="relative">
-                           <Github className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                           <input
-                              id="github"
-                              type="url"
-                              value={form.github}
-                              onChange={(e) => setForm((p) => ({ ...p, github: e.target.value }))}
-                              placeholder={t("contactInfo.githubPlaceholder")}
-                              className={inputClass}
-                           />
-                        </div>
-                     </div>
-                     <div>
-                        <label htmlFor="twitter" className={labelClass}>{t("contactInfo.twitter")}</label>
-                        <div className="relative">
-                           <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                           <input
-                              id="twitter"
-                              type="url"
-                              value={form.twitter}
-                              onChange={(e) => setForm((p) => ({ ...p, twitter: e.target.value }))}
-                              placeholder={t("contactInfo.twitterPlaceholder")}
-                              className={inputClass}
-                           />
-                        </div>
-                     </div>
+              <div>
+                <h3 className="text-lg font-display font-medium text-white mb-4 border-b border-white/[0.08] pb-2 pt-2">
+                  {t("contactInfo.socialProfiles")}
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="linkedIn" className={labelClass}>
+                      {t("contactInfo.linkedIn")}
+                    </label>
+                    <div className="relative">
+                      <Linkedin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <input
+                        id="linkedIn"
+                        type="url"
+                        value={form.linkedIn}
+                        onChange={(e) =>
+                          setForm((p) => ({ ...p, linkedIn: e.target.value }))
+                        }
+                        placeholder={t("contactInfo.linkedInPlaceholder")}
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="github" className={labelClass}>
+                      {t("contactInfo.github")}
+                    </label>
+                    <div className="relative">
+                      <Github className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <input
+                        id="github"
+                        type="url"
+                        value={form.github}
+                        onChange={(e) =>
+                          setForm((p) => ({ ...p, github: e.target.value }))
+                        }
+                        placeholder={t("contactInfo.githubPlaceholder")}
+                        className={inputClass}
+                      />
+                    </div>
                   </div>
                 </div>
+              </div>
             </div>
-            
+
             <div className="pt-6 border-t border-white/[0.08] flex justify-end">
-               <button
-                  type="submit"
-                  disabled={saving}
-                  className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl font-medium shadow-lg hover:shadow-cyan-500/25 hover:from-cyan-500 hover:to-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-               >
-                  {saving ? (
-                     <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>{t("contactInfo.saving")}</span>
-                     </>
-                  ) : (
-                     <>
-                        <Save className="w-4 h-4" />
-                        <span>{t("contactInfo.save")}</span>
-                     </>
-                  )}
-               </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-8 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-xl font-medium shadow-lg hover:shadow-cyan-500/25 hover:from-cyan-500 hover:to-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>{t("contactInfo.saving")}</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    <span>{t("contactInfo.save")}</span>
+                  </>
+                )}
+              </button>
             </div>
           </form>
         </ShineBorder>
