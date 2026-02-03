@@ -29,6 +29,17 @@ const nextConfig = {
       },
     ],
   },
+  // Proxy /api requests to backend
+  async rewrites() {
+    // Use localhost:8080 for local dev, backend:8080 for Docker
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${backendUrl}/api/:path*`,
+      },
+    ];
+  },
 };
 
 module.exports = withNextIntl(nextConfig);
