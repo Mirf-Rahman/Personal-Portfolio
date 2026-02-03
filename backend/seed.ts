@@ -22,7 +22,6 @@ async function seed() {
       if (existingContact.length === 0) {
         await db.insert(schema.contactInfo).values({
           email: "mirfaiyazrahman@gmail.com",
-          location: "Montreal, QC",
           linkedIn:
             "https://www.linkedin.com/in/faiyazur-rahman-mir-828173309/",
           github: "https://github.com/Mirf-Rahman",
@@ -312,7 +311,6 @@ async function seed() {
     if (existingContact.length === 0) {
       await db.insert(schema.contactInfo).values({
         email: "mirfaiyazrahman@gmail.com",
-        location: "Montreal, QC",
         linkedIn: "https://www.linkedin.com/in/faiyazur-rahman-mir-828173309/",
         github: "https://github.com/Mirf-Rahman",
       });
