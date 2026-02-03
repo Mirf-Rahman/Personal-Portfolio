@@ -107,11 +107,8 @@ export interface Resume {
 export interface ContactInfo {
   id: string;
   email: string;
-  phone?: string | null;
-  location?: string | null;
   linkedIn?: string | null;
   github?: string | null;
-  twitter?: string | null;
   updatedAt: Date;
 }
 

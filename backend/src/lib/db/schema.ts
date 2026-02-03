@@ -1,4 +1,11 @@
-import { pgTable, text, timestamp, boolean, integer, uuid } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  integer,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 // Skills table
 export const skills = pgTable("skills", {
@@ -107,18 +114,19 @@ export const resumes = pgTable("resumes", {
   id: uuid("id").primaryKey().defaultRandom(),
   fileUrl: text("file_url").notNull(),
   fileName: text("file_name").notNull(),
-  language: text("language").notNull().default("en"),
+  language: text("language").notNull().default("en"), // "en" or "fr"
+  isActive: boolean("is_active").notNull().default(true),
+  version: integer("version").notNull().default(1),
+  fileSize: integer("file_size").notNull(), // in bytes
   uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Contact Info table (single row table for site-wide contact info)
 export const contactInfo = pgTable("contact_info", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull(),
-  phone: text("phone"),
-  location: text("location"),
   linkedIn: text("linkedin"),
   github: text("github"),
-  twitter: text("twitter"),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
