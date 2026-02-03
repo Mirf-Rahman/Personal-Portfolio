@@ -6,7 +6,9 @@
     "education": "Education",
     "hobbies": "Hobbies",
     "testimonials": "Testimonials",
+    "resume": "Resume",
     "contact": "Contact",
+    "contactMe": "Contact Me",
     "login": "Login",
     "logout": "Logout",
     "dashboard": "Dashboard",
@@ -67,14 +69,13 @@
         "title": "Hobbies & Interests",
         "description": "Beyond code – what I love to do in my free time.",
         "empty": "No hobbies added yet."
-      },
-      "present": "Present",
-      "live": "Live"
+      }
     }
   },
   "testimonials": {
     "title": "Leave a Testimonial",
     "subtitle": "Your feedback helps me grow and deliver better solutions.",
+    "backToTestimonials": "Back to Testimonials",
     "form": {
       "name": "Name",
       "namePlaceholder": "Alex Smith",
@@ -87,21 +88,6 @@
       "submit": "Submit Testimonial",
       "submitting": "Submitting..."
     },
-    "validation": {
-      "nameRequired": "Name is required",
-      "nameMin": "Name must be at least {min} characters",
-      "nameMax": "Name must be no more than {max} characters",
-      "nameInvalid": "Name contains invalid characters",
-      "positionMax": "Position must be no more than {max} characters",
-      "companyMax": "Company must be no more than {max} characters",
-      "contentRequired": "Testimonial content is required",
-      "contentMin": "Testimonial content must be at least {min} characters",
-      "contentMax": "Testimonial content must be no more than {max} characters",
-      "fixErrors": "Please fix the errors below",
-      "rateLimit": "Too many requests. Please try again later.",
-      "submitFailed": "Failed to submit testimonial",
-      "generic": "Something went wrong. Please try again."
-    },
     "success": {
       "title": "Review Submitted!",
       "message": "Thank you for sharing your experience. Your testimonial is under review and will be live soon.",
@@ -110,6 +96,7 @@
   },
   "contact": {
     "title": "Get In Touch",
+    "formTitle": "Send Me a Message",
     "getInTouch": "Get In Touch",
     "description": "Have a question or want to work together? Let's connect!",
     "form": {
@@ -132,17 +119,6 @@
     "errors": {
       "generic": "Something went wrong. Please try again."
     },
-    "validation": {
-      "nameRequired": "Name is required",
-      "nameMax": "Name must be no more than {max} characters",
-      "emailRequired": "Email is required",
-      "emailInvalid": "Please enter a valid email address",
-      "emailMax": "Email must be no more than {max} characters",
-      "subjectRequired": "Subject is required",
-      "subjectMax": "Subject must be no more than {max} characters",
-      "messageRequired": "Message is required",
-      "messageMax": "Message must be no more than {max} characters"
-    },
     "social": {
       "connect": "Connect with me",
       "code": "Code",
@@ -161,13 +137,13 @@
     "passwordPlaceholder": "Enter your password",
     "submit": "Sign In",
     "submitting": "Signing in...",
-    "backToHome": "Back to Home",
-    "errors": {
-      "invalid": "Invalid email or password.",
-      "generic": "Something went wrong. Please try again."
-    }
+    "backToHome": "Back to Home"
   },
   "admin": {
+    "role": "Administrator",
+    "access": "Admin Access",
+    "collapse": "Collapse",
+    "expand": "Expand",
     "logout": "Logout",
     "panel": "Admin Panel",
     "backToSite": "← Back to Site",
@@ -180,7 +156,7 @@
       "hobbies": "Hobbies",
       "testimonials": "Testimonials",
       "messages": "Messages",
-      "contactInfo": "Contact information",
+      "contactInfo": "Contact Info",
       "resume": "Resume"
     },
     "dashboard": {
@@ -253,9 +229,7 @@
       "moveUp": "Move up",
       "moveDown": "Move down",
       "empty": "No projects yet. Add your first project!",
-      "confirmDelete": "Are you sure you want to delete this project?",
-      "titleFr": "Title (French)",
-      "descriptionFr": "Description (French)"
+      "confirmDelete": "Are you sure you want to delete this project?"
     },
     "experience": {
       "title": "Manage Experience",
@@ -287,9 +261,7 @@
       "moveUp": "Move up",
       "moveDown": "Move down",
       "empty": "No experience yet. Add your first position!",
-      "confirmDelete": "Are you sure you want to delete this experience?",
-      "positionFr": "Position (French)",
-      "descriptionFr": "Description (French)"
+      "confirmDelete": "Are you sure you want to delete this experience?"
     },
     "education": {
       "title": "Manage Education",
@@ -322,10 +294,7 @@
       "moveUp": "Move up",
       "moveDown": "Move down",
       "empty": "No education yet. Add your first entry!",
-      "confirmDelete": "Are you sure you want to delete this education?",
-      "degreeFr": "Degree (French)",
-      "fieldFr": "Field (French)",
-      "descriptionFr": "Description (French)"
+      "confirmDelete": "Are you sure you want to delete this education?"
     },
     "hobbies": {
       "title": "Manage Hobbies",
@@ -351,9 +320,7 @@
       "moveUp": "Move up",
       "moveDown": "Move down",
       "empty": "No hobbies yet. Add your first hobby!",
-      "confirmDelete": "Are you sure you want to delete this hobby?",
-      "nameFr": "Name (French)",
-      "descriptionFr": "Description (French)"
+      "confirmDelete": "Are you sure you want to delete this hobby?"
     },
     "testimonials": {
       "title": "Manage Testimonials",
@@ -414,25 +381,21 @@
       "chooseMessage": "Choose a message from the list on the left"
     },
     "contactInfo": {
-      "title": "Contact information",
-      "description": "Edit the contact details shown on your contact page (email, social links, etc.).",
+      "title": "Contact Information",
+      "description": "Edit the contact details shown on your contact page (email, social links, etc.)",
+      "sectionTitle": "Contact Information",
+      "socialProfiles": "Social Profiles",
       "email": "Email",
-      "emailPlaceholder": "you@example.com",
-      "phone": "Phone",
-      "phonePlaceholder": "+1 234 567 8900",
-      "location": "Location",
-      "locationPlaceholder": "City, Country",
-      "linkedIn": "LinkedIn URL",
-      "linkedInPlaceholder": "https://linkedin.com/in/username",
-      "github": "GitHub URL",
-      "githubPlaceholder": "https://github.com/username",
-      "twitter": "Twitter / X URL",
-      "twitterPlaceholder": "https://twitter.com/username",
-      "save": "Save changes",
-      "saving": "Saving...",
-      "success": "Contact information updated.",
+      "emailPlaceholder": "your@email.com",
+      "linkedIn": "LinkedIn",
+      "linkedInPlaceholder": "https://linkedin.com/in/yourprofile",
+      "github": "GitHub",
+      "githubPlaceholder": "https://github.com/yourusername",
+      "success": "Contact information updated successfully!",
       "loadError": "Failed to load contact information",
-      "emailRequired": "Email is required."
+      "emailRequired": "Email is required",
+      "saving": "Saving changes...",
+      "save": "Save"
     },
     "common": {
       "save": "Save",

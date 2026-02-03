@@ -6,7 +6,9 @@
     "education": "Éducation",
     "hobbies": "Loisirs",
     "testimonials": "Témoignages",
+    "resume": "CV",
     "contact": "Contact",
+    "contactMe": "Me Contacter",
     "login": "Connexion",
     "logout": "Déconnexion",
     "dashboard": "Tableau de bord",
@@ -67,14 +69,13 @@
         "title": "Loisirs & Intérêts",
         "description": "Au-delà du code – ce que j'aime faire pendant mon temps libre.",
         "empty": "Aucun loisir ajouté pour le moment."
-      },
-      "present": "Présent",
-      "live": "En direct"
+      }
     }
   },
   "testimonials": {
     "title": "Laisser un témoignage",
     "subtitle": "Vos retours m'aident à progresser et à fournir de meilleures solutions.",
+    "backToTestimonials": "Retour aux témoignages",
     "form": {
       "name": "Nom",
       "namePlaceholder": "Jean Dupont",
@@ -87,21 +88,6 @@
       "submit": "Soumettre le témoignage",
       "submitting": "Envoi en cours..."
     },
-    "validation": {
-      "nameRequired": "Le nom est requis",
-      "nameMin": "Le nom doit contenir au moins {min} caractères",
-      "nameMax": "Le nom ne doit pas dépasser {max} caractères",
-      "nameInvalid": "Le nom contient des caractères invalides",
-      "positionMax": "Le poste ne doit pas dépasser {max} caractères",
-      "companyMax": "L'entreprise ne doit pas dépasser {max} caractères",
-      "contentRequired": "Le contenu du témoignage est requis",
-      "contentMin": "Le témoignage doit contenir au moins {min} caractères",
-      "contentMax": "Le témoignage ne doit pas dépasser {max} caractères",
-      "fixErrors": "Veuillez corriger les erreurs ci-dessous",
-      "rateLimit": "Trop de requêtes. Veuillez réessayer plus tard.",
-      "submitFailed": "Échec de l'envoi du témoignage",
-      "generic": "Une erreur s'est produite. Veuillez réessayer."
-    },
     "success": {
       "title": "Avis soumis !",
       "message": "Merci d'avoir partagé votre expérience. Votre témoignage est en cours de révision et sera bientôt en ligne.",
@@ -110,6 +96,7 @@
   },
   "contact": {
     "title": "Contactez-moi",
+    "formTitle": "Envoyez-moi un message",
     "getInTouch": "Contactez-moi",
     "description": "Vous avez une question ou souhaitez collaborer ? Connectons-nous !",
     "form": {
@@ -132,17 +119,6 @@
     "errors": {
       "generic": "Une erreur s'est produite. Veuillez réessayer."
     },
-    "validation": {
-      "nameRequired": "Le nom est requis",
-      "nameMax": "Le nom ne doit pas dépasser {max} caractères",
-      "emailRequired": "Le courriel est requis",
-      "emailInvalid": "Veuillez entrer une adresse courriel valide",
-      "emailMax": "Le courriel ne doit pas dépasser {max} caractères",
-      "subjectRequired": "Le sujet est requis",
-      "subjectMax": "Le sujet ne doit pas dépasser {max} caractères",
-      "messageRequired": "Le message est requis",
-      "messageMax": "Le message ne doit pas dépasser {max} caractères"
-    },
     "social": {
       "connect": "Connectez-vous avec moi",
       "code": "Code",
@@ -161,13 +137,14 @@
     "passwordPlaceholder": "Entrez votre mot de passe",
     "submit": "Se connecter",
     "submitting": "Connexion en cours...",
-    "backToHome": "Retour à l'accueil",
-    "errors": {
-      "invalid": "Courriel ou mot de passe incorrect.",
-      "generic": "Une erreur s'est produite. Veuillez réessayer."
-    }
+    "backToHome": "Retour à l'accueil"
   },
   "admin": {
+    "role": "Administrateur",
+    "access": "Accès Admin",
+    "collapse": "Réduire",
+    "expand": "Agrandir",
+    "logout": "Déconnexion",
     "panel": "Panneau Admin",
     "backToSite": "← Retour au site",
     "sidebar": {
@@ -252,9 +229,7 @@
       "moveUp": "Déplacer vers le haut",
       "moveDown": "Déplacer vers le bas",
       "empty": "Aucun projet. Ajoutez votre premier projet !",
-      "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce projet ?",
-      "titleFr": "Titre (français)",
-      "descriptionFr": "Description (français)"
+      "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce projet ?"
     },
     "experience": {
       "title": "Gérer l'expérience",
@@ -286,9 +261,7 @@
       "moveUp": "Déplacer vers le haut",
       "moveDown": "Déplacer vers le bas",
       "empty": "Aucune expérience. Ajoutez votre premier poste !",
-      "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette expérience ?",
-      "positionFr": "Poste (français)",
-      "descriptionFr": "Description (français)"
+      "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette expérience ?"
     },
     "education": {
       "title": "Gérer l'éducation",
@@ -321,10 +294,7 @@
       "moveUp": "Déplacer vers le haut",
       "moveDown": "Déplacer vers le bas",
       "empty": "Aucune formation. Ajoutez votre première entrée !",
-      "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette formation ?",
-      "degreeFr": "Diplôme (français)",
-      "fieldFr": "Domaine (français)",
-      "descriptionFr": "Description (français)"
+      "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette formation ?"
     },
     "hobbies": {
       "title": "Gérer les loisirs",
@@ -350,9 +320,7 @@
       "moveUp": "Déplacer vers le haut",
       "moveDown": "Déplacer vers le bas",
       "empty": "Aucun loisir. Ajoutez votre premier loisir !",
-      "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce loisir ?",
-      "nameFr": "Nom (français)",
-      "descriptionFr": "Description (français)"
+      "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce loisir ?"
     },
     "testimonials": {
       "title": "Gérer les témoignages",
@@ -413,25 +381,21 @@
       "chooseMessage": "Choisissez un message dans la liste de gauche"
     },
     "contactInfo": {
-      "title": "Coordonnées",
-      "description": "Modifiez les coordonnées affichées sur la page Contact (e-mail, réseaux, etc.).",
-      "email": "E-mail",
-      "emailPlaceholder": "vous@exemple.com",
-      "phone": "Téléphone",
-      "phonePlaceholder": "+1 234 567 8900",
-      "location": "Lieu",
-      "locationPlaceholder": "Ville, Pays",
-      "linkedIn": "URL LinkedIn",
-      "linkedInPlaceholder": "https://linkedin.com/in/username",
-      "github": "URL GitHub",
-      "githubPlaceholder": "https://github.com/username",
-      "twitter": "URL Twitter / X",
-      "twitterPlaceholder": "https://twitter.com/username",
-      "save": "Enregistrer",
-      "saving": "Enregistrement...",
-      "success": "Coordonnées mises à jour.",
-      "loadError": "Impossible de charger les coordonnées",
-      "emailRequired": "L'e-mail est requis."
+      "title": "Informations de contact",
+      "description": "Modifier les coordonnées affichées sur votre page de contact (courriel, liens sociaux, etc.)",
+      "sectionTitle": "Informations de contact",
+      "socialProfiles": "Profils sociaux",
+      "email": "Courriel",
+      "emailPlaceholder": "votre@courriel.com",
+      "linkedIn": "LinkedIn",
+      "linkedInPlaceholder": "https://linkedin.com/in/votreprofil",
+      "github": "GitHub",
+      "githubPlaceholder": "https://github.com/votreutilisateur",
+      "success": "Informations de contact mises à jour avec succès !",
+      "loadError": "Échec du chargement des informations de contact",
+      "emailRequired": "Le courriel est requis",
+      "saving": "Enregistrement des modifications...",
+      "save": "Enregistrer"
     },
     "common": {
       "save": "Enregistrer",
