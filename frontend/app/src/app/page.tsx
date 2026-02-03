@@ -399,7 +399,7 @@ export default function Home() {
               isAnchor: true,
             },
             {
-              text: tNav("contact"),
+              text: tNav("contactMe"),
               href: "/contact",
               isAnchor: false,
             },
