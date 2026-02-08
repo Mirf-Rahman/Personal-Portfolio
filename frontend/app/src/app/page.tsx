@@ -439,8 +439,9 @@ export default function Home() {
               ))}
             </div>
           ) : featuredProjects.length > 0 ? (
+            <>
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {featuredProjects.map((project, index) => (
+              {featuredProjects.slice(0, 3).map((project, index) => (
                 <ScrollElement key={project.id}>
                   <motion.div
                     className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm hover:shadow-2xl hover:shadow-cyan-500/20"
@@ -529,6 +530,26 @@ export default function Home() {
                 </ScrollElement>
               ))}
             </div>
+            
+            {/* View All Projects Link */}
+            {featuredProjects.length > 3 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+                className="flex justify-center mt-12"
+              >
+                <Link
+                  href="/projects"
+                  className="group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 text-cyan-300 font-medium hover:border-cyan-400/50 hover:text-cyan-200 transition-all hover:shadow-lg hover:shadow-cyan-500/20"
+                >
+                  {t("sections.projects.viewAll")}
+                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </motion.div>
+            )}
+            </>
           ) : (
             <div className="text-center py-12 text-slate-500">
               {t("sections.projects.empty")}
