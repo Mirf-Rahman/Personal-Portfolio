@@ -33,7 +33,7 @@ export default function AdminLayout({
   }, []);
 
   return (
-    <div className="flex h-full min-h-screen bg-slate-950 pt-20">
+    <div className="min-h-screen bg-slate-950">
       <div className="fixed inset-0 z-0">
         <ShaderBackground />
       </div>
@@ -69,16 +69,18 @@ export default function AdminLayout({
         )}
       </AnimatePresence>
 
-      {/* Sidebar - Always visible, collapses on mobile */}
-      <div className="relative z-10 h-full transition-all duration-300 shrink-0">
+      {/* Sidebar - Fixed positioned from navbar to bottom */}
+      <div className={`fixed top-20 bottom-0 left-0 z-10 transition-all duration-300 ${isSidebarCollapsed ? 'w-20' : 'w-72'}`}>
         <AdminSidebar 
           isCollapsed={isSidebarCollapsed} 
           onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
         />
       </div>
 
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto overflow-x-hidden relative z-10 pt-4 md:pt-0">
+      {/* Main Content Area - offset by sidebar width */}
+      <main 
+        className={`min-h-screen pt-20 overflow-y-auto overflow-x-hidden relative z-10 transition-all duration-300 ${isSidebarCollapsed ? 'ml-20' : 'ml-72'}`}
+      >
         <div className="p-4 md:p-8 max-w-7xl mx-auto w-full">
            <PageTransition>
              {children}
