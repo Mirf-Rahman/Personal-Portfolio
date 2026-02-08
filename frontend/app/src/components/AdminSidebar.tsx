@@ -77,34 +77,48 @@ export function AdminSidebar({
         "border-b border-white/[0.08] flex items-center justify-between",
         isCollapsed ? "p-4 justify-center" : "p-6"
       )}>
-        <Link href="/" className="flex items-center gap-3 group" onClick={handleLinkClick}>
-          <div className="h-10 w-10 min-w-[2.5rem] rounded-xl bg-gradient-to-tr from-cyan-500/20 to-blue-500/20 border border-white/10 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform duration-300">
-             <div className="h-4 w-4 rounded-full bg-cyan-400/80 shadow-[0_0_10px_cyan]" />
-          </div>
-          {!isCollapsed && (
-            <motion.div 
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              className="overflow-hidden whitespace-nowrap"
+        {isCollapsed ? (
+          /* When collapsed: show expand button in header */
+          !isMobile && (
+            <button
+              onClick={onToggleCollapse}
+              className="flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all"
+              title={t("expand")}
             >
-              <h2 className="text-lg font-bold font-display tracking-tight text-white group-hover:text-cyan-200 transition-colors">
-                {t("panel")}
-              </h2>
-              <p className="text-[10px] text-slate-400 uppercase tracking-wider font-mono">
-                {t("access")}
-              </p>
-            </motion.div>
-          )}
-        </Link>
-        
-        {!isCollapsed && !isMobile && (
-           <button
-             onClick={onToggleCollapse}
-             className="text-slate-500 hover:text-white transition-colors"
-           >
-             <PanelLeftClose className="h-5 w-5" />
-           </button>
+              <PanelLeftOpen className="h-5 w-5" />
+            </button>
+          )
+        ) : (
+          /* When expanded: show logo that links to home */
+          <>
+            <Link href="/" className="flex items-center gap-3 group" onClick={handleLinkClick}>
+              <div className="h-10 w-10 min-w-[2.5rem] rounded-xl bg-gradient-to-tr from-cyan-500/20 to-blue-500/20 border border-white/10 flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform duration-300">
+                 <div className="h-4 w-4 rounded-full bg-cyan-400/80 shadow-[0_0_10px_cyan]" />
+              </div>
+              <motion.div 
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                className="overflow-hidden whitespace-nowrap"
+              >
+                <h2 className="text-lg font-bold font-display tracking-tight text-white group-hover:text-cyan-200 transition-colors">
+                  {t("backToSite")}
+                </h2>
+                <p className="text-[10px] text-slate-400 uppercase tracking-wider font-mono">
+                  {t("viewPortfolio")}
+                </p>
+              </motion.div>
+            </Link>
+            
+            {!isMobile && (
+               <button
+                 onClick={onToggleCollapse}
+                 className="text-slate-500 hover:text-white transition-colors"
+               >
+                 <PanelLeftClose className="h-5 w-5" />
+               </button>
+            )}
+          </>
         )}
       </div>
 
@@ -164,15 +178,7 @@ export function AdminSidebar({
         "border-t border-white/[0.08] p-4 flex flex-col gap-4",
         isCollapsed ? "items-center" : ""
       )}>
-        {isCollapsed && !isMobile && (
-          <button
-            onClick={onToggleCollapse}
-            className="flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-all"
-            title={t("expand")}
-          >
-             <PanelLeftOpen className="h-5 w-5" />
-          </button>
-        )}
+        {/* Expand button removed from here - now in header */}
 
         <div className={cn(
           "flex items-center gap-3",
