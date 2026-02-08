@@ -248,7 +248,7 @@ export default function ExperienceManagementPage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className={labelClass}>{t("experience.company")} *</label>
+                <label className={labelClass}>{t("experience.companyLabel")} *</label>
                 <div className="relative">
                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                    <input
@@ -262,7 +262,7 @@ export default function ExperienceManagementPage() {
                 </div>
               </div>
               <div>
-                <label className={labelClass}>{t("experience.position")} *</label>
+                <label className={labelClass}>{t("experience.positionLabel")} *</label>
                 <div className="relative">
                   <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <input
@@ -270,7 +270,7 @@ export default function ExperienceManagementPage() {
                     value={formData.position}
                     onChange={(e) => setFormData({ ...formData, position: e.target.value })}
                     required
-                    placeholder="Software Developer"
+                    placeholder={t("experience.positionPlaceholder")}
                     className={cn(inputClass, "pl-10")}
                   />
                 </div>
@@ -278,7 +278,7 @@ export default function ExperienceManagementPage() {
             </div>
 
             <div>
-              <label className={labelClass}>{t("experience.experienceDescription")} *</label>
+              <label className={labelClass}>{t("experience.descriptionLabel")} *</label>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -291,21 +291,21 @@ export default function ExperienceManagementPage() {
 
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className={labelClass}>{t("experience.positionFr")}</label>
+                <label className={labelClass}>{t("experience.positionFrLabel")}</label>
                 <input
                   type="text"
                   value={formData.positionFr}
                   onChange={(e) => setFormData({ ...formData, positionFr: e.target.value })}
-                  placeholder={t("experience.positionFr")}
+                  placeholder={t("experience.positionFrPlaceholder")}
                   className={inputClass}
                 />
               </div>
               <div>
-                <label className={labelClass}>{t("experience.descriptionFr")}</label>
+                <label className={labelClass}>{t("experience.descriptionFrLabel")}</label>
                 <textarea
                   value={formData.descriptionFr}
                   onChange={(e) => setFormData({ ...formData, descriptionFr: e.target.value })}
-                  placeholder={t("experience.descriptionFr")}
+                  placeholder={t("experience.descriptionFrPlaceholder")}
                   rows={2}
                   className={inputClass}
                 />
@@ -313,7 +313,7 @@ export default function ExperienceManagementPage() {
             </div>
 
             <div>
-              <label className={labelClass}>{t("experience.location")} *</label>
+              <label className={labelClass}>{t("experience.locationLabel")} *</label>
               <div className="relative">
                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                  <input
@@ -321,7 +321,7 @@ export default function ExperienceManagementPage() {
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   required
-                  placeholder="Montreal, QC"
+                  placeholder={t("experience.locationPlaceholder")}
                   className={cn(inputClass, "pl-10")}
                 />
               </div>
@@ -329,7 +329,7 @@ export default function ExperienceManagementPage() {
 
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className={labelClass}>{t("experience.startDate")} *</label>
+                <label className={labelClass}>{t("experience.startDateLabel")} *</label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <input
@@ -342,7 +342,7 @@ export default function ExperienceManagementPage() {
                 </div>
               </div>
               <div>
-                <label className={labelClass}>{t("experience.endDate")}</label>
+                <label className={labelClass}>{t("experience.endDateLabel")}</label>
                 <div className="relative">
                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                    <input
@@ -370,7 +370,7 @@ export default function ExperienceManagementPage() {
                   }}
                   className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500/30"
                 />
-                <span className="text-sm font-medium text-slate-300">{t("experience.currentRole")}</span>
+                <span className="text-sm font-medium text-slate-300">{t("experience.currentLabel")}</span>
               </label>
 
               {!editingExperience && (
