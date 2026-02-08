@@ -41,6 +41,7 @@
       ]
     },
     "sections": {
+      "present": "Present",
       "projects": {
         "title": "Featured Projects",
         "description": "A selection of projects showcasing my skills.",
@@ -92,6 +93,21 @@
       "title": "Review Submitted!",
       "message": "Thank you for sharing your experience. Your testimonial is under review and will be live soon.",
       "another": "Submit another"
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "nameMin": "Name must be at least {min} characters",
+      "nameMax": "Name must be less than {max} characters",
+      "nameInvalid": "Name contains invalid characters",
+      "positionMax": "Position must be less than {max} characters",
+      "companyMax": "Company must be less than {max} characters",
+      "contentRequired": "Testimonial content is required",
+      "contentMin": "Testimonial must be at least {min} characters",
+      "contentMax": "Testimonial must be less than {max} characters",
+      "fixErrors": "Please fix the errors below",
+      "rateLimit": "Too many requests. Please try again later.",
+      "submitFailed": "Failed to submit testimonial. Please try again.",
+      "generic": "Something went wrong. Please try again."
     }
   },
   "contact": {
@@ -119,6 +135,17 @@
     "errors": {
       "generic": "Something went wrong. Please try again."
     },
+    "validation": {
+      "nameRequired": "Name is required",
+      "nameMax": "Name must be less than {max} characters",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Please enter a valid email address",
+      "emailMax": "Email must be less than {max} characters",
+      "subjectRequired": "Subject is required",
+      "subjectMax": "Subject must be less than {max} characters",
+      "messageRequired": "Message is required",
+      "messageMax": "Message must be less than {max} characters"
+    },
     "social": {
       "connect": "Connect with me",
       "code": "Code",
@@ -137,7 +164,11 @@
     "passwordPlaceholder": "Enter your password",
     "submit": "Sign In",
     "submitting": "Signing in...",
-    "backToHome": "Back to Home"
+    "backToHome": "Back to Home",
+    "errors": {
+      "invalid": "Invalid email or password. Please try again.",
+      "generic": "An error occurred. Please try again later."
+    }
   },
   "admin": {
     "role": "Administrator",
@@ -147,6 +178,7 @@
     "logout": "Logout",
     "panel": "Admin Panel",
     "backToSite": "← Back to Site",
+    "viewPortfolio": "View Portfolio",
     "sidebar": {
       "dashboard": "Dashboard",
       "skills": "Skills",
@@ -212,8 +244,12 @@
       "name": "Name",
       "titleLabel": "Title",
       "titlePlaceholder": "My Awesome Project",
+      "titleFrLabel": "Title (French)",
+      "titleFrPlaceholder": "French project title",
       "projectDescription": "Description",
       "descriptionPlaceholder": "Project description...",
+      "descriptionFrLabel": "Description (French)",
+      "descriptionFrPlaceholder": "French project description",
       "technologies": "Technologies",
       "imageUrl": "Image URL",
       "liveUrl": "Live URL",
@@ -241,18 +277,30 @@
       "delete": "Delete",
       "update": "Update",
       "create": "Create",
-      "position": "Position",
+      "positionLabel": "Position",
+      "positionPlaceholder": "e.g., Software Engineer",
+      "positionFrLabel": "Position (French)",
+      "positionFrPlaceholder": "e.g., Ingénieur Logiciel",
       "company": "Company",
+      "companyLabel": "Company",
+      "companyPlaceholder": "Company name",
       "location": "Location",
+      "locationLabel": "Location",
+      "locationPlaceholder": "City, Country",
       "startDate": "Start Date",
+      "startDateLabel": "Start Date",
       "endDate": "End Date",
+      "endDateLabel": "End Date",
       "current": "Current",
       "currentRole": "Current role",
-      "experienceDescription": "Description",
-      "descriptionPlaceholder": "Describe your role and achievements...",
+      "currentLabel": "Currently working here",
+      "description": "Description",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Job responsibilities and achievements",
+      "descriptionFrLabel": "Description (French)",
+      "descriptionFrPlaceholder": "Responsabilités et réalisations",
       "order": "Order",
-      "orderPosition": "Position",
-      "positionLabel": "Position",
+      "orderPosition": "Position Number",
       "positionHint": "Select a position to swap with the experience currently at that position",
       "autoOrderHint": "This experience will be added at the end (order:",
       "currentPosition": "Current",

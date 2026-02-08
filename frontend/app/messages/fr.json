@@ -41,6 +41,7 @@
       ]
     },
     "sections": {
+      "present": "Actuel",
       "projects": {
         "title": "Projets en Vedette",
         "description": "Une sélection de projets mettant en valeur mes compétences.",
@@ -92,6 +93,21 @@
       "title": "Avis soumis !",
       "message": "Merci d'avoir partagé votre expérience. Votre témoignage est en cours de révision et sera bientôt en ligne.",
       "another": "Soumettre un autre"
+    },
+    "validation": {
+      "nameRequired": "Le nom est requis",
+      "nameMin": "Le nom doit contenir au moins {min} caractères",
+      "nameMax": "Le nom doit contenir moins de {max} caractères",
+      "nameInvalid": "Le nom contient des caractères invalides",
+      "positionMax": "Le poste doit contenir moins de {max} caractères",
+      "companyMax": "L'entreprise doit contenir moins de {max} caractères",
+      "contentRequired": "Le contenu du témoignage est requis",
+      "contentMin": "Le témoignage doit contenir au moins {min} caractères",
+      "contentMax": "Le témoignage doit contenir moins de {max} caractères",
+      "fixErrors": "Veuillez corriger les erreurs ci-dessous",
+      "rateLimit": "Trop de requêtes. Veuillez réessayer plus tard.",
+      "submitFailed": "Échec de la soumission du témoignage. Veuillez réessayer.",
+      "generic": "Une erreur s'est produite. Veuillez réessayer."
     }
   },
   "contact": {
@@ -119,6 +135,17 @@
     "errors": {
       "generic": "Une erreur s'est produite. Veuillez réessayer."
     },
+    "validation": {
+      "nameRequired": "Le nom est requis",
+      "nameMax": "Le nom doit contenir moins de {max} caractères",
+      "emailRequired": "Le courriel est requis",
+      "emailInvalid": "Veuillez entrer une adresse courriel valide",
+      "emailMax": "Le courriel doit contenir moins de {max} caractères",
+      "subjectRequired": "Le sujet est requis",
+      "subjectMax": "Le sujet doit contenir moins de {max} caractères",
+      "messageRequired": "Le message est requis",
+      "messageMax": "Le message doit contenir moins de {max} caractères"
+    },
     "social": {
       "connect": "Connectez-vous avec moi",
       "code": "Code",
@@ -129,15 +156,19 @@
     }
   },
   "login": {
-    "title": "Connexion Admin",
-    "subtitle": "Connectez-vous pour accéder au tableau de bord admin",
-    "email": "Courriel",
-    "emailPlaceholder": "admin@exemple.com",
+    "title": "Connexion Administrateur",
+    "subtitle": "Connectez-vous pour accéder au tableau de bord administrateur",
+    "email": "Email",
+    "emailPlaceholder": "admin@example.com",
     "password": "Mot de passe",
     "passwordPlaceholder": "Entrez votre mot de passe",
     "submit": "Se connecter",
     "submitting": "Connexion en cours...",
-    "backToHome": "Retour à l'accueil"
+    "backToHome": "Retour à l'accueil",
+    "errors": {
+      "invalid": "Email ou mot de passe invalide. Veuillez réessayer.",
+      "generic": "Une erreur s'est produite. Veuillez réessayer plus tard."
+    }
   },
   "admin": {
     "role": "Administrateur",
@@ -147,6 +178,7 @@
     "logout": "Déconnexion",
     "panel": "Panneau Admin",
     "backToSite": "← Retour au site",
+    "viewPortfolio": "Voir le portfolio",
     "sidebar": {
       "dashboard": "Tableau de bord",
       "skills": "Compétences",
@@ -212,8 +244,12 @@
       "name": "Nom",
       "titleLabel": "Titre",
       "titlePlaceholder": "Mon super projet",
+      "titleFrLabel": "Titre (Français)",
+      "titleFrPlaceholder": "Titre du projet en français",
       "projectDescription": "Description",
       "descriptionPlaceholder": "Description du projet...",
+      "descriptionFrLabel": "Description (Français)",
+      "descriptionFrPlaceholder": "Description du projet en français",
       "technologies": "Technologies",
       "imageUrl": "URL de l'image",
       "liveUrl": "URL en direct",
@@ -233,7 +269,7 @@
     },
     "experience": {
       "title": "Gérer l'expérience",
-      "description": "Votre historique professionnel",
+      "description": "Votre historique de travail et votre expérience professionnelle",
       "addNew": "Ajouter une expérience",
       "editExperience": "Modifier l'expérience",
       "addNewExperience": "Ajouter une nouvelle expérience",
@@ -241,26 +277,38 @@
       "delete": "Supprimer",
       "update": "Mettre à jour",
       "create": "Créer",
-      "position": "Poste",
+      "positionLabel": "Poste",
+      "positionPlaceholder": "p.ex., Ingénieur Logiciel",
+      "positionFrLabel": "Poste (Français)",
+      "positionFrPlaceholder": "p.ex., Ingénieur Logiciel",
       "company": "Entreprise",
+      "companyLabel": "Entreprise",
+      "companyPlaceholder": "Nom de l'entreprise",
       "location": "Lieu",
+      "locationLabel": "Lieu",
+      "locationPlaceholder": "Ville, Pays",
       "startDate": "Date de début",
+      "startDateLabel": "Date de début",
       "endDate": "Date de fin",
+      "endDateLabel": "Date de fin",
       "current": "Actuel",
       "currentRole": "Poste actuel",
-      "experienceDescription": "Description",
-      "descriptionPlaceholder": "Décrivez votre rôle et vos réalisations...",
+      "currentLabel": "Je travaille actuellement ici",
+      "description": "Description",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Responsabilités et réalisations",
+      "descriptionFrLabel": "Description (Français)",
+      "descriptionFrPlaceholder": "Responsabilités et réalisations",
       "order": "Ordre",
-      "orderPosition": "Position",
-      "positionLabel": "Position",
+      "orderPosition": "Numéro de position",
       "positionHint": "Sélectionnez une position pour échanger avec l'expérience actuellement à cette position",
       "autoOrderHint": "Cette expérience sera ajoutée à la fin (ordre :",
-      "currentPosition": "Actuel",
+      "currentPosition": "Actuelle",
       "emptyPosition": "Vide",
       "dates": "Dates",
       "moveUp": "Déplacer vers le haut",
       "moveDown": "Déplacer vers le bas",
-      "empty": "Aucune expérience. Ajoutez votre premier poste !",
+      "empty": "Aucune expérience. Ajoutez votre première expérience !",
       "confirmDelete": "Êtes-vous sûr de vouloir supprimer cette expérience ?"
     },
     "education": {
