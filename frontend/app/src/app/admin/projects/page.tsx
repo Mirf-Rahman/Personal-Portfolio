@@ -276,21 +276,21 @@ export default function ProjectsManagementPage() {
 
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className={labelClass}>{t("projects.titleFr")}</label>
+                <label className={labelClass}>{t("projects.titleFrLabel")}</label>
                 <input
                   type="text"
                   value={formData.titleFr}
                   onChange={(e) => setFormData({ ...formData, titleFr: e.target.value })}
-                  placeholder={t("projects.titleFr")}
+                  placeholder={t("projects.titleFrPlaceholder")}
                   className={inputClass}
                 />
               </div>
               <div>
-                <label className={labelClass}>{t("projects.descriptionFr")}</label>
+                <label className={labelClass}>{t("projects.descriptionFrLabel")}</label>
                 <textarea
                   value={formData.descriptionFr}
                   onChange={(e) => setFormData({ ...formData, descriptionFr: e.target.value })}
-                  placeholder={t("projects.descriptionFr")}
+                  placeholder={t("projects.descriptionFrPlaceholder")}
                   rows={2}
                   className={inputClass}
                 />
