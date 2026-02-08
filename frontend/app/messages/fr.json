@@ -41,11 +41,13 @@
       ]
     },
     "sections": {
+      "live": "Voir le site",
       "present": "Actuel",
       "projects": {
         "title": "Projets en Vedette",
         "description": "Une sélection de projets mettant en valeur mes compétences.",
-        "empty": "Aucun projet en vedette pour le moment."
+        "empty": "Aucun projet en vedette pour le moment.",
+        "viewAll": "Voir tous les projets →"
       },
       "skills": {
         "title": "Compétences & Expertise",
@@ -72,6 +74,13 @@
         "empty": "Aucun loisir ajouté pour le moment."
       }
     }
+  },
+  "projects": {
+    "title": "Tous les Projets",
+    "description": "Explorez mon portfolio complet de travaux.",
+    "empty": "Aucun projet disponible pour le moment.",
+    "viewProject": "Voir le projet",
+    "codeLabel": "Code"
   },
   "testimonials": {
     "title": "Laisser un témoignage",

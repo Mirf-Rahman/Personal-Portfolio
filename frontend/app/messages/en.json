@@ -41,11 +41,13 @@
       ]
     },
     "sections": {
+      "live": "View Live",
       "present": "Present",
       "projects": {
         "title": "Featured Projects",
         "description": "A selection of projects showcasing my skills.",
-        "empty": "No featured projects yet."
+        "empty": "No featured projects yet.",
+        "viewAll": "View All Projects"
       },
       "skills": {
         "title": "Skills & Expertise",
@@ -72,6 +74,13 @@
         "empty": "No hobbies added yet."
       }
     }
+  },
+  "projects": {
+    "title": "All Projects",
+    "description": "Explore my complete portfolio of work.",
+    "empty": "No projects available yet.",
+    "viewProject": "View Project",
+    "codeLabel": "Code"
   },
   "testimonials": {
     "title": "Leave a Testimonial",
