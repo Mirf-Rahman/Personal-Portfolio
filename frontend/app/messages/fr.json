@@ -440,6 +440,8 @@
     "contactInfo": {
       "title": "Informations de contact",
       "description": "Modifier les coordonnées affichées sur votre page de contact (courriel, liens sociaux, etc.)",
+      "contactPhoto": "Photo de contact",
+      "contactPhotoLabel": "Photo de profil affichée sur la page de contact",
       "sectionTitle": "Informations de contact",
       "socialProfiles": "Profils sociaux",
       "email": "Courriel",
