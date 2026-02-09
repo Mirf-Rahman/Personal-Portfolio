@@ -128,5 +128,6 @@ export const contactInfo = pgTable("contact_info", {
   email: text("email").notNull(),
   linkedIn: text("linkedin"),
   github: text("github"),
+  photoUrl: text("photo_url"),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
