@@ -440,6 +440,8 @@
     "contactInfo": {
       "title": "Contact Information",
       "description": "Edit the contact details shown on your contact page (email, social links, etc.)",
+      "contactPhoto": "Contact Photo",
+      "contactPhotoLabel": "Profile photo displayed on the contact page",
       "sectionTitle": "Contact Information",
       "socialProfiles": "Social Profiles",
       "email": "Email",
