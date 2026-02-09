@@ -156,7 +156,9 @@ export default function Home() {
   // Prevent browser scroll restoration and scroll to top on page load/refresh
   useEffect(() => {
     const hasHash = !!window.location.hash;
-    const pendingHashFromStorage = typeof sessionStorage !== "undefined" && sessionStorage.getItem("portfolio:hash-scroll-pending");
+    const pendingHashFromStorage =
+      typeof sessionStorage !== "undefined" &&
+      sessionStorage.getItem("portfolio:hash-scroll-pending");
     const shouldScrollToZero = !hasHash && !pendingHashFromStorage;
 
     if ("scrollRestoration" in history) {
@@ -182,8 +184,11 @@ export default function Home() {
 
     const hasHash = !!window.location.hash;
     const isHashNavigating = isHashNavigatingRef.current;
-    const pendingHashFromStorage = typeof sessionStorage !== "undefined" && sessionStorage.getItem("portfolio:hash-scroll-pending");
-    const shouldSkipScrollToZero = hasHash || isHashNavigating || !!pendingHashFromStorage;
+    const pendingHashFromStorage =
+      typeof sessionStorage !== "undefined" &&
+      sessionStorage.getItem("portfolio:hash-scroll-pending");
+    const shouldSkipScrollToZero =
+      hasHash || isHashNavigating || !!pendingHashFromStorage;
     if (!shouldSkipScrollToZero) {
       lenis.scrollTo(0, { immediate: true });
     }
@@ -237,7 +242,10 @@ export default function Home() {
         }
         setSectionToScrollAfterReveal(null);
         if (typeof sessionStorage !== "undefined") {
-          setTimeout(() => sessionStorage.removeItem("portfolio:hash-scroll-pending"), 600);
+          setTimeout(
+            () => sessionStorage.removeItem("portfolio:hash-scroll-pending"),
+            600,
+          );
         }
       });
     });
@@ -251,7 +259,8 @@ export default function Home() {
     const hash = window.location.hash;
     if (hash) {
       isHashNavigatingRef.current = true;
-      if (typeof sessionStorage !== "undefined") sessionStorage.setItem("portfolio:hash-scroll-pending", hash);
+      if (typeof sessionStorage !== "undefined")
+        sessionStorage.setItem("portfolio:hash-scroll-pending", hash);
       setPendingHash(hash);
       window.history.replaceState(null, "", window.location.pathname);
     }
@@ -275,12 +284,17 @@ export default function Home() {
 
             isHashNavigatingRef.current = false;
             if (typeof sessionStorage !== "undefined") {
-              setTimeout(() => sessionStorage.removeItem("portfolio:hash-scroll-pending"), 600);
+              setTimeout(
+                () =>
+                  sessionStorage.removeItem("portfolio:hash-scroll-pending"),
+                600,
+              );
             }
           } else {
             setHideHero(false);
             isHashNavigatingRef.current = false;
-            if (typeof sessionStorage !== "undefined") sessionStorage.removeItem("portfolio:hash-scroll-pending");
+            if (typeof sessionStorage !== "undefined")
+              sessionStorage.removeItem("portfolio:hash-scroll-pending");
           }
           setPendingHash(null);
         });
@@ -440,115 +454,115 @@ export default function Home() {
             </div>
           ) : featuredProjects.length > 0 ? (
             <>
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {featuredProjects.slice(0, 3).map((project, index) => (
-                <ScrollElement key={project.id}>
-                  <motion.div
-                    className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm hover:shadow-2xl hover:shadow-cyan-500/20"
-                    whileHover={{
-                      y: -12,
-                      scale: 1.02,
-                      transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
-                    }}
-                  >
-                    <BorderBeam
-                      size={250}
-                      duration={12}
-                      delay={index * 2}
-                      colorFrom="#06b6d4"
-                      colorTo="#3b82f6"
-                    />
-                    <div className="aspect-video w-full bg-slate-900 relative overflow-hidden">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={project.imageUrl || DEFAULT_PROJECT_IMAGE}
-                        alt={
-                          locale === "fr" && project.titleFr
-                            ? project.titleFr
-                            : project.title
-                        }
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {featuredProjects.slice(0, 3).map((project, index) => (
+                  <ScrollElement key={project.id}>
+                    <motion.div
+                      className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm hover:shadow-2xl hover:shadow-cyan-500/20"
+                      whileHover={{
+                        y: -12,
+                        scale: 1.02,
+                        transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+                      }}
+                    >
+                      <BorderBeam
+                        size={250}
+                        duration={12}
+                        delay={index * 2}
+                        colorFrom="#06b6d4"
+                        colorTo="#3b82f6"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </div>
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold mb-2 text-white group-hover:text-cyan-400 transition-colors">
-                        {locale === "fr" && project.titleFr
-                          ? project.titleFr
-                          : project.title}
-                      </h3>
-                      <p className="text-slate-400 mb-4">
-                        {locale === "fr" && project.descriptionFr
-                          ? project.descriptionFr
-                          : project.description}
-                      </p>
-                      <div className="flex gap-2 flex-wrap mb-4">
-                        {project.technologies.map((tech, i) => (
-                          <motion.span
-                            key={i}
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{
-                              delay: i * 0.05,
-                              duration: 0.3,
-                              ease: "easeOut",
-                            }}
-                            whileHover={{
-                              scale: 1.1,
-                              y: -2,
-                              boxShadow: "0 4px 12px rgba(6, 182, 212, 0.3)",
-                            }}
-                            className="px-2.5 py-1 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-medium cursor-default transition-colors hover:border-cyan-400/50 hover:text-cyan-200"
-                          >
-                            {tech}
-                          </motion.span>
-                        ))}
+                      <div className="aspect-video w-full bg-slate-900 relative overflow-hidden">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={project.imageUrl || DEFAULT_PROJECT_IMAGE}
+                          alt={
+                            locale === "fr" && project.titleFr
+                              ? project.titleFr
+                              : project.title
+                          }
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
-                      <div className="flex items-center gap-4">
-                        {project.liveUrl && (
-                          <Link
-                            href={project.liveUrl}
-                            target="_blank"
-                            className="inline-flex items-center gap-1.5 text-sm text-cyan-400 hover:text-cyan-300"
-                          >
-                            <ExternalLink className="w-4 h-4" />{" "}
-                            {t("sections.live")}
-                          </Link>
-                        )}
-                        {project.githubUrl && (
-                          <Link
-                            href={project.githubUrl}
-                            target="_blank"
-                            className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white"
-                          >
-                            <Github className="w-4 h-4" /> Code
-                          </Link>
-                        )}
+                      <div className="p-6">
+                        <h3 className="text-xl font-bold mb-2 text-white group-hover:text-cyan-400 transition-colors">
+                          {locale === "fr" && project.titleFr
+                            ? project.titleFr
+                            : project.title}
+                        </h3>
+                        <p className="text-slate-400 mb-4">
+                          {locale === "fr" && project.descriptionFr
+                            ? project.descriptionFr
+                            : project.description}
+                        </p>
+                        <div className="flex gap-2 flex-wrap mb-4">
+                          {project.technologies.map((tech, i) => (
+                            <motion.span
+                              key={i}
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{
+                                delay: i * 0.05,
+                                duration: 0.3,
+                                ease: "easeOut",
+                              }}
+                              whileHover={{
+                                scale: 1.1,
+                                y: -2,
+                                boxShadow: "0 4px 12px rgba(6, 182, 212, 0.3)",
+                              }}
+                              className="px-2.5 py-1 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-medium cursor-default transition-colors hover:border-cyan-400/50 hover:text-cyan-200"
+                            >
+                              {tech}
+                            </motion.span>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-4">
+                          {project.liveUrl && (
+                            <Link
+                              href={project.liveUrl}
+                              target="_blank"
+                              className="inline-flex items-center gap-1.5 text-sm text-cyan-400 hover:text-cyan-300"
+                            >
+                              <ExternalLink className="w-4 h-4" />{" "}
+                              {t("sections.live")}
+                            </Link>
+                          )}
+                          {project.githubUrl && (
+                            <Link
+                              href={project.githubUrl}
+                              target="_blank"
+                              className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white"
+                            >
+                              <Github className="w-4 h-4" /> Code
+                            </Link>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                </ScrollElement>
-              ))}
-            </div>
-            
-            {/* View All Projects Link */}
-            {featuredProjects.length > 3 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-                className="flex justify-center mt-12"
-              >
-                <Link
-                  href="/projects"
-                  className="group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 text-cyan-300 font-medium hover:border-cyan-400/50 hover:text-cyan-200 transition-all hover:shadow-lg hover:shadow-cyan-500/20"
+                    </motion.div>
+                  </ScrollElement>
+                ))}
+              </div>
+
+              {/* View All Projects Link */}
+              {featuredProjects.length > 3 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  className="flex justify-center mt-12"
                 >
-                  {t("sections.projects.viewAll")}
-                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              </motion.div>
-            )}
+                  <Link
+                    href="/projects"
+                    className="group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 text-cyan-300 font-medium hover:border-cyan-400/50 hover:text-cyan-200 transition-all hover:shadow-lg hover:shadow-cyan-500/20"
+                  >
+                    {t("sections.projects.viewAll")}
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </motion.div>
+              )}
             </>
           ) : (
             <div className="text-center py-12 text-slate-500">
