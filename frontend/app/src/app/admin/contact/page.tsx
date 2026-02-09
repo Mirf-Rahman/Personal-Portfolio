@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { authenticatedFetch, fetchApi } from "@/lib/api";
+import ImageUpload from "@/components/ImageUpload";
 import { AdminPageHeader } from "@/components/ui/admin-page-header";
 import { ShineBorder } from "@/components/ui/shine-border";
 import {
@@ -23,6 +24,7 @@ interface ContactInfo {
   email: string;
   linkedIn: string;
   github: string;
+  photoUrl: string | null;
   updatedAt: string;
 }
 
@@ -31,6 +33,7 @@ const defaultContact: ContactInfo = {
   email: "",
   linkedIn: "",
   github: "",
+  photoUrl: null,
   updatedAt: "",
 };
 
@@ -67,6 +70,7 @@ export default function ContactInfoManagementPage() {
         email: info.email ?? "",
         linkedIn: info.linkedIn ?? "",
         github: info.github ?? "",
+        photoUrl: info.photoUrl ?? null,
         updatedAt: info.updatedAt ?? "",
       });
     } catch (err) {
@@ -94,6 +98,7 @@ export default function ContactInfoManagementPage() {
           email: form.email.trim(),
           linkedIn: form.linkedIn.trim() || null,
           github: form.github.trim() || null,
+          photoUrl: form.photoUrl?.trim() || null,
         }),
       });
       setSuccess(true);
@@ -162,6 +167,18 @@ export default function ContactInfoManagementPage() {
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-display font-medium text-white mb-4 border-b border-white/[0.08] pb-2">
+                  {t("contactInfo.contactPhoto")}
+                </h3>
+                <ImageUpload
+                  value={form.photoUrl ?? ""}
+                  onChange={(url) =>
+                    setForm((p) => ({ ...p, photoUrl: url || null }))
+                  }
+                  label={t("contactInfo.contactPhotoLabel")}
+                />
+              </div>
+              <div>
+                <h3 className="text-lg font-display font-medium text-white mb-4 border-b border-white/[0.08] pb-2 pt-2">
                   {t("contactInfo.sectionTitle")}
                 </h3>
                 <div className="grid grid-cols-1 gap-6">
