@@ -79,9 +79,9 @@ export function sanitizeContactForm(data: {
   message?: unknown;
 }): ContactFormData {
   return {
-    name: sanitizeString(String(data.name || "")),
+    name: sanitizeText(String(data.name || "")).trim(),
     email: normalizeEmail(String(data.email || "")),
-    subject: sanitizeString(String(data.subject || "")),
+    subject: sanitizeText(String(data.subject || "")).trim(),
     message: sanitizeText(String(data.message || "")),
   };
 }
@@ -154,9 +154,9 @@ export function sanitizeTestimonialForm(data: {
   contentFr?: unknown;
 }): TestimonialFormData {
   return {
-    name: sanitizeString(String(data.name || "")),
-    position: sanitizeString(String(data.position || "")),
-    company: sanitizeString(String(data.company || "")),
+    name: sanitizeText(String(data.name || "")).trim(),
+    position: sanitizeText(String(data.position || "")).trim(),
+    company: sanitizeText(String(data.company || "")).trim(),
     content: sanitizeText(String(data.content || "")),
     contentFr: sanitizeText(String(data.contentFr || "")),
   };
