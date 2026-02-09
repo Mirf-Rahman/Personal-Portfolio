@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
 import { BackgroundPaths } from "@/components/ui/background-paths";
@@ -34,6 +34,14 @@ export default function ProjectsPage() {
   const locale = useLocale();
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  useLayoutEffect(() => {
+    const lenis = typeof window !== "undefined" ? (window as any).__lenis : null;
+    if (lenis) lenis.scrollTo(0, { immediate: true });
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, []);
 
   useEffect(() => {
     async function fetchProjects() {
@@ -86,30 +94,29 @@ export default function ProjectsPage() {
             </Link>
           </motion.div>
 
-          {/* Section Heading with Icon and SparklesText */}
+          {/* Section Heading: logo left of title */}
           <div className="flex flex-col items-center justify-center text-center mb-16">
-            {/* Icon Badge */}
-            <motion.div
-              initial={{ scale: 0, rotate: -20 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: "spring", stiffness: 260, damping: 20 }}
-              className="p-4 rounded-2xl bg-gradient-to-tr from-cyan-500/20 to-purple-500/20 border border-white/10 backdrop-blur-md shadow-xl mb-6"
-            >
-              <FolderGit2 className="w-10 h-10 text-cyan-400" />
-            </motion.div>
-
-            {/* Title with SparklesText */}
-            <SparklesText
-              className="text-4xl md:text-5xl lg:text-6xl font-bold font-display tracking-tight"
-              sparklesCount={10}
-              colors={{ first: "#06b6d4", second: "#a855f7" }}
-            >
-              {t("title")}
-            </SparklesText>
+            <div className="flex flex-row items-center justify-center gap-4 md:gap-6 flex-wrap">
+              <motion.div
+                initial={{ scale: 0, rotate: -20 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 260, damping: 20 }}
+                className="p-3.5 md:p-4 rounded-2xl bg-gradient-to-tr from-cyan-500/20 to-purple-500/20 border border-white/10 backdrop-blur-md shadow-xl shrink-0"
+              >
+                <FolderGit2 className="w-10 h-10 md:w-12 md:h-12 text-cyan-400" />
+              </motion.div>
+              <SparklesText
+                className="text-4xl md:text-5xl lg:text-6xl font-bold font-display tracking-tight"
+                sparklesCount={10}
+                colors={{ first: "#06b6d4", second: "#a855f7" }}
+              >
+                {t("title")}
+              </SparklesText>
+            </div>
 
             {/* Description */}
             <motion.p
-              className="mt-6 text-lg md:text-xl text-slate-400 max-w-2xl leading-relaxed"
+              className="mt-6 text-lg md:text-xl text-slate-400 max-w-2xl leading-relaxed mx-auto"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
@@ -166,7 +173,7 @@ export default function ProjectsPage() {
                           ? project.titleFr
                           : project.title}
                       </h3>
-                      <p className="text-slate-400 mb-4 line-clamp-3">
+                      <p className="text-slate-400 mb-4 line-clamp-5">
                         {locale === "fr" && project.descriptionFr
                           ? project.descriptionFr
                           : project.description}
