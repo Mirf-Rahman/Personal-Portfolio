@@ -116,7 +116,7 @@ export function PremiumTestimonials({ testimonials = defaultTestimonials }: Prem
   const currentTestimonial = safeTestimonials[currentIndex];
 
   return (
-    <section id="testimonials" className="relative py-12 bg-transparent text-white overflow-hidden">
+    <div className="relative py-12 bg-transparent text-white overflow-hidden">
       {/* Background Effects - Simplified to keep original site feel */}
       <div className="absolute inset-0 bg-transparent" />
 
@@ -292,6 +292,6 @@ export function PremiumTestimonials({ testimonials = defaultTestimonials }: Prem
           )}
         </div>
       </motion.div>
-    </section>
+    </div>
   );
 }
