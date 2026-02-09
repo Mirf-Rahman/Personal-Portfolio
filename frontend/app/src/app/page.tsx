@@ -137,13 +137,7 @@ export default function Home() {
     hobbies: [],
   });
   const [isLoading, setIsLoading] = useState(true);
-  // Check for hash immediately during render to prevent hero flash
-  const [hideHero, setHideHero] = useState(() => {
-    if (typeof window !== "undefined") {
-      return !!window.location.hash;
-    }
-    return false;
-  });
+  const [hideHero, setHideHero] = useState(false);
   // Section to scroll to after hero is re-enabled (so we stay at target after layout change)
   const [sectionToScrollAfterReveal, setSectionToScrollAfterReveal] = useState<
     string | null
@@ -162,12 +156,14 @@ export default function Home() {
   // Prevent browser scroll restoration and scroll to top on page load/refresh
   useEffect(() => {
     const hasHash = !!window.location.hash;
+    const pendingHashFromStorage = typeof sessionStorage !== "undefined" && sessionStorage.getItem("portfolio:hash-scroll-pending");
+    const shouldScrollToZero = !hasHash && !pendingHashFromStorage;
 
     if ("scrollRestoration" in history) {
       history.scrollRestoration = "manual";
     }
 
-    if (!hasHash) {
+    if (shouldScrollToZero) {
       window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
@@ -186,7 +182,9 @@ export default function Home() {
 
     const hasHash = !!window.location.hash;
     const isHashNavigating = isHashNavigatingRef.current;
-    if (!hasHash && !isHashNavigating) {
+    const pendingHashFromStorage = typeof sessionStorage !== "undefined" && sessionStorage.getItem("portfolio:hash-scroll-pending");
+    const shouldSkipScrollToZero = hasHash || isHashNavigating || !!pendingHashFromStorage;
+    if (!shouldSkipScrollToZero) {
       lenis.scrollTo(0, { immediate: true });
     }
 
@@ -238,6 +236,9 @@ export default function Home() {
           lenisRef.current.scrollTo(y, { immediate: true });
         }
         setSectionToScrollAfterReveal(null);
+        if (typeof sessionStorage !== "undefined") {
+          setTimeout(() => sessionStorage.removeItem("portfolio:hash-scroll-pending"), 600);
+        }
       });
     });
   }, [sectionToScrollAfterReveal, hideHero]);
@@ -250,7 +251,7 @@ export default function Home() {
     const hash = window.location.hash;
     if (hash) {
       isHashNavigatingRef.current = true;
-      setHideHero(true);
+      if (typeof sessionStorage !== "undefined") sessionStorage.setItem("portfolio:hash-scroll-pending", hash);
       setPendingHash(hash);
       window.history.replaceState(null, "", window.location.pathname);
     }
@@ -263,24 +264,23 @@ export default function Home() {
         requestAnimationFrame(() => {
           const element = document.querySelector(pendingHash);
           if (element && lenisRef.current) {
-            const rect = element.getBoundingClientRect();
-            const scrollTop =
-              window.pageYOffset || document.documentElement.scrollTop;
-            const targetY = Math.max(0, rect.top + scrollTop - 80);
+            const r = element.getBoundingClientRect();
+            const st = window.pageYOffset || document.documentElement.scrollTop;
+            const y = Math.max(0, r.top + st - 80);
 
-            window.scrollTo(0, targetY);
-            document.documentElement.scrollTop = targetY;
-            document.body.scrollTop = targetY;
-            lenisRef.current.scrollTo(targetY, { immediate: true });
+            window.scrollTo(0, y);
+            document.documentElement.scrollTop = y;
+            document.body.scrollTop = y;
+            lenisRef.current.scrollTo(y, { immediate: true });
 
             isHashNavigatingRef.current = false;
-            // Re-enable hero/description after a brief moment, then scroll to section again
-            // so the user can scroll up to see hero but stays at the target section.
-            setSectionToScrollAfterReveal(pendingHash);
-            setTimeout(() => setHideHero(false), 100);
+            if (typeof sessionStorage !== "undefined") {
+              setTimeout(() => sessionStorage.removeItem("portfolio:hash-scroll-pending"), 600);
+            }
           } else {
             setHideHero(false);
             isHashNavigatingRef.current = false;
+            if (typeof sessionStorage !== "undefined") sessionStorage.removeItem("portfolio:hash-scroll-pending");
           }
           setPendingHash(null);
         });
