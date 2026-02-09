@@ -101,10 +101,10 @@ export async function POST(request: NextRequest) {
         field: "email",
         message: "Email is required",
       });
-    } else if (sanitized.email.length > 255) {
+    } else if (sanitized.email.length > 100) {
       validationErrors.push({
         field: "email",
-        message: "Email must be no more than 255 characters",
+        message: "Email must be no more than 100 characters",
       });
     } else if (!isValidEmail(sanitized.email)) {
       validationErrors.push({
@@ -124,10 +124,10 @@ export async function POST(request: NextRequest) {
         field: "subject",
         message: "Subject must be at least 3 characters",
       });
-    } else if (sanitized.subject.length > 200) {
+    } else if (sanitized.subject.length > 150) {
       validationErrors.push({
         field: "subject",
-        message: "Subject must be no more than 200 characters",
+        message: "Subject must be no more than 150 characters",
       });
     }
 
@@ -142,10 +142,10 @@ export async function POST(request: NextRequest) {
         field: "message",
         message: "Message must be at least 10 characters",
       });
-    } else if (sanitized.message.length > 5000) {
+    } else if (sanitized.message.length > 1200) {
       validationErrors.push({
         field: "message",
-        message: "Message must be no more than 5000 characters",
+        message: "Message must be no more than 1200 characters",
       });
     }
 
