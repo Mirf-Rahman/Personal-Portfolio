@@ -6,6 +6,9 @@ import { Footer } from "@/components/Footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
+  icons: {
+    icon: "/icon.svg",
+  },
   title: "Mir Faiyazur Rahman | Full Stack Developer",
   description: "Personal portfolio showcasing skills, projects, and experience of Mir Faiyazur Rahman - Full Stack Developer building modern web applications.",
   keywords: ["Full Stack Developer", "React", "Next.js", "TypeScript", "Portfolio"],
