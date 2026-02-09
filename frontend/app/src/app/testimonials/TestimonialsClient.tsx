@@ -47,7 +47,7 @@ export default function TestimonialsClient() {
     name: { min: 2, max: 100 },
     position: { min: 0, max: 100 },
     company: { min: 0, max: 100 },
-    content: { min: 10, max: 2000 },
+    content: { min: 10, max: 500 },
   };
 
   // Validate individual field (uses t from closure for locale-aware messages)
@@ -334,11 +334,18 @@ export default function TestimonialsClient() {
                           : ""
                       }`}
                     />
-                    {fieldErrors.name && (
-                      <p className="text-xs text-red-400 pl-1">
-                        {fieldErrors.name}
-                      </p>
-                    )}
+                    <div className="flex justify-between items-center">
+                      {fieldErrors.name ? (
+                        <p className="text-xs text-red-400 pl-1">
+                          {fieldErrors.name}
+                        </p>
+                      ) : (
+                        <span />
+                      )}
+                      <span className="text-[10px] text-slate-600 font-mono">
+                        {name.length}/{LIMITS.name.max}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="space-y-2.5">
@@ -357,11 +364,18 @@ export default function TestimonialsClient() {
                       maxLength={LIMITS.company.max}
                       className="h-12 bg-slate-950/30 border-white/5 text-white placeholder:text-slate-600 focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 focus:bg-slate-950/50 transition-all rounded-xl"
                     />
-                    {fieldErrors.company && (
-                      <p className="text-xs text-red-400 pl-1">
-                        {fieldErrors.company}
-                      </p>
-                    )}
+                    <div className="flex justify-between items-center">
+                      {fieldErrors.company ? (
+                        <p className="text-xs text-red-400 pl-1">
+                          {fieldErrors.company}
+                        </p>
+                      ) : (
+                        <span />
+                      )}
+                      <span className="text-[10px] text-slate-600 font-mono">
+                        {company.length}/{LIMITS.company.max}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -381,11 +395,18 @@ export default function TestimonialsClient() {
                     maxLength={LIMITS.position.max}
                     className="h-12 bg-slate-950/30 border-white/5 text-white placeholder:text-slate-600 focus:border-cyan-500/40 focus:ring-1 focus:ring-cyan-500/20 focus:bg-slate-950/50 transition-all rounded-xl"
                   />
-                  {fieldErrors.position && (
-                    <p className="text-xs text-red-400 pl-1">
-                      {fieldErrors.position}
-                    </p>
-                  )}
+                  <div className="flex justify-between items-center">
+                    {fieldErrors.position ? (
+                      <p className="text-xs text-red-400 pl-1">
+                        {fieldErrors.position}
+                      </p>
+                    ) : (
+                      <span />
+                    )}
+                    <span className="text-[10px] text-slate-600 font-mono">
+                      {position.length}/{LIMITS.position.max}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="space-y-2.5">
