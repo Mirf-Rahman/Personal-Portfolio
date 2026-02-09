@@ -17,6 +17,7 @@ export async function GET() {
       email: row.email,
       linkedIn: row.linkedIn ?? "",
       github: row.github ?? "",
+      photoUrl: row.photoUrl ?? null,
       updatedAt: row.updatedAt,
     });
   } catch (error) {
@@ -37,7 +38,7 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { email, linkedIn, github } = body;
+    const { email, linkedIn, github, photoUrl } = body;
 
     if (!email || typeof email !== "string" || !email.trim()) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
@@ -45,10 +46,17 @@ export async function PATCH(request: NextRequest) {
 
     const [existing] = await db.select().from(schema.contactInfo).limit(1);
 
+    let photoUrlValue: string | null = null;
+    if (photoUrl != null) {
+      const s = typeof photoUrl === "string" ? photoUrl.trim() : "";
+      photoUrlValue = s ? s : null;
+    }
+
     const payload = {
       email: String(email).trim(),
       linkedIn: linkedIn != null ? String(linkedIn).trim() || null : null,
       github: github != null ? String(github).trim() || null : null,
+      photoUrl: photoUrlValue,
       updatedAt: new Date(),
     };
 
