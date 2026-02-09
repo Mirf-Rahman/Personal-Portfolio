@@ -6,10 +6,7 @@ import {
   checkContactFormRateLimit,
   addRateLimitHeaders,
 } from "@/lib/rate-limit";
-import {
-  sanitizeTestimonialForm,
-  containsSpamPatterns,
-} from "@/lib/sanitize";
+import { sanitizeTestimonialForm, containsSpamPatterns } from "@/lib/sanitize";
 import type { ValidationError } from "@/types";
 
 // GET /api/testimonials - List approved testimonials (public)
@@ -19,14 +16,20 @@ export async function GET() {
       .select()
       .from(schema.testimonials)
       .where(eq(schema.testimonials.approved, true))
-      .orderBy(asc(schema.testimonials.order), asc(schema.testimonials.createdAt));
-    
+      .orderBy(
+        asc(schema.testimonials.order),
+        asc(schema.testimonials.createdAt),
+      );
+
     const response = NextResponse.json(testimonials);
     response.headers.set("Cache-Control", "no-store");
     return response;
   } catch (error) {
     console.error("Error fetching testimonials:", error);
-    return NextResponse.json({ error: "Failed to fetch testimonials" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch testimonials" },
+      { status: 500 },
+    );
   }
 }
 
@@ -41,7 +44,7 @@ export async function POST(request: NextRequest) {
         code: "RATE_LIMIT_EXCEEDED",
         retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000),
       },
-      { status: 429 }
+      { status: 429 },
     );
     addRateLimitHeaders(response, rateLimitResult, 5);
     return response;
@@ -53,7 +56,7 @@ export async function POST(request: NextRequest) {
     if (contentLength && parseInt(contentLength) > 10 * 1024) {
       return NextResponse.json(
         { error: "Request body too large" },
-        { status: 413 }
+        { status: 413 },
       );
     }
 
@@ -113,10 +116,10 @@ export async function POST(request: NextRequest) {
         field: "content",
         message: "Testimonial content must be at least 10 characters",
       });
-    } else if (sanitized.content.length > 2000) {
+    } else if (sanitized.content.length > 500) {
       validationErrors.push({
         field: "content",
-        message: "Testimonial content must be no more than 2000 characters",
+        message: "Testimonial content must be no more than 500 characters",
       });
     }
 
@@ -136,42 +139,48 @@ export async function POST(request: NextRequest) {
           code: "VALIDATION_ERROR",
           details: validationErrors,
         },
-        { status: 400 }
+        { status: 400 },
       );
       addRateLimitHeaders(response, rateLimitResult, 5);
       return response;
     }
 
     // Insert testimonial (order will be 0 since not approved yet)
-    const [newTestimonial] = await db.insert(schema.testimonials).values({
-      name: sanitized.name,
-      position: sanitized.position || null,
-      company: sanitized.company || null,
-      content: sanitized.content,
-      contentFr: sanitized.contentFr || null,
-      approved: false, // Testimonials require admin approval
-      order: 0, // Will be assigned when approved
-    }).returning();
+    const [newTestimonial] = await db
+      .insert(schema.testimonials)
+      .values({
+        name: sanitized.name,
+        position: sanitized.position || null,
+        company: sanitized.company || null,
+        content: sanitized.content,
+        contentFr: sanitized.contentFr || null,
+        approved: false, // Testimonials require admin approval
+        order: 0, // Will be assigned when approved
+      })
+      .returning();
 
     const response = NextResponse.json(
       { message: "Testimonial submitted for review", id: newTestimonial.id },
-      { status: 201 }
+      { status: 201 },
     );
     addRateLimitHeaders(response, rateLimitResult, 5);
     return response;
   } catch (error) {
     // Handle JSON parse errors
-    if (error instanceof SyntaxError || (error as any).type === "entity.parse.failed") {
+    if (
+      error instanceof SyntaxError ||
+      (error as any).type === "entity.parse.failed"
+    ) {
       return NextResponse.json(
         { error: "Invalid JSON in request body" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     console.error("Error submitting testimonial:", error);
     return NextResponse.json(
       { error: "Failed to submit testimonial" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
