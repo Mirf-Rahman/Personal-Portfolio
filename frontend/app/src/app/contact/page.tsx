@@ -22,9 +22,10 @@ interface ContactInfo {
   email: string;
   linkedIn: string;
   github: string;
+  photoUrl?: string | null;
 }
 
-const LIMITS = { name: 100, email: 255, subject: 200, message: 5000 };
+const LIMITS = { name: 100, email: 100, subject: 150, message: 1200 };
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface FieldErrors {
@@ -147,16 +148,30 @@ export default function ContactPage() {
           </div>
         </div>
 
-        {/* Text */}
-        <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+        {/* Text and Photo */}
+        <div className="absolute inset-0 flex flex-col md:flex-row items-center justify-center gap-6 md:gap-10 z-30 pointer-events-none">
           <motion.h1
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 1, ease: "easeOut" }}
-            className="text-4xl md:text-7xl font-display font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-cyan-100 to-cyan-500 drop-shadow-2xl"
+            className="text-4xl md:text-7xl font-display font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-cyan-100 to-cyan-500 drop-shadow-2xl text-center"
           >
             {t("title")}
           </motion.h1>
+          {contactInfo?.photoUrl && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+              className="shrink-0"
+            >
+              <img
+                src={contactInfo.photoUrl}
+                alt=""
+                className="w-20 h-20 md:w-24 md:h-24 lg:w-32 lg:h-32 rounded-full object-cover border-2 border-white/10 shadow-xl"
+              />
+            </motion.div>
+          )}
         </div>
       </section>
 
