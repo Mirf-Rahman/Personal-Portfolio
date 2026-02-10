@@ -51,11 +51,13 @@ COPY scripts ./scripts
 # Convert line endings from CRLF to LF (Windows to Unix) - CRITICAL for sh scripts!
 RUN sed -i 's/\r$//' ./scripts/setup-db.sh && \
     sed -i 's/\r$//' ./scripts/seed-users.sh && \
+    sed -i 's/\r$//' ./scripts/setup-admin.sh && \
     sed -i 's/\r$//' ./scripts/start.sh
 
 # Make scripts executable and change ownership to non-root user
 RUN chmod +x ./scripts/setup-db.sh && \
     chmod +x ./scripts/seed-users.sh && \
+    chmod +x ./scripts/setup-admin.sh && \
     chmod +x ./scripts/start.sh && \
     chown -R nextjs:nodejs /app
 
