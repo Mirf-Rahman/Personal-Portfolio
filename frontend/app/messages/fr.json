@@ -165,8 +165,8 @@
     }
   },
   "login": {
-    "title": "Connexion Administrateur",
-    "subtitle": "Connectez-vous pour accéder au tableau de bord administrateur",
+    "title": "Connexion",
+    "subtitle": "Accédez à votre compte",
     "email": "Email",
     "emailPlaceholder": "admin@example.com",
     "password": "Mot de passe",

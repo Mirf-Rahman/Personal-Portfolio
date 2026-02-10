@@ -165,8 +165,8 @@
     }
   },
   "login": {
-    "title": "Admin Login",
-    "subtitle": "Sign in to access the admin dashboard",
+    "title": "Sign In",
+    "subtitle": "Access your account",
     "email": "Email",
     "emailPlaceholder": "admin@example.com",
     "password": "Password",
