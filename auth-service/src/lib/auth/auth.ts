@@ -103,7 +103,7 @@ const authSecret = process.env.BETTER_AUTH_SECRET || process.env.AUTH_JWT_SECRET
 export const auth = betterAuth({
   secret: (process.env.BETTER_AUTH_SECRET || process.env.AUTH_JWT_SECRET) || "build-time-placeholder-secret-must-be-32-chars-min",
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3001",
-  basePath: "/api/ba",
+  basePath: "/api/auth",
   trustedOrigins: corsOrigins,
   database: drizzleAdapter(db, {
     provider: "pg",

@@ -55,76 +55,6 @@ export function middleware(request: NextRequest) {
     // Let the route handler process this - don't intercept
     return NextResponse.next();
   }
-
-  // Known custom auth route prefixes that have their own route handlers
-  // These should NOT be rewritten to the Better Auth catch-all
-  const customAuthPrefixes = [
-    "/api/auth/logout",
-    "/api/auth/token",
-    "/api/auth/sessions",
-    "/api/auth/ip-history",
-    "/api/auth/audit-log",
-    "/api/auth/users",
-    "/api/auth/admin",
-  ];
-
-  const isCustomAuthRoute = customAuthPrefixes.some(
-    (prefix) => pathname === prefix || pathname.startsWith(prefix + "/")
-  );
-
-  // Rewrite Better Auth endpoints from /api/auth/* to /api/ba/*
-  // This avoids Next.js App Router catch-all conflict with sibling routes
-  if (pathname.startsWith("/api/auth/") && !isCustomAuthRoute) {
-    const url = request.nextUrl.clone();
-    url.pathname = pathname.replace("/api/auth/", "/api/ba/");
-    const rewriteResponse = NextResponse.rewrite(url);
-
-    // Add security headers
-    rewriteResponse.headers.set("X-Content-Type-Options", "nosniff");
-    rewriteResponse.headers.set("X-Frame-Options", "DENY");
-    rewriteResponse.headers.set("X-XSS-Protection", "1; mode=block");
-    rewriteResponse.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-    if (process.env.NODE_ENV === "production") {
-      rewriteResponse.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-    }
-
-    // CORS headers
-    const origin = request.headers.get("origin");
-    const allowedOrigins = getAllowedOrigins();
-    const allowedOrigin = origin && allowedOrigins.includes(origin)
-      ? origin
-      : (allowedOrigins.length > 0 ? allowedOrigins[0] : null);
-
-    if (allowedOrigin) {
-      rewriteResponse.headers.set("Access-Control-Allow-Origin", allowedOrigin);
-      rewriteResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-      rewriteResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
-      rewriteResponse.headers.set("Access-Control-Allow-Credentials", "true");
-    }
-
-    // Handle preflight
-    if (request.method === "OPTIONS") {
-      return new NextResponse(null, { status: 200, headers: rewriteResponse.headers });
-    }
-
-    // Rate limiting for sign-in/sign-up
-    const isAuthEndpoint = pathname.includes("/sign-in") || pathname.includes("/sign-up");
-    if (isAuthEndpoint && request.method === "POST") {
-      const identifier = getRateLimitIdentifier(request);
-      const shortWindow = checkRateLimit(`${identifier}:short`, 5, 15 * 60 * 1000);
-      const longWindow = checkRateLimit(`${identifier}:long`, 20, 60 * 60 * 1000);
-
-      if (!shortWindow || !longWindow) {
-        rewriteResponse.headers.set("Retry-After", "900");
-        return NextResponse.json(
-          { error: "Too many requests", message: "Rate limit exceeded. Please try again later." },
-          { status: 429, headers: rewriteResponse.headers }
-        );
-      }
-    }
-
-    return rewriteResponse;
-  }
   
   const response = NextResponse.next();
   
@@ -209,7 +139,6 @@ export const config = {
   matcher: [
     "/api/auth/:path*",
     "/api/auth/token",
-    "/api/ba/:path*",
     "/callback/:path*", // Ensure OAuth callbacks are processed
   ],
 };
