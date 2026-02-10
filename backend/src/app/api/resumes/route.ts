@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
 
     const resumes = await query.orderBy(
       schema.resumes.language,
-      desc(schema.resumes.version)
+      desc(schema.resumes.version),
     );
 
     const res = NextResponse.json(resumes);
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching resumes:", error);
     return NextResponse.json(
       { error: "Failed to fetch resumes" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     if (!language || !["en", "fr"].includes(language)) {
       return NextResponse.json(
         { error: 'Language must be "en" or "fr"' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
     if (file.type !== "application/pdf") {
       return NextResponse.json(
         { error: "Only PDF files are allowed" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
     if (file.size > MAX_SIZE) {
       return NextResponse.json(
         { error: "File size must be less than 5MB" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -120,8 +120,13 @@ export async function POST(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Upload to DigitalOcean Spaces
-    const fileUrl = await uploadFile(buffer, uniqueFilename, file.type);
+    // Upload to DigitalOcean Spaces in files/ subfolder
+    const fileUrl = await uploadFile(
+      buffer,
+      uniqueFilename,
+      file.type,
+      "files",
+    );
 
     // If setAsActive, deactivate all other resumes for this language
     if (setAsActive) {
@@ -131,12 +136,14 @@ export async function POST(request: NextRequest) {
         .where(eq(schema.resumes.language, language));
     }
 
-    // Insert new resume
+    // Insert new resume (store full storage key for delete)
+    const storageKey = `files/${uniqueFilename}`;
+
     const [newResume] = await db
       .insert(schema.resumes)
       .values({
         fileUrl,
-        fileName: uniqueFilename,
+        fileName: storageKey,
         language,
         isActive: setAsActive,
         version: nextVersion,
@@ -149,7 +156,7 @@ export async function POST(request: NextRequest) {
     console.error("Error uploading resume:", error);
     return NextResponse.json(
       { error: "Failed to upload resume" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
