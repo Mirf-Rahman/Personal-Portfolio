@@ -14,9 +14,7 @@ const ALLOWED_IMAGE_TYPES = [
   "image/svg+xml",
 ];
 
-const ALLOWED_DOCUMENT_TYPES = [
-  "application/pdf",
-];
+const ALLOWED_DOCUMENT_TYPES = ["application/pdf"];
 
 const ALLOWED_TYPES = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_DOCUMENT_TYPES];
 
@@ -48,7 +46,7 @@ export async function POST(request: NextRequest) {
         {
           error: `Invalid file type. Allowed types: ${ALLOWED_TYPES.join(", ")}`,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -63,7 +61,7 @@ export async function POST(request: NextRequest) {
         {
           error: `File size exceeds maximum allowed size of ${maxSizeMB}MB`,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -71,28 +69,38 @@ export async function POST(request: NextRequest) {
     const fileExtension = extname(file.name);
     const uniqueFilename = `${randomUUID()}${fileExtension}`;
 
+    // Subfolder: images for images, files for PDFs
+    const subfolder = ALLOWED_IMAGE_TYPES.includes(file.type)
+      ? "images"
+      : "files";
+
     // Convert File to Buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Upload to Spaces
-    const url = await uploadFile(buffer, uniqueFilename, file.type);
+    // Upload to Spaces (images -> images/, CVs/docs -> files/)
+    const url = await uploadFile(buffer, uniqueFilename, file.type, subfolder);
+
+    // Storage key includes subfolder for delete operations
+    const storageKey = subfolder
+      ? `${subfolder}/${uniqueFilename}`
+      : uniqueFilename;
 
     return NextResponse.json(
       {
         url,
-        filename: uniqueFilename,
+        filename: storageKey,
         originalName: file.name,
         size: file.size,
         type: file.type,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Error uploading file:", error);
     return NextResponse.json(
       { error: "Failed to upload file" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
