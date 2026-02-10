@@ -1,4 +1,8 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from "@aws-sdk/client-s3";
 
 // Environment variables (lazy validation - only checked at runtime)
 function getSpacesConfig() {
@@ -9,9 +13,14 @@ function getSpacesConfig() {
   const SPACES_REGION = process.env.SPACES_REGION || "nyc3";
   const SPACES_FOLDER_PREFIX = process.env.SPACES_FOLDER_PREFIX || "";
 
-  if (!SPACES_ENDPOINT || !SPACES_ACCESS_KEY || !SPACES_SECRET_KEY || !SPACES_BUCKET) {
+  if (
+    !SPACES_ENDPOINT ||
+    !SPACES_ACCESS_KEY ||
+    !SPACES_SECRET_KEY ||
+    !SPACES_BUCKET
+  ) {
     throw new Error(
-      "Missing required Spaces environment variables: SPACES_ENDPOINT, SPACES_ACCESS_KEY, SPACES_SECRET_KEY, SPACES_BUCKET"
+      "Missing required Spaces environment variables: SPACES_ENDPOINT, SPACES_ACCESS_KEY, SPACES_SECRET_KEY, SPACES_BUCKET",
     );
   }
 
@@ -47,22 +56,23 @@ function getS3Client(): S3Client {
 /**
  * Upload a file to DigitalOcean Spaces
  * @param fileBuffer - The file buffer to upload
- * @param filename - The filename (will be prefixed with folder prefix if set)
+ * @param filename - The filename (will be prefixed with folder/subfolder if set)
  * @param contentType - MIME type of the file
+ * @param subfolder - Optional subfolder (e.g., "images" or "files") for organizing uploads
  * @returns The public CDN URL of the uploaded file
  */
 export async function uploadFile(
   fileBuffer: Buffer,
   filename: string,
-  contentType: string
+  contentType: string,
+  subfolder?: string,
 ): Promise<string> {
   const config = getSpacesConfig();
   const client = getS3Client();
 
-  // Add folder prefix if set (e.g., "dev/" or "prod/")
-  const key = config.folderPrefix
-    ? `${config.folderPrefix}/${filename}`
-    : filename;
+  // Build key: [folderPrefix/][subfolder/]filename
+  const parts = [config.folderPrefix, subfolder, filename].filter(Boolean);
+  const key = parts.join("/");
 
   const command = new PutObjectCommand({
     Bucket: config.bucket,
@@ -75,7 +85,9 @@ export async function uploadFile(
   await client.send(command);
 
   // Construct CDN URL
-  const cdnUrl = process.env.SPACES_CDN_URL || `https://${config.bucket}.${config.region}.cdn.digitaloceanspaces.com`;
+  const cdnUrl =
+    process.env.SPACES_CDN_URL ||
+    `https://${config.bucket}.${config.region}.cdn.digitaloceanspaces.com`;
   const fileUrl = `${cdnUrl}/${key}`;
 
   return fileUrl;
@@ -83,7 +95,7 @@ export async function uploadFile(
 
 /**
  * Delete a file from DigitalOcean Spaces
- * @param filename - The filename to delete (with or without folder prefix)
+ * @param filename - The storage key (e.g. "images/xyz.jpg", "files/resume.pdf", or plain filename for legacy)
  * @returns void
  */
 export async function deleteFile(filename: string): Promise<void> {
