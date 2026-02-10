@@ -42,11 +42,33 @@ npx drizzle-kit push --config=./drizzle.config.ts || {
   echo "⚠️  Schema push failed or no changes needed, continuing..."
 }
 
-# Run seed script
-echo "🌱 Running seed script..."
-npm run db:seed || {
-  echo "⚠️  Seed failed, continuing to start server..."
-}
+# Run seed script (with production optimization)
+if [ "${NODE_ENV}" = "production" ]; then
+  echo "🌱 Checking if database needs seeding..."
+  # Check if skills table has data (quick production check)
+  if [ -n "$DATABASE_URL" ]; then
+    data_count=$(psql "$DATABASE_URL" -t -c "SELECT COUNT(*) FROM skills;" 2>/dev/null | tr -d ' ')
+    if [ -n "$data_count" ] && [ "$data_count" -gt 0 ]; then
+      echo "✅ Database already seeded (found $data_count skills), skipping..."
+    else
+      echo "🌱 Running initial seed..."
+      npm run db:seed || {
+        echo "⚠️  Seed failed, continuing to start server..."
+      }
+    fi
+  else
+    echo "⚠️  DATABASE_URL not set in production, skipping seed check"
+    npm run db:seed || {
+      echo "⚠️  Seed failed, continuing to start server..."
+    }
+  fi
+else
+  # Development: always run seed (idempotent anyway)
+  echo "🌱 Running seed script..."
+  npm run db:seed || {
+    echo "⚠️  Seed failed, continuing to start server..."
+  }
+fi
 
 echo "✅ Backend initialization complete!"
 

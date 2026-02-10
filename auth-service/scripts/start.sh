@@ -35,11 +35,20 @@ done
 if [ $attempt -eq $max_attempts ]; then
   echo "⚠️  Auth-service did not start in time, but continuing..."
 else
-  # Step 4: Seed users now that service is ready (development only)
+  # Step 4: Setup production admin user (if credentials provided)
+  if [ "${NODE_ENV}" = "production" ] || [ "${SPRING_PROFILES_ACTIVE}" = "prod" ] || [ "${SPRING_PROFILES_ACTIVE}" = "production" ]; then
+    echo "🔐 Setting up production admin user..."
+    ./scripts/setup-admin.sh
+    if [ $? -ne 0 ]; then
+      echo "⚠️  Admin setup encountered an issue, but continuing..."
+    fi
+  fi
+  
+  # Step 5: Seed users now that service is ready (development only)
   # SECURITY: Seeding is disabled in production - see seed-users.sh for details
   if [ "${NODE_ENV}" = "production" ] || [ "${SPRING_PROFILES_ACTIVE}" = "prod" ] || [ "${SPRING_PROFILES_ACTIVE}" = "production" ]; then
     echo "⏭️  Skipping user seeding (production mode)"
-    echo "   To create admin accounts: sign up normally, then update role via SQL"
+    echo "   To create admin accounts: use ADMIN_EMAIL/ADMIN_PASSWORD env vars"
   else
     echo "🌱 Seeding users..."
     ./scripts/seed-users.sh
@@ -50,7 +59,7 @@ else
   fi
 fi
 
-# Step 5: Keep service running in foreground
+# Step 6: Keep service running in foreground
 echo "✅ Setup complete!"
 if [ "${NODE_ENV}" != "production" ] && [ "${SPRING_PROFILES_ACTIVE}" != "prod" ] && [ "${SPRING_PROFILES_ACTIVE}" != "production" ]; then
   echo "📝 Admin credentials available:"
