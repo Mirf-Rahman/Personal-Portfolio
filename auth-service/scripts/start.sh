@@ -13,7 +13,7 @@ fi
 
 # Step 2: Start the service in background using standalone server
 echo "🔧 Starting auth-service in background..."
-PORT=3001 node server.js &
+HOSTNAME=0.0.0.0 PORT=3001 node server.js &
 SERVER_PID=$!
 
 # Step 3: Wait for service to be ready
