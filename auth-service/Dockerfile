@@ -27,17 +27,11 @@ ENV NODE_ENV=production
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nextjs -u 1001
 
-# Copy package files
-COPY package.json package-lock.json* ./
-
-# Install production dependencies only
-RUN npm ci --omit=dev
-
-# Copy built application
-COPY --from=build /app/.next ./.next
-COPY --from=build /app/next.config.js ./next.config.js
-COPY --from=build /app/drizzle.config.ts ./drizzle.config.ts
-COPY --from=build /app/src/lib/db ./src/lib/db
+# Copy standalone build (includes server.js, minimal node_modules, .next/server)
+# This is the correct way to use output: 'standalone' in Docker
+COPY --from=build /app/.next/standalone ./
+# Copy static files (not included in standalone by default)
+COPY --from=build /app/.next/static ./.next/static
 
 # Expose port
 EXPOSE 3001
