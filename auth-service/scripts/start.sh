@@ -12,8 +12,13 @@ if [ $? -ne 0 ]; then
 fi
 
 # Step 2: Start the service in background
+
 echo "🔧 Starting auth-service in background..."
-npm start &
+if [ -f server.js ]; then
+  PORT=3001 node server.js &
+else
+  npm start &
+fi
 NPM_PID=$!
 
 # Step 3: Wait for service to be ready
