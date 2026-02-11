@@ -16,7 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Mail } from "lucide-react";
 import { fetchApi } from "@/lib/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const API_URL = RAW_API_URL.replace(/\/api\/?$/, "") || RAW_API_URL;
 
 interface ContactInfo {
   email: string;

@@ -19,7 +19,8 @@ import { ShineBorder } from "@/components/ui/shine-border";
 import { Pencil, Trash2, ArrowUp, ArrowDown, X, Save, Palette, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const API_URL = RAW_API_URL.replace(/\/api\/?$/, "") || RAW_API_URL;
 
 interface Skill {
   id: string;

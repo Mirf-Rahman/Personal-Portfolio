@@ -27,7 +27,8 @@ interface ValidationError {
   message: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const API_URL = RAW_API_URL.replace(/\/api\/?$/, "") || RAW_API_URL;
 
 export default function TestimonialsClient() {
   const t = useTranslations("testimonials");

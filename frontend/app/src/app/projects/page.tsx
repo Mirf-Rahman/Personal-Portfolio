@@ -25,7 +25,8 @@ interface Project {
   featured: boolean;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const API_URL = RAW_API_URL.replace(/\/api\/?$/, "") || RAW_API_URL;
 const DEFAULT_PROJECT_IMAGE = "https://mirf-portfolio-files.nyc3.cdn.digitaloceanspaces.com/dev/GitHub-Logo.jpg";
 
 export default function ProjectsPage() {

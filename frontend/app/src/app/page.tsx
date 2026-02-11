@@ -110,7 +110,8 @@ interface HomeData {
   hobbies: Hobby[];
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const API_URL = RAW_API_URL.replace(/\/api\/?$/, "") || RAW_API_URL;
 const DEFAULT_PROJECT_IMAGE =
   "https://mirf-portfolio-files.nyc3.cdn.digitaloceanspaces.com/dev/GitHub-Logo.jpg";
 
@@ -137,7 +138,13 @@ export default function Home() {
     hobbies: [],
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [hideHero, setHideHero] = useState(false);
+  // Check for hash immediately during render to prevent hero flash
+  const [hideHero, setHideHero] = useState(() => {
+    if (typeof window !== "undefined") {
+      return !!window.location.hash;
+    }
+    return false;
+  });
   // Section to scroll to after hero is re-enabled (so we stay at target after layout change)
   const [sectionToScrollAfterReveal, setSectionToScrollAfterReveal] = useState<
     string | null
@@ -156,16 +163,12 @@ export default function Home() {
   // Prevent browser scroll restoration and scroll to top on page load/refresh
   useEffect(() => {
     const hasHash = !!window.location.hash;
-    const pendingHashFromStorage =
-      typeof sessionStorage !== "undefined" &&
-      sessionStorage.getItem("portfolio:hash-scroll-pending");
-    const shouldScrollToZero = !hasHash && !pendingHashFromStorage;
 
     if ("scrollRestoration" in history) {
       history.scrollRestoration = "manual";
     }
 
-    if (shouldScrollToZero) {
+    if (!hasHash) {
       window.scrollTo(0, 0);
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
@@ -184,12 +187,7 @@ export default function Home() {
 
     const hasHash = !!window.location.hash;
     const isHashNavigating = isHashNavigatingRef.current;
-    const pendingHashFromStorage =
-      typeof sessionStorage !== "undefined" &&
-      sessionStorage.getItem("portfolio:hash-scroll-pending");
-    const shouldSkipScrollToZero =
-      hasHash || isHashNavigating || !!pendingHashFromStorage;
-    if (!shouldSkipScrollToZero) {
+    if (!hasHash && !isHashNavigating) {
       lenis.scrollTo(0, { immediate: true });
     }
 
@@ -241,12 +239,6 @@ export default function Home() {
           lenisRef.current.scrollTo(y, { immediate: true });
         }
         setSectionToScrollAfterReveal(null);
-        if (typeof sessionStorage !== "undefined") {
-          setTimeout(
-            () => sessionStorage.removeItem("portfolio:hash-scroll-pending"),
-            600,
-          );
-        }
       });
     });
   }, [sectionToScrollAfterReveal, hideHero]);
@@ -259,8 +251,7 @@ export default function Home() {
     const hash = window.location.hash;
     if (hash) {
       isHashNavigatingRef.current = true;
-      if (typeof sessionStorage !== "undefined")
-        sessionStorage.setItem("portfolio:hash-scroll-pending", hash);
+      setHideHero(true);
       setPendingHash(hash);
       window.history.replaceState(null, "", window.location.pathname);
     }
@@ -273,28 +264,24 @@ export default function Home() {
         requestAnimationFrame(() => {
           const element = document.querySelector(pendingHash);
           if (element && lenisRef.current) {
-            const r = element.getBoundingClientRect();
-            const st = window.pageYOffset || document.documentElement.scrollTop;
-            const y = Math.max(0, r.top + st - 80);
+            const rect = element.getBoundingClientRect();
+            const scrollTop =
+              window.pageYOffset || document.documentElement.scrollTop;
+            const targetY = Math.max(0, rect.top + scrollTop - 80);
 
-            window.scrollTo(0, y);
-            document.documentElement.scrollTop = y;
-            document.body.scrollTop = y;
-            lenisRef.current.scrollTo(y, { immediate: true });
+            window.scrollTo(0, targetY);
+            document.documentElement.scrollTop = targetY;
+            document.body.scrollTop = targetY;
+            lenisRef.current.scrollTo(targetY, { immediate: true });
 
             isHashNavigatingRef.current = false;
-            if (typeof sessionStorage !== "undefined") {
-              setTimeout(
-                () =>
-                  sessionStorage.removeItem("portfolio:hash-scroll-pending"),
-                600,
-              );
-            }
+            // Re-enable hero/description after a brief moment, then scroll to section again
+            // so the user can scroll up to see hero but stays at the target section.
+            setSectionToScrollAfterReveal(pendingHash);
+            setTimeout(() => setHideHero(false), 100);
           } else {
             setHideHero(false);
             isHashNavigatingRef.current = false;
-            if (typeof sessionStorage !== "undefined")
-              sessionStorage.removeItem("portfolio:hash-scroll-pending");
           }
           setPendingHash(null);
         });
@@ -453,117 +440,96 @@ export default function Home() {
               ))}
             </div>
           ) : featuredProjects.length > 0 ? (
-            <>
-              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                {featuredProjects.slice(0, 3).map((project, index) => (
-                  <ScrollElement key={project.id}>
-                    <motion.div
-                      className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm hover:shadow-2xl hover:shadow-cyan-500/20"
-                      whileHover={{
-                        y: -12,
-                        scale: 1.02,
-                        transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
-                      }}
-                    >
-                      <BorderBeam
-                        size={250}
-                        duration={12}
-                        delay={index * 2}
-                        colorFrom="#06b6d4"
-                        colorTo="#3b82f6"
-                      />
-                      <div className="aspect-video w-full bg-slate-900 relative overflow-hidden">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={project.imageUrl || DEFAULT_PROJECT_IMAGE}
-                          alt={
-                            locale === "fr" && project.titleFr
-                              ? project.titleFr
-                              : project.title
-                          }
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                      <div className="p-6">
-                        <h3 className="text-xl font-bold mb-2 text-white group-hover:text-cyan-400 transition-colors">
-                          {locale === "fr" && project.titleFr
-                            ? project.titleFr
-                            : project.title}
-                        </h3>
-                        <p className="text-slate-400 mb-4">
-                          {locale === "fr" && project.descriptionFr
-                            ? project.descriptionFr
-                            : project.description}
-                        </p>
-                        <div className="flex gap-2 flex-wrap mb-4">
-                          {project.technologies.map((tech, i) => (
-                            <motion.span
-                              key={i}
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{
-                                delay: i * 0.05,
-                                duration: 0.3,
-                                ease: "easeOut",
-                              }}
-                              whileHover={{
-                                scale: 1.1,
-                                y: -2,
-                                boxShadow: "0 4px 12px rgba(6, 182, 212, 0.3)",
-                              }}
-                              className="px-2.5 py-1 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-medium cursor-default transition-colors hover:border-cyan-400/50 hover:text-cyan-200"
-                            >
-                              {tech}
-                            </motion.span>
-                          ))}
-                        </div>
-                        <div className="flex items-center gap-4">
-                          {project.liveUrl && (
-                            <Link
-                              href={project.liveUrl}
-                              target="_blank"
-                              className="inline-flex items-center gap-1.5 text-sm text-cyan-400 hover:text-cyan-300"
-                            >
-                              <ExternalLink className="w-4 h-4" />{" "}
-                              {t("sections.live")}
-                            </Link>
-                          )}
-                          {project.githubUrl && (
-                            <Link
-                              href={project.githubUrl}
-                              target="_blank"
-                              className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white"
-                            >
-                              <Github className="w-4 h-4" /> Code
-                            </Link>
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  </ScrollElement>
-                ))}
-              </div>
-
-              {/* View All Projects Link */}
-              {featuredProjects.length > 3 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.3, duration: 0.5 }}
-                  className="flex justify-center mt-12"
-                >
-                  <Link
-                    href="/projects"
-                    className="group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 text-cyan-300 font-medium hover:border-cyan-400/50 hover:text-cyan-200 transition-all hover:shadow-lg hover:shadow-cyan-500/20"
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+              {featuredProjects.map((project, index) => (
+                <ScrollElement key={project.id}>
+                  <motion.div
+                    className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm hover:shadow-2xl hover:shadow-cyan-500/20"
+                    whileHover={{
+                      y: -12,
+                      scale: 1.02,
+                      transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] },
+                    }}
                   >
-                    {t("sections.projects.viewAll")}
-                    <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </motion.div>
-              )}
-            </>
+                    <BorderBeam
+                      size={250}
+                      duration={12}
+                      delay={index * 2}
+                      colorFrom="#06b6d4"
+                      colorTo="#3b82f6"
+                    />
+                    <div className="aspect-video w-full bg-slate-900 relative overflow-hidden">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={project.imageUrl || DEFAULT_PROJECT_IMAGE}
+                        alt={
+                          locale === "fr" && project.titleFr
+                            ? project.titleFr
+                            : project.title
+                        }
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </div>
+                    <div className="p-6">
+                      <h3 className="text-xl font-bold mb-2 text-white group-hover:text-cyan-400 transition-colors">
+                        {locale === "fr" && project.titleFr
+                          ? project.titleFr
+                          : project.title}
+                      </h3>
+                      <p className="text-slate-400 mb-4">
+                        {locale === "fr" && project.descriptionFr
+                          ? project.descriptionFr
+                          : project.description}
+                      </p>
+                      <div className="flex gap-2 flex-wrap mb-4">
+                        {project.technologies.map((tech, i) => (
+                          <motion.span
+                            key={i}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{
+                              delay: i * 0.05,
+                              duration: 0.3,
+                              ease: "easeOut",
+                            }}
+                            whileHover={{
+                              scale: 1.1,
+                              y: -2,
+                              boxShadow: "0 4px 12px rgba(6, 182, 212, 0.3)",
+                            }}
+                            className="px-2.5 py-1 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-medium cursor-default transition-colors hover:border-cyan-400/50 hover:text-cyan-200"
+                          >
+                            {tech}
+                          </motion.span>
+                        ))}
+                      </div>
+                      <div className="flex items-center gap-4">
+                        {project.liveUrl && (
+                          <Link
+                            href={project.liveUrl}
+                            target="_blank"
+                            className="inline-flex items-center gap-1.5 text-sm text-cyan-400 hover:text-cyan-300"
+                          >
+                            <ExternalLink className="w-4 h-4" />{" "}
+                            {t("sections.live")}
+                          </Link>
+                        )}
+                        {project.githubUrl && (
+                          <Link
+                            href={project.githubUrl}
+                            target="_blank"
+                            className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white"
+                          >
+                            <Github className="w-4 h-4" /> Code
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                </ScrollElement>
+              ))}
+            </div>
           ) : (
             <div className="text-center py-12 text-slate-500">
               {t("sections.projects.empty")}
