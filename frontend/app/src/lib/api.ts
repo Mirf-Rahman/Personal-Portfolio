@@ -1,7 +1,9 @@
 // API client for communicating with the backend
 import { getAuthToken } from "./auth-client";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+// Normalize so we never get double /api (e.g. if NEXT_PUBLIC_API_URL ends with /api)
+const API_URL = RAW_API_URL.replace(/\/api\/?$/, "") || RAW_API_URL;
 
 export async function fetchApi<T>(
   endpoint: string,
@@ -92,7 +94,7 @@ export async function uploadFile(file: File): Promise<string> {
   const formData = new FormData();
   formData.append("file", file);
 
-  // Upload to backend
+  // Upload to backend (API_URL is normalized so no double /api)
   const response = await fetch(`${API_URL}/api/files`, {
     method: "POST",
     headers: {

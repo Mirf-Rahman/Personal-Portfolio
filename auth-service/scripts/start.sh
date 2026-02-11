@@ -11,10 +11,10 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Step 2: Start the service in background using standalone server
+# Step 2: Start the service in background
 echo "🔧 Starting auth-service in background..."
-HOSTNAME=0.0.0.0 PORT=3001 node server.js &
-SERVER_PID=$!
+npm start &
+NPM_PID=$!
 
 # Step 3: Wait for service to be ready
 echo "⏳ Waiting for auth-service to be ready..."
@@ -72,6 +72,6 @@ if [ "${NODE_ENV}" != "production" ] && [ "${SPRING_PROFILES_ACTIVE}" != "prod" 
 fi
 echo "🔧 Auth-service is running..."
 
-# Wait for server process to keep container alive
-wait $SERVER_PID
+# Wait for npm process to keep container alive
+wait $NPM_PID
 

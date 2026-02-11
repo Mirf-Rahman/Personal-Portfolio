@@ -15,36 +15,34 @@ async function handleTokenRequest(request: NextRequest) {
   try {
     // Get session from cookies using Better Auth
     const cookieHeader = request.headers.get("cookie") || "";
-    
+
     // Use Better Auth's session handler
     const sessionResult = await auth.api.getSession({
       headers: {
         cookie: cookieHeader,
       },
     });
-    
+
     if (!sessionResult || !sessionResult.user) {
-      return NextResponse.json(
-        { error: "Not authenticated" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
     const user = sessionResult.user;
-    
+
     // Generate JWT token manually using the same secret and config as Better Auth
-    const jwtSecret = process.env.BETTER_AUTH_JWT_SECRET || 
-                     process.env.AUTH_JWT_SECRET || 
-                     process.env.BETTER_AUTH_SECRET;
-    
+    const jwtSecret =
+      process.env.BETTER_AUTH_JWT_SECRET ||
+      process.env.AUTH_JWT_SECRET ||
+      process.env.BETTER_AUTH_SECRET;
+
     if (!jwtSecret || jwtSecret.length < 32) {
       console.error("JWT secret is missing or too short");
       return NextResponse.json(
         { error: "Server configuration error" },
-        { status: 500 }
+        { status: 500 },
       );
     }
-    
+
     const token = jwt.sign(
       {
         sub: user.id,
@@ -52,13 +50,19 @@ async function handleTokenRequest(request: NextRequest) {
         name: user.name || null,
         role: (user as any).role || "CUSTOMER",
         locale: (user as any).locale || "en",
-        iss: process.env.BETTER_AUTH_JWT_ISS || process.env.AUTH_JWT_ISS || "passion-jerseys-auth",
-        aud: process.env.BETTER_AUTH_JWT_AUD || process.env.AUTH_JWT_AUD || "passion-jerseys-api",
+        iss:
+          process.env.BETTER_AUTH_JWT_ISS ||
+          process.env.AUTH_JWT_ISS ||
+          "portfolio-auth",
+        aud:
+          process.env.BETTER_AUTH_JWT_AUD ||
+          process.env.AUTH_JWT_AUD ||
+          "portfolio-api",
       },
       jwtSecret,
       {
         expiresIn: "1h",
-      }
+      },
     );
 
     return NextResponse.json({ token });
@@ -69,8 +73,7 @@ async function handleTokenRequest(request: NextRequest) {
     }
     return NextResponse.json(
       { error: "Failed to generate token" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-
