@@ -177,7 +177,8 @@ export const auth = betterAuth({
   // Email verification (requires email service)
   emailVerification: {
     enabled: true,
-    requireEmailVerification: true, // Require verification before login
+    // In development, allow sign-in without verification so seed/admin users work; require in production
+    requireEmailVerification: process.env.NODE_ENV === "production",
     sendOnSignUp: true, // Automatically send verification email on signup
     autoSignInAfterVerification: true, // Automatically log in user after email verification
     sendVerificationEmail: async ({ user, url, token }, request) => {

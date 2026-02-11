@@ -26,7 +26,7 @@ echo "⏳ Waiting for auth-service to be ready..."
 max_attempts=60
 attempt=0
 while [ $attempt -lt $max_attempts ]; do
-  if wget --no-verbose --tries=1 --spider http://localhost:3001/api/health > /dev/null 2>&1; then
+  if wget --no-verbose --tries=1 --spider http://127.0.0.1:3001/api/health > /dev/null 2>&1; then
     echo "✅ Auth-service is ready!"
     break
   fi
@@ -39,7 +39,18 @@ done
 
 if [ $attempt -eq $max_attempts ]; then
   echo "⚠️  Auth-service did not start in time, but continuing..."
+  # In dev, still run seed: seed-users.sh has its own wait for auth-service, so user gets created
+  if [ "${NODE_ENV}" != "production" ] && [ "${SPRING_PROFILES_ACTIVE}" != "prod" ] && [ "${SPRING_PROFILES_ACTIVE}" != "production" ]; then
+    echo "🌱 Seeding users (seed script will wait for auth-service)..."
+    sleep 5
+    ./scripts/seed-users.sh
+    if [ $? -ne 0 ]; then
+      echo "⚠️  User seeding failed. Test users may not be available."
+    fi
+  fi
 else
+  # Brief delay so auth API routes are fully registered before seed/setup
+  sleep 3
   # Step 4: Setup production admin user (if credentials provided)
   if [ "${NODE_ENV}" = "production" ] || [ "${SPRING_PROFILES_ACTIVE}" = "prod" ] || [ "${SPRING_PROFILES_ACTIVE}" = "production" ]; then
     echo "🔐 Setting up production admin user..."

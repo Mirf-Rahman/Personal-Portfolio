@@ -36,8 +36,8 @@ COPY --from=build /app/.next/static ./.next/static
 # Expose port
 EXPOSE 3001
 
-# Install postgresql-client for psql
-RUN apk add --no-cache postgresql-client
+# Install postgresql-client for psql and wget for health/seed scripts
+RUN apk add --no-cache postgresql-client wget
 
 # Copy scripts directory (contains setup-db.sh and init-schema.sql)
 COPY scripts ./scripts

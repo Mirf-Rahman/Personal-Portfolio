@@ -391,7 +391,8 @@ export async function POST(request: NextRequest) {
           );
         }
 
-        if (user && !user.emailVerified) {
+        // Only enforce email verification in production; allow dev/login for seed users locally
+        if (user && !user.emailVerified && process.env.NODE_ENV === "production") {
           const clientInfo = getClientInfo(request);
           await recordLoginAttempt(email, false, clientInfo.ipAddress, clientInfo.userAgent);
           
@@ -453,7 +454,8 @@ export async function POST(request: NextRequest) {
             );
           }
           
-          if (user && !user.emailVerified) {
+          // Only enforce email verification in production
+          if (user && !user.emailVerified && process.env.NODE_ENV === "production") {
             const clientInfo = getClientInfo(request);
             await recordLoginAttempt(email, false, clientInfo.ipAddress, clientInfo.userAgent);
             

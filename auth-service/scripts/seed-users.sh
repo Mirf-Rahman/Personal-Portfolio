@@ -25,8 +25,18 @@ fi
 
 echo "🌱 Seeding test users..."
 
-# Validate required environment variables (check raw variables, apply defaults when using)
-if [ -z "${POSTGRES_USER}" ] || [ -z "${POSTGRES_DB}" ] || [ -z "${POSTGRES_PASSWORD}" ]; then
+# Use DATABASE_URL for psql when set (e.g. local dev: postgres://auth_user:auth_pass@localhost:5434/auth_db)
+# Otherwise use -h auth-db (Docker)
+if [ -n "${DATABASE_URL}" ]; then
+  USE_DATABASE_URL=1
+  echo "   Using DATABASE_URL for database connection"
+else
+  USE_DATABASE_URL=0
+  echo "   Using auth-db host (Docker)"
+fi
+
+# Validate required environment variables when not using DATABASE_URL
+if [ "$USE_DATABASE_URL" = "0" ] && { [ -z "${POSTGRES_USER}" ] || [ -z "${POSTGRES_DB}" ] || [ -z "${POSTGRES_PASSWORD}" ]; }; then
   echo "⚠️  Warning: Some database environment variables are not set, using defaults"
   echo "   POSTGRES_USER=${POSTGRES_USER:-auth_user}"
   echo "   POSTGRES_DB=${POSTGRES_DB:-auth_db}"
@@ -40,9 +50,9 @@ max_attempts=60
 attempt=0
 AUTH_URL=""
 while [ $attempt -lt $max_attempts ]; do
-  # Try localhost first (same container)
-  if wget --no-verbose --tries=1 --spider http://localhost:3001/api/health > /dev/null 2>&1; then
-    AUTH_URL="http://localhost:3001"
+  # Try 127.0.0.1 first (same container; avoid IPv6 localhost)
+  if wget --no-verbose --tries=1 --spider http://127.0.0.1:3001/api/health > /dev/null 2>&1; then
+    AUTH_URL="http://127.0.0.1:3001"
     echo "Auth service is ready (localhost)!"
     break
   fi
@@ -75,18 +85,25 @@ escape_sql_string_preserve_case() {
   echo "$1" | sed "s/'/''/g"
 }
 
+# Run psql with either DATABASE_URL or auth-db connection
+run_psql() {
+  if [ "$USE_DATABASE_URL" = "1" ]; then
+    psql "$DATABASE_URL" "$@"
+  else
+    PGPASSWORD=${POSTGRES_PASSWORD:-auth_pass} psql -h auth-db -U ${POSTGRES_USER:-auth_user} -d ${POSTGRES_DB:-auth_db} "$@"
+  fi
+}
+
 # Helper function to update user in database
 # Uses proper SQL escaping for variables
 update_user_in_db() {
   local email_lower="$1"
   local role_escaped="$2"
   
-  PGPASSWORD=${POSTGRES_PASSWORD:-auth_pass} psql -h auth-db -U ${POSTGRES_USER:-auth_user} -d ${POSTGRES_DB:-auth_db} \
-    -c "UPDATE \"user\" SET role = '$role_escaped', \"emailVerified\" = true, \"updatedAt\" = NOW() WHERE LOWER(email) = LOWER('$email_lower');" \
+  run_psql -c "UPDATE \"user\" SET role = '$role_escaped', \"emailVerified\" = true, \"updatedAt\" = NOW() WHERE LOWER(email) = LOWER('$email_lower');" \
     || { echo "   ❌ Failed to update user in database" >&2; return 1; }
   
-  PGPASSWORD=${POSTGRES_PASSWORD:-auth_pass} psql -h auth-db -U ${POSTGRES_USER:-auth_user} -d ${POSTGRES_DB:-auth_db} \
-    -c "DELETE FROM login_attempt WHERE LOWER(email) = LOWER('$email_lower') AND success = false;" \
+  run_psql -c "DELETE FROM login_attempt WHERE LOWER(email) = LOWER('$email_lower') AND success = false;" \
     || { echo "   ❌ Failed to clear login attempts" >&2; return 1; }
 }
 
@@ -105,8 +122,7 @@ create_user() {
   role_escaped=$(escape_sql_string_preserve_case "$role")
   
   # Check if user already exists (using psql with proper escaping)
-  psql_output=$(PGPASSWORD=${POSTGRES_PASSWORD:-auth_pass} psql -h auth-db -U ${POSTGRES_USER:-auth_user} -d ${POSTGRES_DB:-auth_db} \
-    -t -c "SELECT id FROM \"user\" WHERE LOWER(email) = LOWER('$email_lower');" 2>&1)
+  psql_output=$(run_psql -t -c "SELECT id FROM \"user\" WHERE LOWER(email) = LOWER('$email_lower');" 2>&1)
   psql_exit_code=$?
   if [ $psql_exit_code -ne 0 ]; then
     echo "   ❌ Failed to check if user exists: $psql_output" >&2
