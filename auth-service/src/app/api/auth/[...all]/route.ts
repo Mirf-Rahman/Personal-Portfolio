@@ -82,23 +82,17 @@ function getAllSetCookieHeaders(response: Response | NextResponse): string[] {
       cookies.push(cookieString);
     });
   } else {
-    // For regular Response, we need to parse the headers manually
-    // Since Headers doesn't expose all values directly, we'll use get() which
-    // may return comma-separated values or just the first one
-    const setCookieHeader = response.headers.get("set-cookie");
-    if (setCookieHeader) {
-      // Split by ", " - this works for most cases
-      // Better Auth typically sets cookies without commas in values
-      const splitCookies = setCookieHeader.split(", ");
-      // Validate: if splitting creates invalid cookies, it might be a single cookie
-      // Better Auth cookies usually have "; " after the value, so we can check
-      for (const cookie of splitCookies) {
-        if (cookie.includes("=") && cookie.includes(";")) {
-          cookies.push(cookie.trim());
-        } else if (splitCookies.length === 1) {
-          // Single cookie, return as-is
-          cookies.push(cookie.trim());
-        }
+    // For regular Response, use getSetCookie() which properly handles
+    // multiple Set-Cookie headers without the comma-splitting issues
+    // that affect Headers.get("set-cookie") (dates contain commas)
+    if (typeof response.headers.getSetCookie === 'function') {
+      const setCookies = response.headers.getSetCookie();
+      cookies.push(...setCookies.filter(c => c.length > 0));
+    } else {
+      // Fallback for older environments
+      const setCookieHeader = response.headers.get("set-cookie");
+      if (setCookieHeader) {
+        cookies.push(setCookieHeader);
       }
     }
   }

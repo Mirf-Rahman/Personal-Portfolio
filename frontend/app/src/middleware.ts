@@ -8,17 +8,14 @@ export async function middleware(request: NextRequest) {
 
   // Protect /admin routes
   if (pathname.startsWith('/admin')) {
-    // Check for session cookie
-    const sessionCookie = request.cookies.get('better-auth.session_token');
+    // Check for session cookie - Better Auth uses __Secure- prefix on HTTPS
+    const sessionCookie = request.cookies.get('better-auth.session_token') 
+      || request.cookies.get('__Secure-better-auth.session_token');
     
     if (!sessionCookie) {
       // No session - redirect to login
       return NextResponse.redirect(new URL('/login', request.url));
     }
-    
-    // TODO: Verify session with auth-service
-    // For now, allow if cookie exists
-    // In production, validate the session server-side
   }
 
   return NextResponse.next();
