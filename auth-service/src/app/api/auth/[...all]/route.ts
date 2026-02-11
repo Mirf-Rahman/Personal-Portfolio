@@ -1,5 +1,4 @@
 import { auth, db } from "@/lib/auth/auth";
-import { toNextJsHandler } from "better-auth/next-js";
 import { NextRequest, NextResponse } from "next/server";
 import { checkAccountLockout, recordLoginAttempt } from "@/lib/security/account-lockout";
 import { logAuthEvent } from "@/lib/security/audit-log";
@@ -20,8 +19,6 @@ if (typeof window === "undefined" && process.env.DATABASE_URL) {
     throw new Error("BETTER_AUTH_JWT_SECRET or AUTH_JWT_SECRET must be at least 32 characters long.");
   }
 }
-
-const handler = toNextJsHandler(auth);
 
 function getClientInfo(request: NextRequest): { ipAddress?: string; userAgent?: string } {
   return {
@@ -115,7 +112,7 @@ export async function GET(request: NextRequest) {
   const isOAuthCallback = url.pathname.includes("/callback/");
   
   try {
-    const response = await handler.GET(request);
+    const response = await auth.handler(request);
     
     // After OAuth callback, handle redirect and check if account is locked
     if (isOAuthCallback && (response.status === 200 || response.status === 201 || response.status === 302 || response.status === 307)) {
@@ -428,7 +425,7 @@ export async function POST(request: NextRequest) {
         body: bodyString,
       });
       
-      const response = await handler.POST(newRequest);
+      const response = await auth.handler(newRequest);
       
       if (email && typeof email === "string" && (response.status !== 200 && response.status !== 201)) {
         try {
@@ -662,7 +659,7 @@ export async function POST(request: NextRequest) {
             headers: request.headers,
             body: bodyString,
           });
-          return handler.POST(reconstructedRequest);
+          return auth.handler(reconstructedRequest);
         } catch {
           // If reconstruction also fails, log and re-throw the original error
           console.error("Failed to reconstruct request after error:", error);
@@ -680,7 +677,7 @@ export async function POST(request: NextRequest) {
   
   // For non-sign-in requests, use the original handler
   try {
-    const response = await handler.POST(request);
+    const response = await auth.handler(request);
     
     // After OAuth callback, check if account is locked
     if (isOAuthCallback && (response.status === 200 || response.status === 201)) {
