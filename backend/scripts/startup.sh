@@ -3,6 +3,18 @@ set -e
 
 echo "🚀 Starting backend initialization..."
 
+# Diagnostic: verify critical env vars are present at container runtime
+echo "🔍 Checking runtime environment variables..."
+echo "  DATABASE_URL set: $([ -n \"$DATABASE_URL\" ] && echo 'yes' || echo 'NO!')"
+echo "  SPACES_ENDPOINT set: $([ -n \"$SPACES_ENDPOINT\" ] && echo 'yes' || echo 'NO!')"
+echo "  SPACES_ACCESS_KEY set: $([ -n \"$SPACES_ACCESS_KEY\" ] && echo 'yes' || echo 'NO!')"
+echo "  SPACES_SECRET_KEY set: $([ -n \"$SPACES_SECRET_KEY\" ] && echo 'yes' || echo 'NO!')"
+echo "  SPACES_BUCKET set: $([ -n \"$SPACES_BUCKET\" ] && echo 'yes' || echo 'NO!')"
+echo "  SPACES_REGION set: $([ -n \"$SPACES_REGION\" ] && echo 'yes' || echo 'NO!')"
+echo "  SPACES_CDN_URL set: $([ -n \"$SPACES_CDN_URL\" ] && echo 'yes' || echo 'NO!')"
+echo "  AUTH_JWT_SECRET set: $([ -n \"$AUTH_JWT_SECRET\" ] && echo 'yes' || echo 'NO!')"
+echo "  CORS_ORIGINS set: $([ -n \"$CORS_ORIGINS\" ] && echo 'yes' || echo 'NO!')"
+
 # Wait for database to be ready
 echo "⏳ Waiting for database..."
 

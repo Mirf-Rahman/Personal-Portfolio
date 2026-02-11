@@ -22,6 +22,19 @@ function getSpacesConfig() {
   const SPACES_REGION = env("SPACES_REGION") || "nyc3";
   const SPACES_FOLDER_PREFIX = env("SPACES_FOLDER_PREFIX") || "";
 
+  // Runtime diagnostic logging
+  console.log("[Spaces Config] Runtime env check:", {
+    SPACES_ENDPOINT: !!SPACES_ENDPOINT,
+    SPACES_ACCESS_KEY: !!SPACES_ACCESS_KEY,
+    SPACES_SECRET_KEY: !!SPACES_SECRET_KEY,
+    SPACES_BUCKET: !!SPACES_BUCKET,
+    SPACES_REGION: !!SPACES_REGION,
+    envType: typeof process.env,
+    spacesKeysInEnv: Object.keys(process.env).filter((k) =>
+      k.startsWith("SPACES_"),
+    ),
+  });
+
   if (
     !SPACES_ENDPOINT ||
     !SPACES_ACCESS_KEY ||
