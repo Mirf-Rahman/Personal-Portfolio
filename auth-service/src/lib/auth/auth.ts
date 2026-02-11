@@ -100,9 +100,22 @@ const corsOrigins = process.env.CORS_ORIGINS
 // During build, use placeholders; at runtime, real values will be used
 const authSecret = process.env.BETTER_AUTH_SECRET || process.env.AUTH_JWT_SECRET || "build-time-placeholder-secret-must-be-32-chars-min";
 
+// Extract just the origin from BETTER_AUTH_URL to prevent the URL path from
+// overriding basePath. In production, BETTER_AUTH_URL includes the ingress prefix
+// (e.g., https://domain.com/auth/api/auth) but the container receives requests
+// without the ingress prefix (/api/auth/*). Using only the origin ensures
+// basePath: "/api/auth" is used for routing, which matches incoming requests.
+const betterAuthUrl = process.env.BETTER_AUTH_URL || "http://localhost:3001";
+let betterAuthOrigin: string;
+try {
+  betterAuthOrigin = new URL(betterAuthUrl).origin;
+} catch {
+  betterAuthOrigin = betterAuthUrl; // fallback if URL parsing fails
+}
+
 export const auth = betterAuth({
   secret: (process.env.BETTER_AUTH_SECRET || process.env.AUTH_JWT_SECRET) || "build-time-placeholder-secret-must-be-32-chars-min",
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3001",
+  baseURL: betterAuthOrigin,
   basePath: "/api/auth",
   trustedOrigins: corsOrigins,
   database: drizzleAdapter(db, {
