@@ -354,7 +354,7 @@ export default function Home() {
     fetchData();
   }, []);
 
-  const featuredProjects = data.projects.filter((p) => p.featured);
+  const featuredProjects = data.projects.filter((p) => p.featured).slice(0, 3);
 
   return (
     <div

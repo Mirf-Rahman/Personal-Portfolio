@@ -13,7 +13,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Quote, Send, User, Briefcase, Building2, ArrowLeft } from "lucide-react";
+import {
+  Quote,
+  Send,
+  User,
+  Briefcase,
+  Building2,
+  ArrowLeft,
+} from "lucide-react";
 
 interface FieldErrors {
   name?: string;

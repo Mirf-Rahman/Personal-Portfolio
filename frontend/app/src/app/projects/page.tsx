@@ -27,7 +27,8 @@ interface Project {
 
 const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 const API_URL = RAW_API_URL.replace(/\/api\/?$/, "") || RAW_API_URL;
-const DEFAULT_PROJECT_IMAGE = "https://mirf-portfolio-files.nyc3.cdn.digitaloceanspaces.com/dev/GitHub-Logo.jpg";
+const DEFAULT_PROJECT_IMAGE =
+  "https://mirf-portfolio-files.nyc3.cdn.digitaloceanspaces.com/dev/GitHub-Logo.jpg";
 
 export default function ProjectsPage() {
   const t = useTranslations("projects");
@@ -37,7 +38,8 @@ export default function ProjectsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useLayoutEffect(() => {
-    const lenis = typeof window !== "undefined" ? (window as any).__lenis : null;
+    const lenis =
+      typeof window !== "undefined" ? (window as any).__lenis : null;
     if (lenis) lenis.scrollTo(0, { immediate: true });
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
@@ -47,7 +49,9 @@ export default function ProjectsPage() {
   useEffect(() => {
     async function fetchProjects() {
       try {
-        const res = await fetch(`${API_URL}/api/projects`, { cache: "no-store" });
+        const res = await fetch(`${API_URL}/api/projects`, {
+          cache: "no-store",
+        });
         if (!res.ok) throw new Error("Failed to fetch projects");
         const data = await res.json();
         setProjects(data);
@@ -228,9 +232,7 @@ export default function ProjectsPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 text-slate-500">
-              {t("empty")}
-            </div>
+            <div className="text-center py-12 text-slate-500">{t("empty")}</div>
           )}
         </div>
       </main>
