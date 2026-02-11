@@ -4,14 +4,23 @@ import {
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 
+/**
+ * Dynamic env var accessor — prevents Next.js webpack from inlining
+ * process.env.VARIABLE as `undefined` at build time when the var
+ * is only injected at container runtime (e.g. DigitalOcean App Platform).
+ */
+function env(key: string): string | undefined {
+  return process.env[key];
+}
+
 // Environment variables (lazy validation - only checked at runtime)
 function getSpacesConfig() {
-  const SPACES_ENDPOINT = process.env.SPACES_ENDPOINT;
-  const SPACES_ACCESS_KEY = process.env.SPACES_ACCESS_KEY;
-  const SPACES_SECRET_KEY = process.env.SPACES_SECRET_KEY;
-  const SPACES_BUCKET = process.env.SPACES_BUCKET;
-  const SPACES_REGION = process.env.SPACES_REGION || "nyc3";
-  const SPACES_FOLDER_PREFIX = process.env.SPACES_FOLDER_PREFIX || "";
+  const SPACES_ENDPOINT = env("SPACES_ENDPOINT");
+  const SPACES_ACCESS_KEY = env("SPACES_ACCESS_KEY");
+  const SPACES_SECRET_KEY = env("SPACES_SECRET_KEY");
+  const SPACES_BUCKET = env("SPACES_BUCKET");
+  const SPACES_REGION = env("SPACES_REGION") || "nyc3";
+  const SPACES_FOLDER_PREFIX = env("SPACES_FOLDER_PREFIX") || "";
 
   if (
     !SPACES_ENDPOINT ||
@@ -86,7 +95,7 @@ export async function uploadFile(
 
   // Construct CDN URL
   const cdnUrl =
-    process.env.SPACES_CDN_URL ||
+    env("SPACES_CDN_URL") ||
     `https://${config.bucket}.${config.region}.cdn.digitaloceanspaces.com`;
   const fileUrl = `${cdnUrl}/${key}`;
 
