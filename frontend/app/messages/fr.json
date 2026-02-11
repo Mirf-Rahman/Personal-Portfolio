@@ -153,6 +153,7 @@
       "subjectRequired": "Le sujet est requis",
       "subjectMax": "Le sujet doit contenir moins de {max} caractères",
       "messageRequired": "Le message est requis",
+      "messageMin": "Le message doit contenir au moins 10 caractères",
       "messageMax": "Le message doit contenir moins de {max} caractères"
     },
     "social": {

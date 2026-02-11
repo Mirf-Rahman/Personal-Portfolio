@@ -77,6 +77,8 @@ export default function ContactPage() {
     else if (subject.length > LIMITS.subject)
       errors.subject = t("validation.subjectMax", { max: LIMITS.subject });
     if (!message.trim()) errors.message = t("validation.messageRequired");
+    else if (message.trim().length < 10)
+      errors.message = t("validation.messageMin");
     else if (message.length > LIMITS.message)
       errors.message = t("validation.messageMax", { max: LIMITS.message });
 
@@ -99,7 +101,17 @@ export default function ContactPage() {
       });
 
       if (!res.ok) {
-        throw new Error("Failed to send message");
+        let errMessage = t("errors.generic");
+        try {
+          const body = await res.json();
+          if (body?.details?.[0]?.message) errMessage = body.details[0].message;
+          else if (body?.error) errMessage = body.error;
+        } catch {
+          /* use errMessage as-is */
+        }
+        setError(errMessage);
+        setLoading(false);
+        return;
       }
 
       setSuccess(true);

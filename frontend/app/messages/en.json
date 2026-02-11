@@ -153,6 +153,7 @@
       "subjectRequired": "Subject is required",
       "subjectMax": "Subject must be less than {max} characters",
       "messageRequired": "Message is required",
+      "messageMin": "Message must be at least 10 characters",
       "messageMax": "Message must be less than {max} characters"
     },
     "social": {
