@@ -69,8 +69,18 @@
         "title": "Loisirs & Intérêts",
         "description": "Au-delà du code – ce que j'aime faire pendant mon temps libre.",
         "empty": "Aucun loisir ajouté pour le moment."
-      }
+      },
+      "live": "En direct",
+      "present": "Présent",
+      "viewAllProjects": "Voir tous les projets →"
     }
+  },
+  "projects": {
+    "title": "Tous les projets",
+    "description": "Une collection de mes travaux et projets personnels.",
+    "viewProject": "Démo en direct",
+    "codeLabel": "Code",
+    "empty": "Aucun projet pour le moment."
   },
   "testimonials": {
     "title": "Laisser un témoignage",
@@ -92,6 +102,21 @@
       "title": "Avis soumis !",
       "message": "Merci d'avoir partagé votre expérience. Votre témoignage est en cours de révision et sera bientôt en ligne.",
       "another": "Soumettre un autre"
+    },
+    "validation": {
+      "nameRequired": "Le nom est requis",
+      "nameMin": "Le nom doit contenir au moins {min} caractères",
+      "nameMax": "Le nom doit contenir moins de {max} caractères",
+      "nameInvalid": "Le nom contient des caractères invalides",
+      "positionMax": "Le poste doit contenir moins de {max} caractères",
+      "companyMax": "L'entreprise doit contenir moins de {max} caractères",
+      "contentRequired": "Le contenu du témoignage est requis",
+      "contentMin": "Le témoignage doit contenir au moins {min} caractères",
+      "contentMax": "Le témoignage doit contenir moins de {max} caractères",
+      "fixErrors": "Veuillez corriger les erreurs ci-dessus",
+      "rateLimit": "Trop de tentatives. Veuillez réessayer plus tard.",
+      "submitFailed": "Échec de la soumission du témoignage",
+      "generic": "Une erreur s'est produite. Veuillez réessayer."
     }
   },
   "contact": {
@@ -115,6 +140,18 @@
       "title": "Message envoyé !",
       "message": "Merci de m'avoir contacté. Je vous répondrai dès que possible.",
       "another": "Envoyer un autre message"
+    },
+    "validation": {
+      "nameRequired": "Le nom est requis",
+      "nameMax": "Le nom doit contenir moins de {max} caractères",
+      "emailRequired": "L'adresse courriel est requise",
+      "emailInvalid": "Veuillez entrer une adresse courriel valide",
+      "emailMax": "Le courriel doit contenir moins de {max} caractères",
+      "subjectRequired": "Le sujet est requis",
+      "subjectMax": "Le sujet doit contenir moins de {max} caractères",
+      "messageRequired": "Le message est requis",
+      "messageMin": "Le message doit contenir au moins 10 caractères",
+      "messageMax": "Le message doit contenir moins de {max} caractères"
     },
     "errors": {
       "generic": "Une erreur s'est produite. Veuillez réessayer."
@@ -146,6 +183,7 @@
     "expand": "Agrandir",
     "logout": "Déconnexion",
     "panel": "Panneau Admin",
+    "viewPortfolio": "Voir le portfolio",
     "backToSite": "← Retour au site",
     "sidebar": {
       "dashboard": "Tableau de bord",
@@ -229,7 +267,11 @@
       "moveUp": "Déplacer vers le haut",
       "moveDown": "Déplacer vers le bas",
       "empty": "Aucun projet. Ajoutez votre premier projet !",
-      "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce projet ?"
+      "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce projet ?",
+      "titleFrLabel": "Titre (Français)",
+      "titleFrPlaceholder": "Mon super projet",
+      "descriptionFrLabel": "Description (Français)",
+      "descriptionFrPlaceholder": "Description du projet en français..."
     },
     "experience": {
       "title": "Gérer l'expérience",
@@ -332,7 +374,15 @@
       "moveUp": "Déplacer vers le haut",
       "moveDown": "Déplacer vers le bas",
       "empty": "Aucun loisir. Ajoutez votre premier loisir !",
-      "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce loisir ?"
+      "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce loisir ?",
+      "nameLabel": "Nom",
+      "namePlaceholder": "ex. Photographie",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Description courte optionnelle...",
+      "nameFrLabel": "Nom (Français)",
+      "nameFrPlaceholder": "ex. Photographie",
+      "descriptionFrLabel": "Description (Français)",
+      "descriptionFrPlaceholder": "Description optionnelle en français..."
     },
     "testimonials": {
       "title": "Gérer les témoignages",
@@ -407,7 +457,9 @@
       "loadError": "Échec du chargement des informations de contact",
       "emailRequired": "Le courriel est requis",
       "saving": "Enregistrement des modifications...",
-      "save": "Enregistrer"
+      "save": "Enregistrer",
+      "contactPhoto": "Photo de contact",
+      "contactPhotoLabel": "Téléverser une photo de contact"
     },
     "common": {
       "save": "Enregistrer",

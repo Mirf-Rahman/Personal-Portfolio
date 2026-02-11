@@ -7,29 +7,41 @@ import { authClient } from "@/lib/auth-client";
 import { authenticatedFetch, fetchApi } from "@/lib/api";
 import ImageUpload from "@/components/ImageUpload";
 import { AdminPageHeader } from "@/components/ui/admin-page-header";
-import { 
-  AdminTable, 
-  AdminTableHeader, 
-  AdminTableHead, 
-  AdminTableBody, 
-  AdminTableRow, 
-  AdminTableCell 
+import {
+  AdminTable,
+  AdminTableHeader,
+  AdminTableHead,
+  AdminTableBody,
+  AdminTableRow,
+  AdminTableCell,
 } from "@/components/ui/admin-table";
 import { ShineBorder } from "@/components/ui/shine-border";
-import { Pencil, Trash2, ArrowUp, ArrowDown, X, Save, Plus } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  X,
+  Save,
+  Plus,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Hobby {
   id: string;
   name: string;
+  nameFr: string | null;
   description: string | null;
+  descriptionFr: string | null;
   iconUrl: string | null;
   order: number;
 }
 
 const emptyForm = {
   name: "",
+  nameFr: "",
   description: "",
+  descriptionFr: "",
   iconUrl: "",
   order: 0,
 };
@@ -75,7 +87,9 @@ export default function HobbiesManagementPage() {
     try {
       const payload = {
         name: formData.name,
+        nameFr: formData.nameFr || null,
         description: formData.description || null,
+        descriptionFr: formData.descriptionFr || null,
         iconUrl: formData.iconUrl || null,
       };
 
@@ -106,7 +120,9 @@ export default function HobbiesManagementPage() {
     setEditingHobby(hobby);
     setFormData({
       name: hobby.name,
+      nameFr: hobby.nameFr || "",
       description: hobby.description || "",
+      descriptionFr: hobby.descriptionFr || "",
       iconUrl: hobby.iconUrl || "",
       order: hobby.order,
     });
@@ -172,13 +188,15 @@ export default function HobbiesManagementPage() {
   const sortedHobbies = [...hobbies].sort((a, b) => a.order - b.order);
 
   // Common input styles
-  const inputClass = "w-full pl-4 pr-4 py-3 bg-slate-900/40 border border-white/[0.08] rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-200 shadow-inner hover:border-white/[0.12] hover:bg-slate-900/60";
-  const labelClass = "block text-[11px] font-semibold text-cyan-100/60 uppercase tracking-widest pl-1 font-mono mb-2";
+  const inputClass =
+    "w-full pl-4 pr-4 py-3 bg-slate-900/40 border border-white/[0.08] rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-200 shadow-inner hover:border-white/[0.12] hover:bg-slate-900/60";
+  const labelClass =
+    "block text-[11px] font-semibold text-cyan-100/60 uppercase tracking-widest pl-1 font-mono mb-2";
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader 
-        title={t("hobbies.title")} 
+      <AdminPageHeader
+        title={t("hobbies.title")}
         description={t("hobbies.description")}
         customAction={
           <button
@@ -192,7 +210,7 @@ export default function HobbiesManagementPage() {
       />
 
       {(isEditing || editingHobby) && (
-        <ShineBorder 
+        <ShineBorder
           className="relative w-full rounded-2xl bg-black/20 border border-white/[0.08] backdrop-blur-xl p-8"
           shineColor={["#f472b6", "#e879f9", "#c084fc"]}
         >
@@ -200,15 +218,16 @@ export default function HobbiesManagementPage() {
             <h3 className="font-display font-bold text-xl text-white">
               {editingHobby ? t("hobbies.editHobby") : t("hobbies.addNewHobby")}
             </h3>
-            <button onClick={handleCancel} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+            <button
+              onClick={handleCancel}
+              className="p-2 hover:bg-white/10 rounded-full transition-colors"
+            >
               <X className="w-5 h-5 text-slate-400" />
             </button>
           </div>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className={labelClass}>
-                {t("hobbies.name")} *
-              </label>
+              <label className={labelClass}>{t("hobbies.name")} *</label>
               <input
                 type="text"
                 value={formData.name}
@@ -217,6 +236,18 @@ export default function HobbiesManagementPage() {
                 }
                 required
                 placeholder="e.g. Photography"
+                className={inputClass}
+              />
+            </div>
+            <div>
+              <label className={labelClass}>{t("hobbies.nameFrLabel")}</label>
+              <input
+                type="text"
+                value={formData.nameFr}
+                onChange={(e) =>
+                  setFormData({ ...formData, nameFr: e.target.value })
+                }
+                placeholder={t("hobbies.nameFrPlaceholder")}
                 className={inputClass}
               />
             </div>
@@ -235,6 +266,20 @@ export default function HobbiesManagementPage() {
               />
             </div>
             <div>
+              <label className={labelClass}>
+                {t("hobbies.descriptionFrLabel")}
+              </label>
+              <textarea
+                value={formData.descriptionFr}
+                onChange={(e) =>
+                  setFormData({ ...formData, descriptionFr: e.target.value })
+                }
+                placeholder={t("hobbies.descriptionFrPlaceholder")}
+                rows={3}
+                className={inputClass}
+              />
+            </div>
+            <div>
               <label className={labelClass}>{t("hobbies.iconUrl")}</label>
               <ImageUpload
                 value={formData.iconUrl}
@@ -247,7 +292,7 @@ export default function HobbiesManagementPage() {
 
             <div className="flex gap-4 items-center">
               {!editingHobby && (
-                 <div className="px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                <div className="px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/20">
                   <p className="text-xs text-purple-300 font-mono">
                     {t("hobbies.autoOrderHint")} {formData.order}
                   </p>
@@ -257,9 +302,7 @@ export default function HobbiesManagementPage() {
 
             {editingHobby && (
               <div>
-                <label className={labelClass}>
-                  {t("hobbies.position")}
-                </label>
+                <label className={labelClass}>{t("hobbies.position")}</label>
                 <select
                   value={formData.order}
                   onChange={async (e) => {
@@ -302,7 +345,11 @@ export default function HobbiesManagementPage() {
                       );
                       const isCurrent = hobbyAtPosition?.id === editingHobby.id;
                       return (
-                        <option key={position} value={position} className="bg-slate-900 text-slate-200">
+                        <option
+                          key={position}
+                          value={position}
+                          className="bg-slate-900 text-slate-200"
+                        >
                           {t("hobbies.positionLabel")} {position}
                           {hobbyAtPosition && !isCurrent
                             ? ` – ${hobbyAtPosition.name}`
@@ -319,13 +366,13 @@ export default function HobbiesManagementPage() {
                 </p>
               </div>
             )}
-            
+
             {error && (
               <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm">
                 <p>{error}</p>
               </div>
             )}
-            
+
             <div className="flex gap-3 pt-4 border-t border-white/[0.08]">
               <button
                 type="submit"
@@ -341,7 +388,7 @@ export default function HobbiesManagementPage() {
                   <>
                     <Save className="w-4 h-4" />
                     <span>
-                        {editingHobby ? t("hobbies.update") : t("hobbies.create")}
+                      {editingHobby ? t("hobbies.update") : t("hobbies.create")}
                     </span>
                   </>
                 )}
@@ -361,10 +408,10 @@ export default function HobbiesManagementPage() {
 
       {loading ? (
         <div className="text-center py-12">
-            <div className="animate-pulse flex flex-col items-center">
-                <div className="h-4 bg-white/10 rounded w-1/4 mb-4"></div>
-                <div className="h-64 bg-white/5 rounded-xl w-full"></div>
-            </div>
+          <div className="animate-pulse flex flex-col items-center">
+            <div className="h-4 bg-white/10 rounded w-1/4 mb-4"></div>
+            <div className="h-64 bg-white/5 rounded-xl w-full"></div>
+          </div>
         </div>
       ) : (
         <AdminTable>
@@ -373,7 +420,9 @@ export default function HobbiesManagementPage() {
             <AdminTableHead>{t("hobbies.icon")}</AdminTableHead>
             <AdminTableHead>{t("hobbies.name")}</AdminTableHead>
             <AdminTableHead>{t("hobbies.hobbyDescription")}</AdminTableHead>
-            <AdminTableHead className="text-right">{t("common.actions")}</AdminTableHead>
+            <AdminTableHead className="text-right">
+              {t("common.actions")}
+            </AdminTableHead>
           </AdminTableHeader>
           <AdminTableBody>
             {sortedHobbies.length === 0 ? (
@@ -409,9 +458,7 @@ export default function HobbiesManagementPage() {
                           <button
                             type="button"
                             onClick={() => handleReorder(hobby.id, "down")}
-                            disabled={
-                              !canMoveDown || reordering === hobby.id
-                            }
+                            disabled={!canMoveDown || reordering === hobby.id}
                             className="p-1 hover:bg-cyan-500/20 hover:text-cyan-400 rounded transition-colors disabled:opacity-20"
                             title={t("hobbies.moveDown")}
                           >
@@ -422,34 +469,34 @@ export default function HobbiesManagementPage() {
                     </AdminTableCell>
                     <AdminTableCell>
                       {hobby.iconUrl ? (
-                         <div className="w-8 h-8 rounded-lg bg-white/[0.05] p-1.5 flex items-center justify-center border border-white/[0.05]">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={hobby.iconUrl}
-                              alt={hobby.name}
-                              className="w-full h-full object-contain"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).style.display =
-                                  "none";
-                              }}
-                            />
+                        <div className="w-8 h-8 rounded-lg bg-white/[0.05] p-1.5 flex items-center justify-center border border-white/[0.05]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={hobby.iconUrl}
+                            alt={hobby.name}
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display =
+                                "none";
+                            }}
+                          />
                         </div>
                       ) : (
-                        <span className="text-slate-500 text-xs">
-                          —
-                        </span>
+                        <span className="text-slate-500 text-xs">—</span>
                       )}
                     </AdminTableCell>
                     <AdminTableCell>
-                        <span className="font-medium text-white">{hobby.name}</span>
+                      <span className="font-medium text-white">
+                        {hobby.name}
+                      </span>
                     </AdminTableCell>
                     <AdminTableCell>
-                        <span className="text-slate-400 text-sm max-w-[200px] truncate block">
-                          {hobby.description || "—"}
-                        </span>
+                      <span className="text-slate-400 text-sm max-w-[200px] truncate block">
+                        {hobby.description || "—"}
+                      </span>
                     </AdminTableCell>
                     <AdminTableCell>
-                       <div className="flex justify-end gap-2">
+                      <div className="flex justify-end gap-2">
                         <button
                           type="button"
                           onClick={() => handleEdit(hobby)}

@@ -4,6 +4,10 @@ import { uploadFile } from "@/lib/storage/spaces-client";
 import { randomUUID } from "crypto";
 import { extname } from "path";
 
+// Ensure this route is always dynamic and uses Node.js runtime
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 // Allowed file types
 const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
@@ -98,8 +102,15 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Error uploading file:", error);
+    const message =
+      error instanceof Error ? error.message : "Unknown upload error";
+    console.error("Upload error details:", {
+      message,
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined,
+    });
     return NextResponse.json(
-      { error: "Failed to upload file" },
+      { error: "Failed to upload file", details: message },
       { status: 500 },
     );
   }

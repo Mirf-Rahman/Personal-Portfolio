@@ -535,6 +535,18 @@ export default function Home() {
               {t("sections.projects.empty")}
             </div>
           )}
+
+          {/* View All Projects Button */}
+          {featuredProjects.length > 0 && (
+            <div className="text-center mt-12">
+              <Link
+                href="/projects"
+                className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 text-cyan-300 font-semibold hover:from-cyan-500/20 hover:to-blue-500/20 hover:border-cyan-400/50 hover:text-cyan-200 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/20"
+              >
+                {t("sections.viewAllProjects")}
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 

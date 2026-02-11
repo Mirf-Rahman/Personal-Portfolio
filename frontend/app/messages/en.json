@@ -69,8 +69,18 @@
         "title": "Hobbies & Interests",
         "description": "Beyond code – what I love to do in my free time.",
         "empty": "No hobbies added yet."
-      }
+      },
+      "live": "Live",
+      "present": "Present",
+      "viewAllProjects": "View All Projects →"
     }
+  },
+  "projects": {
+    "title": "All Projects",
+    "description": "A collection of my work and personal projects.",
+    "viewProject": "Live Demo",
+    "codeLabel": "Code",
+    "empty": "No projects yet."
   },
   "testimonials": {
     "title": "Leave a Testimonial",
@@ -92,6 +102,21 @@
       "title": "Review Submitted!",
       "message": "Thank you for sharing your experience. Your testimonial is under review and will be live soon.",
       "another": "Submit another"
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "nameMin": "Name must be at least {min} characters",
+      "nameMax": "Name must be less than {max} characters",
+      "nameInvalid": "Name contains invalid characters",
+      "positionMax": "Position must be less than {max} characters",
+      "companyMax": "Company must be less than {max} characters",
+      "contentRequired": "Testimonial content is required",
+      "contentMin": "Testimonial must be at least {min} characters",
+      "contentMax": "Testimonial must be less than {max} characters",
+      "fixErrors": "Please fix the errors above",
+      "rateLimit": "Too many attempts. Please try again later.",
+      "submitFailed": "Failed to submit testimonial",
+      "generic": "Something went wrong. Please try again."
     }
   },
   "contact": {
@@ -115,6 +140,18 @@
       "title": "Message Sent!",
       "message": "Thank you for reaching out. I'll get back to you as soon as possible.",
       "another": "Send another message"
+    },
+    "validation": {
+      "nameRequired": "Name is required",
+      "nameMax": "Name must be less than {max} characters",
+      "emailRequired": "Email is required",
+      "emailInvalid": "Please enter a valid email address",
+      "emailMax": "Email must be less than {max} characters",
+      "subjectRequired": "Subject is required",
+      "subjectMax": "Subject must be less than {max} characters",
+      "messageRequired": "Message is required",
+      "messageMin": "Message must be at least 10 characters",
+      "messageMax": "Message must be less than {max} characters"
     },
     "errors": {
       "generic": "Something went wrong. Please try again."
@@ -146,6 +183,7 @@
     "expand": "Expand",
     "logout": "Logout",
     "panel": "Admin Panel",
+    "viewPortfolio": "View Portfolio",
     "backToSite": "← Back to Site",
     "sidebar": {
       "dashboard": "Dashboard",
@@ -229,7 +267,11 @@
       "moveUp": "Move up",
       "moveDown": "Move down",
       "empty": "No projects yet. Add your first project!",
-      "confirmDelete": "Are you sure you want to delete this project?"
+      "confirmDelete": "Are you sure you want to delete this project?",
+      "titleFrLabel": "Title (French)",
+      "titleFrPlaceholder": "My Awesome Project (French)",
+      "descriptionFrLabel": "Description (French)",
+      "descriptionFrPlaceholder": "Project description in French..."
     },
     "experience": {
       "title": "Manage Experience",
@@ -332,7 +374,15 @@
       "moveUp": "Move up",
       "moveDown": "Move down",
       "empty": "No hobbies yet. Add your first hobby!",
-      "confirmDelete": "Are you sure you want to delete this hobby?"
+      "confirmDelete": "Are you sure you want to delete this hobby?",
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. Photography",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Optional short description...",
+      "nameFrLabel": "Name (French)",
+      "nameFrPlaceholder": "e.g. Photographie",
+      "descriptionFrLabel": "Description (French)",
+      "descriptionFrPlaceholder": "Optional description in French..."
     },
     "testimonials": {
       "title": "Manage Testimonials",
@@ -407,7 +457,9 @@
       "loadError": "Failed to load contact information",
       "emailRequired": "Email is required",
       "saving": "Saving changes...",
-      "save": "Save"
+      "save": "Save",
+      "contactPhoto": "Contact Photo",
+      "contactPhotoLabel": "Upload a contact photo"
     },
     "common": {
       "save": "Save",
