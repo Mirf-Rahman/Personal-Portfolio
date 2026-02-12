@@ -174,7 +174,11 @@
     "passwordPlaceholder": "Entrez votre mot de passe",
     "submit": "Se connecter",
     "submitting": "Connexion en cours...",
-    "backToHome": "Retour à l'accueil"
+    "backToHome": "Retour à l'accueil",
+    "errors": {
+      "invalid": "Courriel ou mot de passe invalide. Veuillez réessayer.",
+      "generic": "Une erreur inattendue s'est produite. Veuillez réessayer."
+    }
   },
   "admin": {
     "role": "Administrateur",

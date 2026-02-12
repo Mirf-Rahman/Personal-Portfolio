@@ -174,7 +174,11 @@
     "passwordPlaceholder": "Enter your password",
     "submit": "Sign In",
     "submitting": "Signing in...",
-    "backToHome": "Back to Home"
+    "backToHome": "Back to Home",
+    "errors": {
+      "invalid": "Invalid email or password. Please try again.",
+      "generic": "An unexpected error occurred. Please try again."
+    }
   },
   "admin": {
     "role": "Administrator",
