@@ -11,7 +11,11 @@ interface ShaderPlaneProps {
   uniforms: { [key: string]: { value: unknown } };
 }
 
-const ShaderPlane = ({ vertexShader, fragmentShader, uniforms }: ShaderPlaneProps) => {
+const ShaderPlane = ({
+  vertexShader,
+  fragmentShader,
+  uniforms,
+}: ShaderPlaneProps) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const { size } = useThree();
 
@@ -107,13 +111,16 @@ export function ShaderBackground({ opacity = 1 }: { opacity?: number }) {
       u_time: { value: 0 },
       u_resolution: { value: new THREE.Vector3(1, 1, 1) },
     }),
-    []
+    [],
   );
 
   return (
     <div className="fixed inset-0 z-0 h-full w-full pointer-events-none">
       <div style={{ opacity }} className="absolute inset-0 w-full h-full">
-        <Canvas style={{ pointerEvents: 'none' }} eventSource={undefined as unknown as HTMLElement}>
+        <Canvas
+          style={{ pointerEvents: "none" }}
+          eventSource={undefined as unknown as HTMLElement}
+        >
           <ShaderPlane
             vertexShader={vertexShader}
             fragmentShader={fragmentShader}
@@ -121,8 +128,7 @@ export function ShaderBackground({ opacity = 1 }: { opacity?: number }) {
           />
         </Canvas>
       </div>
-      
-      {/* Atmosphere overlays - No hard bottom edge */}
+
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_10%,_#020617_120%)] opacity-80 pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-transparent via-slate-950/40 to-slate-950/80 pointer-events-none" />
     </div>

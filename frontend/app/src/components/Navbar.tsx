@@ -15,7 +15,6 @@ import { authClient } from "@/lib/auth-client";
 import { Menu, X, LayoutDashboard, LogOut } from "lucide-react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
-// Nav links with translation keys instead of hardcoded labels
 const navLinkKeys = [
   { href: "/#projects", labelKey: "projects", isAnchor: true },
   { href: "/#skills", labelKey: "skills", isAnchor: true },
@@ -39,7 +38,6 @@ export function Navbar() {
   const navbarOpacity = useTransform(scrollY, [0, 100], [0, 0.8]);
   const navbarBlur = useTransform(scrollY, [0, 100], [0, 12]);
 
-  // Use useMotionTemplate to properly interpolate motion values
   const backgroundColor = useMotionTemplate`rgba(2, 6, 23, ${navbarOpacity})`;
   const backdropFilter = useMotionTemplate`blur(${navbarBlur}px)`;
 
@@ -52,7 +50,6 @@ export function Navbar() {
     router.refresh();
   };
 
-  // Handle navigation for all links
   const handleNavigation = (href: string, isAnchor: boolean) => {
     if (isAnchor && pathname === "/") {
       const selector = href.startsWith("/#") ? href.slice(1) : href;
@@ -62,7 +59,8 @@ export function Navbar() {
         const rect = element.getBoundingClientRect();
         const scrollTop =
           window.pageYOffset || document.documentElement.scrollTop;
-        const targetY = rect.top + scrollTop - 80;
+        const topOffset = selector === "#skills" ? -100 : 80;
+        const targetY = rect.top + scrollTop - topOffset;
         lenis.scrollTo(targetY, {
           duration: 1.2,
           easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -73,7 +71,6 @@ export function Navbar() {
     } else if (isAnchor) {
       router.push(href);
     } else {
-      // Page navigation: from / client router fails; use full navigation
       if (pathname === "/") {
         window.location.href = href;
       } else {
@@ -302,8 +299,8 @@ export function Navbar() {
                   <div className="flex justify-center">
                     <LanguageSwitcher />
                   </div>
-                  {!isPending && (
-                    isAdmin ? (
+                  {!isPending &&
+                    (isAdmin ? (
                       <div className="space-y-3">
                         <button
                           onClick={() => {
@@ -323,28 +320,25 @@ export function Navbar() {
                           {t("logout")}
                         </button>
                       </div>
+                    ) : pathname === "/" ? (
+                      <a
+                        href="/login"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center justify-center w-full h-12 rounded-lg border border-cyan-500/30 bg-cyan-500/10 font-medium text-cyan-400"
+                      >
+                        {t("login")}
+                      </a>
                     ) : (
-                      pathname === "/" ? (
-                        <a
-                          href="/login"
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="flex items-center justify-center w-full h-12 rounded-lg border border-cyan-500/30 bg-cyan-500/10 font-medium text-cyan-400"
-                        >
-                          {t("login")}
-                        </a>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setIsMobileMenuOpen(false);
-                            router.push("/login");
-                          }}
-                          className="flex items-center justify-center w-full h-12 rounded-lg border border-cyan-500/30 bg-cyan-500/10 font-medium text-cyan-400"
-                        >
-                          {t("login")}
-                        </button>
-                      )
-                    )
-                  )}
+                      <button
+                        onClick={() => {
+                          setIsMobileMenuOpen(false);
+                          router.push("/login");
+                        }}
+                        className="flex items-center justify-center w-full h-12 rounded-lg border border-cyan-500/30 bg-cyan-500/10 font-medium text-cyan-400"
+                      >
+                        {t("login")}
+                      </button>
+                    ))}
                 </div>
               </div>
             </motion.div>

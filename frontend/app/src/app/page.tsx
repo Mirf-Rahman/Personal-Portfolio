@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useLayoutEffect, useState, useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useTranslations, useLocale } from "next-intl";
 import Lenis from "lenis";
@@ -32,7 +32,6 @@ import {
   Sparkles,
 } from "lucide-react";
 
-// Types
 interface Project {
   id: string;
   title: string;
@@ -138,29 +137,29 @@ export default function Home() {
     hobbies: [],
   });
   const [isLoading, setIsLoading] = useState(true);
-  // Check for hash immediately during render to prevent hero flash
+  const isHashNavigatingRef = useRef(false);
+  const heroHiddenByHashRef = useRef(false);
+  const pendingHashRef = useRef<string | null>(null);
+  const lastScrollYRef = useRef(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const lenisRef = useRef<Lenis | null>(null);
   const [hideHero, setHideHero] = useState(() => {
     if (typeof window !== "undefined") {
-      return !!window.location.hash;
+      if (window.location.hash) return true;
+      if (pendingHashRef.current) return true;
     }
     return false;
   });
-  // Section to scroll to after hero is re-enabled (so we stay at target after layout change)
   const [sectionToScrollAfterReveal, setSectionToScrollAfterReveal] = useState<
     string | null
   >(null);
-  const isHashNavigatingRef = useRef(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const lenisRef = useRef<Lenis | null>(null);
 
   const { scrollYProgress } = useScroll();
 
-  // Parallax effects for different sections - subtle depth
   const projectsY = useTransform(scrollYProgress, [0, 1], [0, -50]);
   const skillsY = useTransform(scrollYProgress, [0, 1], [0, -80]);
   const experienceY = useTransform(scrollYProgress, [0, 1], [0, -100]);
 
-  // Prevent browser scroll restoration and scroll to top on page load/refresh
   useEffect(() => {
     const hasHash = !!window.location.hash;
 
@@ -175,7 +174,6 @@ export default function Home() {
     }
   }, []);
 
-  // Smooth scroll with Lenis
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.2,
@@ -203,7 +201,6 @@ export default function Home() {
     };
   }, []);
 
-  // Expose Lenis instance globally for Navbar access
   useEffect(() => {
     if (lenisRef.current) {
       (window as any).__lenis = lenisRef.current;
@@ -213,51 +210,97 @@ export default function Home() {
     };
   }, [lenisRef.current]);
 
-  // Re-enable hero when logo is clicked (e.g. returning from hash-nav with hero hidden)
   useEffect(() => {
-    const onShowHero = () => setHideHero(false);
+    const onShowHero = () => {
+      heroHiddenByHashRef.current = false;
+      setHideHero(false);
+    };
     window.addEventListener("portfolio:show-hero", onShowHero);
     return () => window.removeEventListener("portfolio:show-hero", onShowHero);
   }, []);
 
-  // After hero/description are re-enabled, scroll back to the target section so we don't jump to top
   useEffect(() => {
+    if (!hideHero || !heroHiddenByHashRef.current) return;
+
+    const reveal = () => {
+      if (!heroHiddenByHashRef.current) return;
+      heroHiddenByHashRef.current = false;
+      setHideHero(false);
+    };
+
+    const handleScroll = () => {
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      const last = lastScrollYRef.current;
+      lastScrollYRef.current = scrollY;
+      if (last > 80 && scrollY < 80) reveal();
+    };
+
+    const handleWheel = (e: WheelEvent) => {
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      if (scrollY <= 120 && e.deltaY < 0 && heroHiddenByHashRef.current)
+        reveal();
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("wheel", handleWheel, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("wheel", handleWheel);
+    };
+  }, [hideHero]);
+
+  useLayoutEffect(() => {
     if (!sectionToScrollAfterReveal || hideHero || !lenisRef.current) return;
     const hash = sectionToScrollAfterReveal.startsWith("#")
       ? sectionToScrollAfterReveal
       : `#${sectionToScrollAfterReveal}`;
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        const el = document.querySelector(hash);
+        const el = document.querySelector(hash) as HTMLElement | null;
         if (el && lenisRef.current) {
-          const rect = el.getBoundingClientRect();
-          const top = window.pageYOffset || document.documentElement.scrollTop;
-          const y = Math.max(0, rect.top + top - 80);
+          el.scrollIntoView({ block: "start", behavior: "auto" });
+          const afterScroll = window.scrollY ?? document.documentElement.scrollTop;
+          const topOffset =
+            hash === "#skills" || hash === "skills" ? -100 : 80;
+          const y = Math.max(0, afterScroll - topOffset);
           window.scrollTo(0, y);
           document.documentElement.scrollTop = y;
           document.body.scrollTop = y;
           lenisRef.current.scrollTo(y, { immediate: true });
+          lastScrollYRef.current = y;
+          requestAnimationFrame(() => {
+            if (lenisRef.current) {
+              lenisRef.current.scrollTo(y, { immediate: true });
+              window.scrollTo(0, y);
+            }
+          });
         }
+        setHashScrollDone(true);
         setSectionToScrollAfterReveal(null);
       });
     });
   }, [sectionToScrollAfterReveal, hideHero]);
 
-  // Handle hash scroll after page load (for cross-page navigation)
-  // Store hash and clear from URL to prevent browser auto-scroll
   const [pendingHash, setPendingHash] = useState<string | null>(null);
+  const [hashScrollDone, setHashScrollDone] = useState(true);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const hash = window.location.hash;
     if (hash) {
       isHashNavigatingRef.current = true;
+      heroHiddenByHashRef.current = true;
+      pendingHashRef.current = hash;
       setHideHero(true);
+      setHashScrollDone(false);
       setPendingHash(hash);
       window.history.replaceState(null, "", window.location.pathname);
+    } else if (pendingHashRef.current) {
+      setHideHero(true);
+      setHashScrollDone(false);
+      setPendingHash(pendingHashRef.current);
     }
   }, []);
 
-  // Scroll to hash element after data finishes loading and Lenis is ready
   useEffect(() => {
     if (pendingHash && !isLoading && lenisRef.current) {
       requestAnimationFrame(() => {
@@ -267,29 +310,34 @@ export default function Home() {
             const rect = element.getBoundingClientRect();
             const scrollTop =
               window.pageYOffset || document.documentElement.scrollTop;
-            const targetY = Math.max(0, rect.top + scrollTop - 80);
+            const topOffset =
+              pendingHash === "#skills" || pendingHash === "skills" ? -100 : 80;
+            const targetY = Math.max(0, rect.top + scrollTop - topOffset);
 
             window.scrollTo(0, targetY);
             document.documentElement.scrollTop = targetY;
             document.body.scrollTop = targetY;
             lenisRef.current.scrollTo(targetY, { immediate: true });
+            lastScrollYRef.current = targetY;
 
             isHashNavigatingRef.current = false;
-            // Re-enable hero/description after a brief moment, then scroll to section again
-            // so the user can scroll up to see hero but stays at the target section.
-            setSectionToScrollAfterReveal(pendingHash);
-            setTimeout(() => setHideHero(false), 100);
+            const hashForReveal = pendingHash.startsWith("#")
+              ? pendingHash
+              : `#${pendingHash}`;
+            setSectionToScrollAfterReveal(hashForReveal);
+            setHideHero(false);
           } else {
             setHideHero(false);
             isHashNavigatingRef.current = false;
+            setHashScrollDone(true);
           }
+          pendingHashRef.current = null;
           setPendingHash(null);
         });
       });
     }
   }, [pendingHash, isLoading]);
 
-  // Fetch data
   useEffect(() => {
     async function fetchData() {
       try {
@@ -361,9 +409,7 @@ export default function Home() {
       ref={containerRef}
       className="flex flex-col bg-slate-950 relative overflow-x-hidden"
     >
-      {/* Global Background Layers with smooth gradient base */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        {/* Ambient gradient background that complements the shader */}
         <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/20 via-slate-950/50 to-slate-950" />
 
@@ -377,50 +423,56 @@ export default function Home() {
         />
       </div>
 
-      {/* Scroll Progress Indicator - pointer-events-none so it never blocks navbar/links */}
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 pointer-events-none bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 origin-left z-[90] shadow-lg shadow-cyan-500/50"
         style={{ scaleX: scrollYProgress }}
       />
 
-      {/* ===== HERO SECTION with Synthetic Hero ===== */}
-      {!hideHero && (
-        <SyntheticHero
-          title={t("hero.title")}
-          description={t("hero.description")}
-          badgeText={t("hero.badge")}
-          badgeLabel={t("hero.badgeLabel")}
-          passionateText={t("hero.passionate")}
-          rotatingWords={t.raw("hero.rotatingWords") as string[]}
-          ctaButtons={[
-            {
-              text: t("hero.viewProjects"),
-              href: "#projects",
-              primary: true,
-              isAnchor: true,
-            },
-            {
-              text: tNav("contactMe"),
-              href: "/contact",
-              isAnchor: false,
-            },
-          ]}
-        />
-      )}
-
-      {/* Description text - hide during hash navigation */}
-      {!hideHero && (
-        <div className="container px-4 md:px-6 mx-auto relative z-10 mb-20 md:mb-32">
-          <TextGradientScroll
-            text={t("hero.scrollText")}
-            className="text-3xl md:text-5xl lg:text-6xl font-display font-bold tracking-tight"
+      {pendingHash &&
+        pendingHash !== "#projects" &&
+        pendingHash !== "projects" &&
+        !hashScrollDone && (
+          <div
+            className="fixed inset-0 top-0 left-0 right-0 bottom-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 z-[45] pointer-events-none"
+            aria-hidden
           />
-        </div>
-      )}
+        )}
 
-      {/* ===== PROJECTS SECTION ===== */}
+      <div>
+        {!hideHero && (
+          <>
+            <SyntheticHero
+              title={t("hero.title")}
+              description={t("hero.description")}
+              badgeText={t("hero.badge")}
+              badgeLabel={t("hero.badgeLabel")}
+              passionateText={t("hero.passionate")}
+              rotatingWords={t.raw("hero.rotatingWords") as string[]}
+              ctaButtons={[
+                {
+                  text: t("hero.viewProjects"),
+                  href: "#projects",
+                  primary: true,
+                  isAnchor: true,
+                },
+                {
+                  text: tNav("contactMe"),
+                  href: "/contact",
+                  isAnchor: false,
+                },
+              ]}
+            />
+            <div className="container px-4 md:px-6 mx-auto relative z-10 mb-20 md:mb-32">
+              <TextGradientScroll
+                text={t("hero.scrollText")}
+                className="text-3xl md:text-5xl lg:text-6xl font-display font-bold tracking-tight"
+              />
+            </div>
+          </>
+        )}
+      </div>
+
       <section id="projects" className="relative py-32 md:py-40">
-        {/* Section ambient glow */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-950/10 to-transparent pointer-events-none" />
 
         <div className="container px-4 md:px-6 mx-auto relative z-10">
@@ -536,7 +588,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* View All Projects Button */}
           {featuredProjects.length > 0 && (
             <div className="text-center mt-12">
               <Link
@@ -550,9 +601,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== SKILLS SECTION with LAMP ===== */}
       <section id="skills" className="relative py-32 md:py-40">
-        {/* Section ambient glow */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-950/10 to-transparent pointer-events-none" />
 
         <div className="container px-4 md:px-6 mx-auto relative z-10">
@@ -562,7 +611,6 @@ export default function Home() {
             className="mb-20 relative z-20"
           />
 
-          {/* Lamp Effect positioned under text */}
           <div className="relative w-full h-24 -mt-8 flex justify-center items-start pointer-events-none z-0">
             <div className="w-full max-w-4xl scale-50 md:scale-100">
               <LampContainer className="min-h-0 h-full bg-transparent w-full">
@@ -571,7 +619,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Skills Grid */}
           <div className="relative">
             {data.skills.length > 0 ? (
               <div className="flex flex-wrap justify-center gap-4 max-w-5xl mx-auto">
@@ -614,6 +661,15 @@ export default function Home() {
                   </StaggeredScrollElement>
                 ))}
               </div>
+            ) : isLoading ? (
+              <div className="flex flex-wrap justify-center gap-4 max-w-5xl mx-auto">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div
+                    key={i}
+                    className="h-12 w-24 rounded-xl bg-white/5 animate-pulse"
+                  />
+                ))}
+              </div>
             ) : (
               <div className="text-center py-8 text-slate-500">
                 {t("sections.skills.empty")}
@@ -639,7 +695,6 @@ export default function Home() {
 
           {data.experiences.length > 0 ? (
             <div className="max-w-3xl mx-auto relative">
-              {/* Timeline Line */}
               <motion.div
                 className="absolute left-4 md:left-8 top-0 bottom-0 w-px bg-gradient-to-b from-cyan-500/50 via-blue-500/30 to-transparent"
                 initial={{ scaleY: 0, opacity: 0 }}
@@ -699,6 +754,14 @@ export default function Home() {
                   </StaggeredScrollElement>
                 ))}
               </div>
+            </div>
+          ) : isLoading ? (
+            <div className="max-w-3xl mx-auto space-y-8">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="pl-12 md:pl-20">
+                  <div className="h-32 rounded-2xl bg-white/5 animate-pulse" />
+                </div>
+              ))}
             </div>
           ) : (
             <div className="text-center py-8 text-slate-500">
@@ -771,6 +834,15 @@ export default function Home() {
                 </StaggeredScrollElement>
               ))}
             </div>
+          ) : isLoading ? (
+            <div className="max-w-3xl mx-auto space-y-6">
+              {[1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="h-24 rounded-2xl bg-white/5 animate-pulse"
+                />
+              ))}
+            </div>
           ) : (
             <div className="text-center py-8 text-slate-500">
               {t("sections.education.empty")}
@@ -779,7 +851,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ===== TESTIMONIALS SECTION ===== */}
       <section id="testimonials" className="relative py-32 md:py-40">
         <SectionHeading
           title={t("sections.testimonials.title")}
@@ -826,6 +897,11 @@ export default function Home() {
               </Button>
             </ScrollElement>
           </div>
+        ) : isLoading ? (
+          <div className="container px-4 md:px-6 mx-auto relative z-10 text-center">
+            <div className="h-48 rounded-2xl bg-white/5 animate-pulse max-w-2xl mx-auto" />
+            <div className="mt-6 h-10 w-48 rounded-xl bg-white/5 animate-pulse mx-auto" />
+          </div>
         ) : (
           <div className="container px-4 md:px-6 mx-auto relative z-10 text-center">
             <p className="text-slate-500 mb-6">
@@ -841,7 +917,6 @@ export default function Home() {
         )}
       </section>
 
-      {/* ===== HOBBIES & INTERESTS SECTION ===== */}
       <section id="hobbies" className="relative py-32 md:py-40">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-green-950/10 to-transparent pointer-events-none" />
 
@@ -908,6 +983,15 @@ export default function Home() {
                   </StaggeredScrollElement>
                 );
               })}
+            </div>
+          ) : isLoading ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="h-40 rounded-2xl bg-white/5 animate-pulse"
+                />
+              ))}
             </div>
           ) : (
             <div className="text-center">
