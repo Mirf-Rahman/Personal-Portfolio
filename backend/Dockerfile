@@ -3,18 +3,6 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-# Declare build args so DO App Platform build-time env vars are available
-# during 'next build' (Kaniko passes them via --build-arg)
-# NOTE: Only SPACES_* and CORS_ORIGINS needed at build time for webpack inlining.
-# Do NOT add NODE_ENV here - it causes npm ci to skip devDependencies.
-ARG SPACES_ENDPOINT
-ARG SPACES_ACCESS_KEY
-ARG SPACES_SECRET_KEY
-ARG SPACES_BUCKET
-ARG SPACES_REGION
-ARG SPACES_CDN_URL
-ARG SPACES_FOLDER_PREFIX
-ARG CORS_ORIGINS
 
 # Copy package files first for better caching
 COPY package.json package-lock.json* ./

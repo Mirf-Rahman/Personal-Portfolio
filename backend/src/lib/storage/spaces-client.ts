@@ -4,13 +4,13 @@ import {
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 
-/**
- * Dynamic env var accessor — prevents Next.js webpack from inlining
- * process.env.VARIABLE as `undefined` at build time when the var
- * is only injected at container runtime (e.g. DigitalOcean App Platform).
- */
 function env(key: string): string | undefined {
-  return process.env[key];
+  // Indirect reference: store process.env in a variable first so webpack
+  // cannot statically analyze or replace the property access.
+  const runtimeEnv: Record<string, string | undefined> = (globalThis as any)[
+    "process"
+  ]["env"];
+  return runtimeEnv[key];
 }
 
 // Environment variables (lazy validation - only checked at runtime)
