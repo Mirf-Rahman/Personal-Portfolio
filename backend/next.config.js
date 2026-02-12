@@ -8,9 +8,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Prevent Next.js from bundling these packages — they will be require()'d
-  // at runtime, ensuring process.env access works correctly
-  serverExternalPackages: ["@aws-sdk/client-s3"],
   async headers() {
     const allowedOrigins = process.env.CORS_ORIGINS?.split(",") || [
       "http://localhost:3000",
