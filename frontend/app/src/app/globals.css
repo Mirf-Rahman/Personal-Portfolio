@@ -112,3 +112,27 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Hero name animated gradient */
+@keyframes hero-gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.hero-name-gradient {
+  background-image: linear-gradient(
+    135deg,
+    #ffffff 0%,
+    #22d3ee 20%,
+    #ffffff 40%,
+    #38bdf8 60%,
+    #ffffff 80%,
+    #06b6d4 100%
+  );
+  background-size: 300% 300%;
+  animation: hero-gradient-shift 8s ease-in-out infinite;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
