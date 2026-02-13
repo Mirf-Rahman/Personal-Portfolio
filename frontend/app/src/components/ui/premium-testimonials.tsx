@@ -130,7 +130,7 @@ export function PremiumTestimonials({ testimonials = defaultTestimonials }: Prem
       >
         {/* Main Testimonial Display */}
         <div className="relative max-w-6xl mx-auto mb-2">
-          <div className="relative min-h-[400px] perspective-1000">
+          <div className="relative perspective-1000">
             <AnimatePresence initial={false} custom={direction} mode="wait">
               <motion.div
                 key={currentIndex}
@@ -145,9 +145,9 @@ export function PremiumTestimonials({ testimonials = defaultTestimonials }: Prem
                   scale: { duration: 0.4 },
                   rotateY: { duration: 0.6 }
                 }}
-                className="absolute inset-0"
+                className="relative w-full"
               >
-                <div className="relative h-full bg-white/[0.03] backdrop-blur-md rounded-3xl border border-white/[0.1] p-8 md:p-12 overflow-hidden group flex flex-col justify-center">
+                <div className="relative h-full bg-white/[0.03] backdrop-blur-md rounded-3xl border border-white/[0.1] p-6 md:p-12 overflow-hidden group flex flex-col justify-center">
                   {/* Subtle gradient instead of full colored mesh */}
                   <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
 
@@ -214,7 +214,7 @@ export function PremiumTestimonials({ testimonials = defaultTestimonials }: Prem
                     {/* Content */}
                     <div className="flex-1">
                       <motion.blockquote 
-                        className="text-xl md:text-2xl text-white/90 leading-relaxed mb-8 font-light italic"
+                        className="text-lg md:text-2xl text-white/90 leading-relaxed mb-6 md:mb-8 font-light italic"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.3, duration: 0.8 }}
