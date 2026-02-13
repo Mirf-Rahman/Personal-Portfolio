@@ -24,20 +24,27 @@
   },
   "home": {
     "hero": {
-      "title": "Salut, je suis Mir Faiyazur Rahman",
-      "description": "Un développeur Full Stack passionné qui crée des applications web modernes et transforme des problèmes complexes en solutions élégantes.",
+      "title": "Mir Faiyazur Rahman",
+      "description": "Étudiant en Informatique & Développeur Full Stack",
       "badge": "Disponible pour des opportunités",
       "badgeLabel": "Statut",
       "viewProjects": "Voir les projets",
       "scrollText": "Je suis un développeur full stack très déterminé, animé par la passion et la créativité. Toujours en apprentissage, à la recherche de grands défis et transformant des problèmes complexes en solutions élégantes.",
-      "passionate": "Je suis",
+      "passionate": "Je suis un",
       "rotatingWords": [
-        "un Développeur Full Stack passionné",
-        "un Résolveur de Problèmes passionné",
-        "un Penseur Créatif passionné",
-        "un Ingénieur Backend passionné",
-        "un Scientifique des Données passionné",
-        "un Développeur Frontend passionné"
+        "Développeur Full Stack",
+        "Résolveur de Problèmes",
+        "Penseur Créatif",
+        "Ingénieur Backend",
+        "Passionné de Science des Données",
+        "Développeur Frontend"
+      ],
+      "traits": [
+        "Compétences en Développement",
+        "Communication Claire",
+        "Travail d'Équipe",
+        "Résolution de Problèmes",
+        "Apprentissage Rapide"
       ]
     },
     "sections": {
@@ -166,8 +173,8 @@
     }
   },
   "login": {
-    "title": "Connexion Admin",
-    "subtitle": "Connectez-vous pour accéder au tableau de bord admin",
+    "title": "Connexion",
+    "subtitle": "Connectez-vous pour accéder au tableau de bord",
     "email": "Courriel",
     "emailPlaceholder": "admin@exemple.com",
     "password": "Mot de passe",

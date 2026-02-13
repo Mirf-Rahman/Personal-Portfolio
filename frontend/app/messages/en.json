@@ -24,8 +24,8 @@
   },
   "home": {
     "hero": {
-      "title": "Hey, I'm Mir Faiyazur Rahman",
-      "description": "A passionate Full Stack Developer building modern web applications and turning complex problems into elegant solutions.",
+      "title": "Mir Faiyazur Rahman",
+      "description": "Computer Science Student & Full Stack Developer",
       "badge": "Available for Opportunities",
       "badgeLabel": "Status",
       "viewProjects": "View Projects",
@@ -36,8 +36,15 @@
         "Problem Solver",
         "Creative Thinker",
         "Backend Engineer",
-        "Data Scientist",
+        "Data Science Enthusiast",
         "Frontend Developer"
+      ],
+      "traits": [
+        "Strong Development Skills",
+        "Clear Communication",
+        "Effective Teamwork",
+        "Problem Solving",
+        "Quick Learner"
       ]
     },
     "sections": {
@@ -166,8 +173,8 @@
     }
   },
   "login": {
-    "title": "Admin Login",
-    "subtitle": "Sign in to access the admin dashboard",
+    "title": "Sign In",
+    "subtitle": "Sign in to access the dashboard",
     "email": "Email",
     "emailPlaceholder": "admin@example.com",
     "password": "Password",
