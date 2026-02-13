@@ -448,6 +448,7 @@ export default function Home() {
               badgeLabel={t("hero.badgeLabel")}
               passionateText={t("hero.passionate")}
               rotatingWords={t.raw("hero.rotatingWords") as string[]}
+              traits={t.raw("hero.traits") as string[]}
               ctaButtons={[
                 {
                   text: t("hero.viewProjects"),
