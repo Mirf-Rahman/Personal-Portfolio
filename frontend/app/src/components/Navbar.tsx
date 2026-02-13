@@ -209,9 +209,25 @@ export function Navbar() {
                 )}
               </div>
 
+              {/* Mobile: language switcher + hamburger */}
+              <div className="flex md:hidden items-center gap-3">
+                <LanguageSwitcher />
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white/5 border border-white/10"
+                >
+                  {isMobileMenuOpen ? (
+                    <X className="w-5 h-5" />
+                  ) : (
+                    <Menu className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+
+              {/* Desktop: hamburger only (for lg breakpoint) */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white/5 border border-white/10"
+                className="hidden md:inline-flex lg:hidden items-center justify-center w-10 h-10 rounded-lg bg-white/5 border border-white/10"
               >
                 {isMobileMenuOpen ? (
                   <X className="w-5 h-5" />
@@ -239,22 +255,13 @@ export function Navbar() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 bottom-0 z-50 w-full max-w-sm bg-slate-950/95 backdrop-blur-xl border-l border-white/10 lg:hidden"
+              className="fixed top-16 md:top-20 right-0 bottom-0 z-50 w-72 sm:w-80 bg-slate-950/98 backdrop-blur-xl border-l border-white/10 lg:hidden overflow-y-auto"
             >
               <div className="flex flex-col h-full">
-                <div className="flex items-center justify-between p-4 border-b border-white/10">
-                  <span className="text-lg font-bold">{t("menu")}</span>
-                  <button
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
                 <nav className="flex-1 py-4">
                   {navLinkKeys.map((link) => {
                     const navClass =
-                      "flex items-center w-full text-left px-6 py-4 text-lg font-medium text-slate-400 hover:text-white hover:bg-white/5";
+                      "flex items-center w-full text-left px-5 py-3 text-base font-medium text-slate-400 hover:text-white hover:bg-white/5";
                     if (link.isAnchor) {
                       return (
                         <button
@@ -296,9 +303,6 @@ export function Navbar() {
                   })}
                 </nav>
                 <div className="p-4 border-t border-white/10 space-y-4">
-                  <div className="flex justify-center">
-                    <LanguageSwitcher />
-                  </div>
                   {!isPending &&
                     (isAdmin ? (
                       <div className="space-y-3">
