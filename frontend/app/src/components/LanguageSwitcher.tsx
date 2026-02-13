@@ -16,37 +16,39 @@ export function LanguageSwitcher() {
   const handleToggle = (checked: boolean) => {
     const newLocale = checked ? 'fr' : 'en';
     
-    // Set locale cookie (expires in 1 year)
     document.cookie = `locale=${newLocale};path=/;max-age=${60 * 60 * 24 * 365}`;
     
-    // Refresh the page to apply the new locale
     startTransition(() => {
       router.refresh();
     });
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center">
       <GooeyFilter />
-      <span 
-        className={`text-xs font-semibold transition-colors ${
-          !isFrench ? 'text-cyan-400' : 'text-slate-500'
-        }`}
-      >
-        EN
-      </span>
-      <Toggle 
-        checked={isFrench} 
-        onCheckedChange={handleToggle}
-        className={isPending ? 'opacity-50 pointer-events-none' : ''}
-      />
-      <span 
-        className={`text-xs font-semibold transition-colors ${
-          isFrench ? 'text-cyan-400' : 'text-slate-500'
-        }`}
-      >
-        FR
-      </span>
+      <div className={`relative ${isPending ? 'opacity-50 pointer-events-none' : ''}`}>
+        <Toggle 
+          checked={isFrench} 
+          onCheckedChange={handleToggle}
+        />
+        {/* EN/FR labels overlaid on the toggle circles */}
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-between px-[5px]">
+          <span 
+            className={`w-[22px] h-[22px] flex items-center justify-center text-[8px] font-black leading-none transition-opacity duration-300 ${
+              !isFrench ? 'opacity-100 text-[#275EFE]' : 'opacity-0'
+            }`}
+          >
+            EN
+          </span>
+          <span 
+            className={`w-[22px] h-[22px] flex items-center justify-center text-[8px] font-black leading-none transition-opacity duration-300 ${
+              isFrench ? 'opacity-100 text-[#275EFE]' : 'opacity-0'
+            }`}
+          >
+            FR
+          </span>
+        </div>
+      </div>
     </div>
   );
 }
