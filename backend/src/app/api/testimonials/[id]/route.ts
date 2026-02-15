@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@/lib/db";
-import { eq, sql, and } from "drizzle-orm";
+import { eq, sql, and, gt } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth";
 import { sanitizeTestimonialForm } from "@/lib/sanitize";
 
@@ -320,15 +320,35 @@ export async function DELETE(
 
   try {
     const { id } = await params;
-    const [deleted] = await db
-      .delete(schema.testimonials)
-      .where(eq(schema.testimonials.id, id))
-      .returning();
-    if (!deleted)
+    
+    // First get the order and approved status of the testimonial being deleted
+    const [testimonialToDelete] = await db
+      .select({ order: schema.testimonials.order, approved: schema.testimonials.approved })
+      .from(schema.testimonials)
+      .where(eq(schema.testimonials.id, id));
+
+    if (!testimonialToDelete)
       return NextResponse.json(
         { error: "Testimonial not found" },
         { status: 404 },
       );
+
+    const deletedOrder = testimonialToDelete.order;
+    const wasApproved = testimonialToDelete.approved;
+
+    // Delete the testimonial and reorder remaining items in a transaction
+    await db.transaction(async (tx) => {
+      // Delete the testimonial
+      await tx
+        .delete(schema.testimonials)
+        .where(eq(schema.testimonials.id, id));
+
+      // Only decrement order for approved testimonials (those with order > 0)
+      if (wasApproved && deletedOrder > 0) {
+        // Decrement order of all approved items with higher order using Drizzle sql
+        await tx.execute(sql`UPDATE testimonials SET "order" = "order" - 1 WHERE "order" > ${deletedOrder} AND "approved" = true`);
+      }
+    });
 
     const response = NextResponse.json({
       message: "Testimonial deleted successfully",
