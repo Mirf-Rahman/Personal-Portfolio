@@ -91,12 +91,12 @@ export default function EducationManagementPage() {
     fetchEducation();
   }, [fetchEducation]);
 
-  // Auto-scroll to edit form when editing starts
+  // Auto-scroll to edit form when editing starts or when switching between items
   useEffect(() => {
     if (isEditing) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [isEditing]);
+  }, [isEditing, editingEducation]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
