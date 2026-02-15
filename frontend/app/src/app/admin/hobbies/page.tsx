@@ -79,12 +79,12 @@ export default function HobbiesManagementPage() {
     fetchHobbies();
   }, [fetchHobbies]);
 
-  // Auto-scroll to edit form when editing starts
+  // Auto-scroll to edit form when editing starts or when switching between items
   useEffect(() => {
     if (isEditing) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [isEditing]);
+  }, [isEditing, editingHobby]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
