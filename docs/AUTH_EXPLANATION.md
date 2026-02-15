@@ -162,3 +162,5 @@ We use **Better Auth** as our authentication library for the Personal Portfolio 
 2. **Security**: Passwords never leave auth-service
 3. **UX**: Admin can view public pages from same app
 4. **Standard**: JWT is industry standard
+
+same secrects in prod and dev
