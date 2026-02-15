@@ -76,12 +76,12 @@ export default function SkillsManagementPage() {
     }
   }, [isEditing, editingSkill, skills]);
 
-  // Auto-scroll to edit form when editing starts
+  // Auto-scroll to edit form when editing starts or when switching between items
   useEffect(() => {
     if (isEditing) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [isEditing]);
+  }, [isEditing, editingSkill]);
 
   const fetchSkills = async () => {
     try {
