@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@/lib/db";
-import { eq } from "drizzle-orm";
+import { eq, gt, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth";
 
 // GET /api/skills/[id] - Get a single skill (public)
@@ -153,14 +153,29 @@ export async function DELETE(
 
   try {
     const { id } = await params;
-    const [deletedSkill] = await db
-      .delete(schema.skills)
-      .where(eq(schema.skills.id, id))
-      .returning();
+    
+    // First get the order of the skill being deleted
+    const [skillToDelete] = await db
+      .select({ order: schema.skills.order })
+      .from(schema.skills)
+      .where(eq(schema.skills.id, id));
 
-    if (!deletedSkill) {
+    if (!skillToDelete) {
       return NextResponse.json({ error: "Skill not found" }, { status: 404 });
     }
+
+    const deletedOrder = skillToDelete.order;
+
+    // Delete the skill and reorder remaining items in a transaction
+    await db.transaction(async (tx) => {
+      // Delete the skill
+      await tx
+        .delete(schema.skills)
+        .where(eq(schema.skills.id, id));
+
+      // Decrement order of all items with higher order using Drizzle sql
+      await tx.execute(sql`UPDATE skills SET "order" = "order" - 1 WHERE "order" > ${deletedOrder}`);
+    });
 
     return NextResponse.json({ message: "Skill deleted successfully" });
   } catch (error) {
