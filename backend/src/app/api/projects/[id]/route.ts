@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@/lib/db";
-import { eq } from "drizzle-orm";
+import { eq, gt, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth";
 
 // GET /api/projects/[id]
@@ -154,12 +154,29 @@ export async function DELETE(
 
   try {
     const { id } = await params;
-    const [deleted] = await db
-      .delete(schema.projects)
-      .where(eq(schema.projects.id, id))
-      .returning();
-    if (!deleted)
+    
+    // First get the order of the project being deleted
+    const [projectToDelete] = await db
+      .select({ order: schema.projects.order })
+      .from(schema.projects)
+      .where(eq(schema.projects.id, id));
+
+    if (!projectToDelete)
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
+
+    const deletedOrder = projectToDelete.order;
+
+    // Delete the project and reorder remaining items in a transaction
+    await db.transaction(async (tx) => {
+      // Delete the project
+      await tx
+        .delete(schema.projects)
+        .where(eq(schema.projects.id, id));
+
+      // Decrement order of all items with higher order using Drizzle sql
+      await tx.execute(sql`UPDATE projects SET "order" = "order" - 1 WHERE "order" > ${deletedOrder}`);
+    });
+
     return NextResponse.json({ message: "Project deleted successfully" });
   } catch (error) {
     console.error("Error deleting project:", error);
