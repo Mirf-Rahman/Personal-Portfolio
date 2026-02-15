@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@/lib/db";
-import { eq } from "drizzle-orm";
+import { eq, gt, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth";
 
 // GET /api/hobbies/[id]
@@ -105,8 +105,28 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
   try {
     const { id } = await params;
-    const [deleted] = await db.delete(schema.hobbies).where(eq(schema.hobbies.id, id)).returning();
-    if (!deleted) return NextResponse.json({ error: "Hobby not found" }, { status: 404 });
+    
+    // First get the order of the hobby being deleted
+    const [hobbyToDelete] = await db
+      .select({ order: schema.hobbies.order })
+      .from(schema.hobbies)
+      .where(eq(schema.hobbies.id, id));
+
+    if (!hobbyToDelete) return NextResponse.json({ error: "Hobby not found" }, { status: 404 });
+
+    const deletedOrder = hobbyToDelete.order;
+
+    // Delete the hobby and reorder remaining items in a transaction
+    await db.transaction(async (tx) => {
+      // Delete the hobby
+      await tx
+        .delete(schema.hobbies)
+        .where(eq(schema.hobbies.id, id));
+
+      // Decrement order of all items with higher order using Drizzle sql
+      await tx.execute(sql`UPDATE hobbies SET "order" = "order" - 1 WHERE "order" > ${deletedOrder}`);
+    });
+
     return NextResponse.json({ message: "Hobby deleted successfully" });
   } catch (error) {
     return NextResponse.json({ error: "Failed to delete hobby" }, { status: 500 });
