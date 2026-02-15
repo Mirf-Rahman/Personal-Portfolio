@@ -19,16 +19,24 @@ interface Education {
 }
 
 import { AdminPageHeader } from "@/components/ui/admin-page-header";
-import { 
-  AdminTable, 
-  AdminTableHeader, 
-  AdminTableHead, 
-  AdminTableBody, 
-  AdminTableRow, 
-  AdminTableCell 
+import {
+  AdminTable,
+  AdminTableHeader,
+  AdminTableHead,
+  AdminTableBody,
+  AdminTableRow,
+  AdminTableCell,
 } from "@/components/ui/admin-table";
 import { ShineBorder } from "@/components/ui/shine-border";
-import { Pencil, Trash2, ArrowUp, ArrowDown, X, Save, Plus } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  X,
+  Save,
+  Plus,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 function toInputDate(str: string | null): string {
@@ -82,6 +90,13 @@ export default function EducationManagementPage() {
   useEffect(() => {
     fetchEducation();
   }, [fetchEducation]);
+
+  // Auto-scroll to edit form when editing starts
+  useEffect(() => {
+    if (isEditing) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [isEditing]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -205,13 +220,15 @@ export default function EducationManagementPage() {
   const sortedEducation = [...education].sort((a, b) => a.order - b.order);
 
   // Common input styles
-  const inputClass = "w-full pl-4 pr-4 py-3 bg-slate-900/40 border border-white/[0.08] rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-200 shadow-inner hover:border-white/[0.12] hover:bg-slate-900/60";
-  const labelClass = "block text-[11px] font-semibold text-cyan-100/60 uppercase tracking-widest pl-1 font-mono mb-2";
+  const inputClass =
+    "w-full pl-4 pr-4 py-3 bg-slate-900/40 border border-white/[0.08] rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-200 shadow-inner hover:border-white/[0.12] hover:bg-slate-900/60";
+  const labelClass =
+    "block text-[11px] font-semibold text-cyan-100/60 uppercase tracking-widest pl-1 font-mono mb-2";
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader 
-        title={t("education.title")} 
+      <AdminPageHeader
+        title={t("education.title")}
         description={t("education.description")}
         customAction={
           <button
@@ -225,7 +242,7 @@ export default function EducationManagementPage() {
       />
 
       {(isEditing || editingEducation) && (
-        <ShineBorder 
+        <ShineBorder
           className="relative w-full rounded-2xl bg-black/20 border border-white/[0.08] backdrop-blur-xl p-8"
           shineColor={["#f472b6", "#e879f9", "#c084fc"]}
         >
@@ -235,7 +252,10 @@ export default function EducationManagementPage() {
                 ? t("education.editEducation")
                 : t("education.addNewEducation")}
             </h3>
-            <button onClick={handleCancel} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+            <button
+              onClick={handleCancel}
+              className="p-2 hover:bg-white/10 rounded-full transition-colors"
+            >
               <X className="w-5 h-5 text-slate-400" />
             </button>
           </div>
@@ -258,9 +278,7 @@ export default function EducationManagementPage() {
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className={labelClass}>
-                  {t("education.degree")} *
-                </label>
+                <label className={labelClass}>{t("education.degree")} *</label>
                 <input
                   type="text"
                   value={formData.degree}
@@ -273,9 +291,7 @@ export default function EducationManagementPage() {
                 />
               </div>
               <div>
-                <label className={labelClass}>
-                  {t("education.field")} *
-                </label>
+                <label className={labelClass}>{t("education.field")} *</label>
                 <input
                   type="text"
                   value={formData.field}
@@ -318,9 +334,7 @@ export default function EducationManagementPage() {
                 />
               </div>
               <div>
-                <label className={labelClass}>
-                  {t("education.endDate")}
-                </label>
+                <label className={labelClass}>{t("education.endDate")}</label>
                 <input
                   type="date"
                   value={formData.endDate}
@@ -360,7 +374,7 @@ export default function EducationManagementPage() {
                 </div>
               )}
             </div>
-            
+
             {editingEducation && (
               <div>
                 <label className={labelClass}>
@@ -409,7 +423,11 @@ export default function EducationManagementPage() {
                       const isCurrent =
                         eduAtPosition?.id === editingEducation.id;
                       return (
-                        <option key={position} value={position} className="bg-slate-900 text-slate-200">
+                        <option
+                          key={position}
+                          value={position}
+                          className="bg-slate-900 text-slate-200"
+                        >
                           {t("education.positionLabel")} {position}
                           {eduAtPosition && !isCurrent
                             ? ` – ${eduAtPosition.degree} at ${eduAtPosition.institution}`
@@ -426,13 +444,13 @@ export default function EducationManagementPage() {
                 </p>
               </div>
             )}
-            
+
             {error && (
-               <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm">
+              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm">
                 <p>{error}</p>
               </div>
             )}
-            
+
             <div className="flex gap-3 pt-4 border-t border-white/[0.08]">
               <button
                 type="submit"
@@ -446,7 +464,7 @@ export default function EducationManagementPage() {
                   </>
                 ) : (
                   <>
-                     <Save className="w-4 h-4" />
+                    <Save className="w-4 h-4" />
                     <span>
                       {editingEducation
                         ? t("education.update")
@@ -470,10 +488,10 @@ export default function EducationManagementPage() {
 
       {loading ? (
         <div className="text-center py-12">
-            <div className="animate-pulse flex flex-col items-center">
-                <div className="h-4 bg-white/10 rounded w-1/4 mb-4"></div>
-                <div className="h-64 bg-white/5 rounded-xl w-full"></div>
-            </div>
+          <div className="animate-pulse flex flex-col items-center">
+            <div className="h-4 bg-white/10 rounded w-1/4 mb-4"></div>
+            <div className="h-64 bg-white/5 rounded-xl w-full"></div>
+          </div>
         </div>
       ) : (
         <AdminTable>
@@ -482,7 +500,9 @@ export default function EducationManagementPage() {
             <AdminTableHead>{t("education.degreeField")}</AdminTableHead>
             <AdminTableHead>{t("education.institution")}</AdminTableHead>
             <AdminTableHead>{t("education.dates")}</AdminTableHead>
-            <AdminTableHead className="text-right">{t("common.actions")}</AdminTableHead>
+            <AdminTableHead className="text-right">
+              {t("common.actions")}
+            </AdminTableHead>
           </AdminTableHeader>
           <AdminTableBody>
             {sortedEducation.length === 0 ? (
@@ -527,7 +547,7 @@ export default function EducationManagementPage() {
                             className="p-1 hover:bg-cyan-500/20 hover:text-cyan-400 rounded transition-colors disabled:opacity-20"
                             title={t("education.moveUp")}
                           >
-                             <ArrowUp className="w-3 h-3" />
+                            <ArrowUp className="w-3 h-3" />
                           </button>
                           <button
                             type="button"
@@ -542,16 +562,18 @@ export default function EducationManagementPage() {
                       </div>
                     </AdminTableCell>
                     <AdminTableCell>
-                       <div className="font-medium text-white">{edu.degree}</div>
-                       <div className="text-xs text-slate-400 mt-0.5">{edu.field}</div>
+                      <div className="font-medium text-white">{edu.degree}</div>
+                      <div className="text-xs text-slate-400 mt-0.5">
+                        {edu.field}
+                      </div>
                     </AdminTableCell>
                     <AdminTableCell>
-                         <span className="text-slate-300">{edu.institution}</span>
+                      <span className="text-slate-300">{edu.institution}</span>
                     </AdminTableCell>
                     <AdminTableCell>
-                        <span className="text-xs px-2.5 py-1 rounded-full bg-white/[0.05] text-slate-400 border border-white/[0.05]">
-                          {start} – {end}
-                        </span>
+                      <span className="text-xs px-2.5 py-1 rounded-full bg-white/[0.05] text-slate-400 border border-white/[0.05]">
+                        {start} – {end}
+                      </span>
                     </AdminTableCell>
                     <AdminTableCell>
                       <div className="flex justify-end gap-2">
