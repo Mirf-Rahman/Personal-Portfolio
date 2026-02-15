@@ -76,6 +76,13 @@ export default function SkillsManagementPage() {
     }
   }, [isEditing, editingSkill, skills]);
 
+  // Auto-scroll to edit form when editing starts
+  useEffect(() => {
+    if (isEditing) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [isEditing]);
+
   const fetchSkills = async () => {
     try {
       const data = await fetchApi<Skill[]>("/api/skills");
