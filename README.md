@@ -18,7 +18,7 @@ Portfolio website showcasing my work, skills, and experience with a secure admin
 
 ---
 
-## 🛠️ Tech Stack
+##Tech Stack
 
 ### Frontend
 - **Framework:** Next.js 15 (App Router)
