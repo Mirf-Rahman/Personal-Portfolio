@@ -7,16 +7,24 @@ import { authClient } from "@/lib/auth-client";
 import { authenticatedFetch, fetchApi } from "@/lib/api";
 import ImageUpload from "@/components/ImageUpload";
 import { AdminPageHeader } from "@/components/ui/admin-page-header";
-import { 
-  AdminTable, 
-  AdminTableHeader, 
-  AdminTableHead, 
-  AdminTableBody, 
-  AdminTableRow, 
-  AdminTableCell 
+import {
+  AdminTable,
+  AdminTableHeader,
+  AdminTableHead,
+  AdminTableBody,
+  AdminTableRow,
+  AdminTableCell,
 } from "@/components/ui/admin-table";
 import { ShineBorder } from "@/components/ui/shine-border";
-import { Pencil, Trash2, ArrowUp, ArrowDown, X, Save, Check } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  X,
+  Save,
+  Check,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Project {
@@ -79,6 +87,13 @@ export default function ProjectsManagementPage() {
     fetchProjects();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Auto-scroll to edit form when editing starts
+  useEffect(() => {
+    if (isEditing) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [isEditing]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -204,57 +219,73 @@ export default function ProjectsManagementPage() {
   const sortedProjects = [...projects].sort((a, b) => a.order - b.order);
 
   // Common input styles
-  const inputClass = "w-full pl-4 pr-4 py-3 bg-slate-900/40 border border-white/[0.08] rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-200 shadow-inner hover:border-white/[0.12] hover:bg-slate-900/60";
-  const labelClass = "block text-[11px] font-semibold text-cyan-100/60 uppercase tracking-widest pl-1 font-mono mb-2";
+  const inputClass =
+    "w-full pl-4 pr-4 py-3 bg-slate-900/40 border border-white/[0.08] rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-200 shadow-inner hover:border-white/[0.12] hover:bg-slate-900/60";
+  const labelClass =
+    "block text-[11px] font-semibold text-cyan-100/60 uppercase tracking-widest pl-1 font-mono mb-2";
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader 
-        title={t("projects.title")} 
+      <AdminPageHeader
+        title={t("projects.title")}
         description={t("projects.description")}
         customAction={
           <button
             onClick={handleAddProject}
             className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded-xl border border-cyan-500/20 transition-all text-sm font-semibold"
           >
-            <span className="text-lg leading-none">+</span> {t("projects.addNew")}
+            <span className="text-lg leading-none">+</span>{" "}
+            {t("projects.addNew")}
           </button>
         }
       />
 
       {(isEditing || editingProject) && (
-        <ShineBorder 
+        <ShineBorder
           className="relative w-full rounded-2xl bg-black/20 border border-white/[0.08] backdrop-blur-xl p-8"
           shineColor={["#f472b6", "#e879f9", "#c084fc"]}
         >
           <div className="flex justify-between items-center mb-6">
-             <h3 className="font-display font-bold text-xl text-white">
-              {editingProject ? t("projects.editProject") : t("projects.addNewProject")}
+            <h3 className="font-display font-bold text-xl text-white">
+              {editingProject
+                ? t("projects.editProject")
+                : t("projects.addNewProject")}
             </h3>
-            <button onClick={handleCancel} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+            <button
+              onClick={handleCancel}
+              className="p-2 hover:bg-white/10 rounded-full transition-colors"
+            >
               <X className="w-5 h-5 text-slate-400" />
             </button>
           </div>
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className={labelClass}>{t("projects.titleLabel")} *</label>
+                <label className={labelClass}>
+                  {t("projects.titleLabel")} *
+                </label>
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
                   required
                   placeholder={t("projects.titlePlaceholder")}
                   className={inputClass}
                 />
               </div>
               <div>
-                <label className={labelClass}>{t("projects.technologies")} *</label>
+                <label className={labelClass}>
+                  {t("projects.technologies")} *
+                </label>
                 <input
                   type="text"
                   value={formData.technologies}
-                  onChange={(e) => setFormData({ ...formData, technologies: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, technologies: e.target.value })
+                  }
                   required
                   placeholder="React, TypeScript, TailwindCSS"
                   className={inputClass}
@@ -263,10 +294,14 @@ export default function ProjectsManagementPage() {
             </div>
 
             <div>
-              <label className={labelClass}>{t("projects.projectDescription")} *</label>
+              <label className={labelClass}>
+                {t("projects.projectDescription")} *
+              </label>
               <textarea
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 required
                 placeholder={t("projects.descriptionPlaceholder")}
                 rows={3}
@@ -276,20 +311,28 @@ export default function ProjectsManagementPage() {
 
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className={labelClass}>{t("projects.titleFrLabel")}</label>
+                <label className={labelClass}>
+                  {t("projects.titleFrLabel")}
+                </label>
                 <input
                   type="text"
                   value={formData.titleFr}
-                  onChange={(e) => setFormData({ ...formData, titleFr: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, titleFr: e.target.value })
+                  }
                   placeholder={t("projects.titleFrPlaceholder")}
                   className={inputClass}
                 />
               </div>
               <div>
-                <label className={labelClass}>{t("projects.descriptionFrLabel")}</label>
+                <label className={labelClass}>
+                  {t("projects.descriptionFrLabel")}
+                </label>
                 <textarea
                   value={formData.descriptionFr}
-                  onChange={(e) => setFormData({ ...formData, descriptionFr: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, descriptionFr: e.target.value })
+                  }
                   placeholder={t("projects.descriptionFrPlaceholder")}
                   rows={2}
                   className={inputClass}
@@ -302,7 +345,9 @@ export default function ProjectsManagementPage() {
                 <label className={labelClass}>{t("projects.imageUrl")}</label>
                 <ImageUpload
                   value={formData.imageUrl}
-                  onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+                  onChange={(url) =>
+                    setFormData({ ...formData, imageUrl: url })
+                  }
                   label={t("projects.imageUrl")}
                   accept="image/*"
                   maxSize={10}
@@ -313,7 +358,9 @@ export default function ProjectsManagementPage() {
                 <input
                   type="url"
                   value={formData.liveUrl}
-                  onChange={(e) => setFormData({ ...formData, liveUrl: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, liveUrl: e.target.value })
+                  }
                   placeholder="https://..."
                   className={inputClass}
                 />
@@ -323,7 +370,9 @@ export default function ProjectsManagementPage() {
                 <input
                   type="url"
                   value={formData.githubUrl}
-                  onChange={(e) => setFormData({ ...formData, githubUrl: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, githubUrl: e.target.value })
+                  }
                   placeholder="https://github.com/..."
                   className={inputClass}
                 />
@@ -335,13 +384,17 @@ export default function ProjectsManagementPage() {
                 <input
                   type="checkbox"
                   checked={formData.featured}
-                  onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, featured: e.target.checked })
+                  }
                   className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500/30"
                 />
-                <span className="text-sm font-medium text-slate-300">{t("projects.featured")}</span>
+                <span className="text-sm font-medium text-slate-300">
+                  {t("projects.featured")}
+                </span>
               </label>
 
-               {!editingProject && (
+              {!editingProject && (
                 <div className="px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/20">
                   <p className="text-xs text-purple-300 font-mono">
                     {t("projects.autoOrderHint")} {formData.order})
@@ -350,7 +403,7 @@ export default function ProjectsManagementPage() {
               )}
             </div>
 
-             {editingProject && (
+            {editingProject && (
               <div>
                 <label className={labelClass}>{t("projects.position")}</label>
                 <select
@@ -374,7 +427,9 @@ export default function ProjectsManagementPage() {
                       await fetchProjects();
                       setFormData((prev) => ({ ...prev, order: newOrder }));
                     } catch (err) {
-                      setError(err instanceof Error ? err.message : t("common.error"));
+                      setError(
+                        err instanceof Error ? err.message : t("common.error"),
+                      );
                       e.target.value = String(formData.order);
                     } finally {
                       setSubmitting(false);
@@ -384,12 +439,21 @@ export default function ProjectsManagementPage() {
                   className={cn(inputClass, "disabled:opacity-50")}
                 >
                   {(() => {
-                    const uniqueOrders = [...new Set(projects.map((p) => p.order))].sort((a, b) => a - b);
+                    const uniqueOrders = [
+                      ...new Set(projects.map((p) => p.order)),
+                    ].sort((a, b) => a - b);
                     return uniqueOrders.map((position) => {
-                      const projectAtPosition = projects.find((p) => p.order === position);
-                      const isCurrent = projectAtPosition?.id === editingProject.id;
+                      const projectAtPosition = projects.find(
+                        (p) => p.order === position,
+                      );
+                      const isCurrent =
+                        projectAtPosition?.id === editingProject.id;
                       return (
-                        <option key={position} value={position} className="bg-slate-900 text-slate-200">
+                        <option
+                          key={position}
+                          value={position}
+                          className="bg-slate-900 text-slate-200"
+                        >
                           {t("projects.positionLabel")} {position}
                           {projectAtPosition && !isCurrent
                             ? ` – ${projectAtPosition.title}`
@@ -424,7 +488,11 @@ export default function ProjectsManagementPage() {
                 ) : (
                   <>
                     <Save className="w-4 h-4" />
-                    <span>{editingProject ? t("projects.update") : t("projects.create")}</span>
+                    <span>
+                      {editingProject
+                        ? t("projects.update")
+                        : t("projects.create")}
+                    </span>
                   </>
                 )}
               </button>
@@ -443,10 +511,10 @@ export default function ProjectsManagementPage() {
 
       {loading ? (
         <div className="text-center py-12">
-            <div className="animate-pulse flex flex-col items-center">
-                <div className="h-4 bg-white/10 rounded w-1/4 mb-4"></div>
-                <div className="h-64 bg-white/5 rounded-xl w-full"></div>
-            </div>
+          <div className="animate-pulse flex flex-col items-center">
+            <div className="h-4 bg-white/10 rounded w-1/4 mb-4"></div>
+            <div className="h-64 bg-white/5 rounded-xl w-full"></div>
+          </div>
         </div>
       ) : (
         <AdminTable>
@@ -454,14 +522,21 @@ export default function ProjectsManagementPage() {
             <AdminTableHead>{t("projects.order")}</AdminTableHead>
             <AdminTableHead>{t("projects.titleLabel")}</AdminTableHead>
             <AdminTableHead>{t("projects.technologies")}</AdminTableHead>
-            <AdminTableHead className="text-center">{t("projects.featured")}</AdminTableHead>
-            <AdminTableHead className="text-right">{t("common.actions")}</AdminTableHead>
+            <AdminTableHead className="text-center">
+              {t("projects.featured")}
+            </AdminTableHead>
+            <AdminTableHead className="text-right">
+              {t("common.actions")}
+            </AdminTableHead>
           </AdminTableHeader>
           <AdminTableBody>
             {sortedProjects.length === 0 ? (
               <AdminTableRow>
-                <AdminTableCell className="text-center py-12 text-slate-500" colSpan={5}>
-                   {t("projects.empty")}
+                <AdminTableCell
+                  className="text-center py-12 text-slate-500"
+                  colSpan={5}
+                >
+                  {t("projects.empty")}
                 </AdminTableCell>
               </AdminTableRow>
             ) : (
@@ -496,45 +571,56 @@ export default function ProjectsManagementPage() {
                       </div>
                     </AdminTableCell>
                     <AdminTableCell>
-                        <div className="font-medium text-white">{project.title}</div>
-                        {project.titleFr && <div className="text-xs text-slate-500 mt-0.5">{project.titleFr}</div>}
+                      <div className="font-medium text-white">
+                        {project.title}
+                      </div>
+                      {project.titleFr && (
+                        <div className="text-xs text-slate-500 mt-0.5">
+                          {project.titleFr}
+                        </div>
+                      )}
                     </AdminTableCell>
                     <AdminTableCell>
                       <div className="flex flex-wrap gap-1">
-                         {project.technologies.slice(0, 3).map(tech => (
-                             <span key={tech} className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.05] text-slate-400">
-                                 {tech}
-                             </span>
-                         ))}
-                         {project.technologies.length > 3 && (
-                             <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.05] text-slate-500">+{project.technologies.length - 3}</span>
-                         )}
+                        {project.technologies.slice(0, 3).map((tech) => (
+                          <span
+                            key={tech}
+                            className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/[0.05] text-slate-400"
+                          >
+                            {tech}
+                          </span>
+                        ))}
+                        {project.technologies.length > 3 && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.05] text-slate-500">
+                            +{project.technologies.length - 3}
+                          </span>
+                        )}
                       </div>
                     </AdminTableCell>
                     <AdminTableCell className="text-center">
                       {project.featured && (
-                          <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-500/20 text-purple-400">
-                              <Check className="w-3.5 h-3.5" />
-                          </div>
+                        <div className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-500/20 text-purple-400">
+                          <Check className="w-3.5 h-3.5" />
+                        </div>
                       )}
                     </AdminTableCell>
                     <AdminTableCell>
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => handleEdit(project)}
-                            className="p-2 hover:bg-blue-500/10 text-slate-400 hover:text-blue-400 rounded-lg transition-colors border border-transparent hover:border-blue-500/20"
-                            title={t("projects.edit")}
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(project.id)}
-                            className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors border border-transparent hover:border-red-500/20"
-                            title={t("projects.delete")}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => handleEdit(project)}
+                          className="p-2 hover:bg-blue-500/10 text-slate-400 hover:text-blue-400 rounded-lg transition-colors border border-transparent hover:border-blue-500/20"
+                          title={t("projects.edit")}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(project.id)}
+                          className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors border border-transparent hover:border-red-500/20"
+                          title={t("projects.delete")}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </AdminTableCell>
                   </AdminTableRow>
                 );
