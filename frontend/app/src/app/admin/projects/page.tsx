@@ -88,12 +88,12 @@ export default function ProjectsManagementPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-scroll to edit form when editing starts
+  // Auto-scroll to edit form when editing starts or when switching between items
   useEffect(() => {
     if (isEditing) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [isEditing]);
+  }, [isEditing, editingProject]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
