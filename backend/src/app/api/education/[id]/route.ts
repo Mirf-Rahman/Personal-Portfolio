@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@/lib/db";
-import { eq } from "drizzle-orm";
+import { eq, gt, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth";
 
 // GET /api/education/[id]
@@ -123,8 +123,28 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
   try {
     const { id } = await params;
-    const [deleted] = await db.delete(schema.education).where(eq(schema.education.id, id)).returning();
-    if (!deleted) return NextResponse.json({ error: "Education not found" }, { status: 404 });
+    
+    // First get the order of the education being deleted
+    const [eduToDelete] = await db
+      .select({ order: schema.education.order })
+      .from(schema.education)
+      .where(eq(schema.education.id, id));
+
+    if (!eduToDelete) return NextResponse.json({ error: "Education not found" }, { status: 404 });
+
+    const deletedOrder = eduToDelete.order;
+
+    // Delete the education and reorder remaining items in a transaction
+    await db.transaction(async (tx) => {
+      // Delete the education
+      await tx
+        .delete(schema.education)
+        .where(eq(schema.education.id, id));
+
+      // Decrement order of all items with higher order using Drizzle sql
+      await tx.execute(sql`UPDATE education SET "order" = "order" - 1 WHERE "order" > ${deletedOrder}`);
+    });
+
     return NextResponse.json({ message: "Education deleted successfully" });
   } catch (error) {
     return NextResponse.json({ error: "Failed to delete education" }, { status: 500 });
