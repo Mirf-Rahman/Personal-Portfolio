@@ -6,16 +6,28 @@ import { useTranslations } from "next-intl";
 import { authClient } from "@/lib/auth-client";
 import { authenticatedFetch, fetchApi } from "@/lib/api";
 import { AdminPageHeader } from "@/components/ui/admin-page-header";
-import { 
-  AdminTable, 
-  AdminTableHeader, 
-  AdminTableHead, 
-  AdminTableBody, 
-  AdminTableRow, 
-  AdminTableCell 
+import {
+  AdminTable,
+  AdminTableHeader,
+  AdminTableHead,
+  AdminTableBody,
+  AdminTableRow,
+  AdminTableCell,
 } from "@/components/ui/admin-table";
 import { ShineBorder } from "@/components/ui/shine-border";
-import { Pencil, Trash2, ArrowUp, ArrowDown, X, Save, Building2, MapPin, Calendar, Briefcase, Plus } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  X,
+  Save,
+  Building2,
+  MapPin,
+  Calendar,
+  Briefcase,
+  Plus,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Experience {
@@ -58,7 +70,9 @@ export default function ExperienceManagementPage() {
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [editingExperience, setEditingExperience] = useState<Experience | null>(null);
+  const [editingExperience, setEditingExperience] = useState<Experience | null>(
+    null,
+  );
   const [formData, setFormData] = useState(emptyForm);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -72,6 +86,13 @@ export default function ExperienceManagementPage() {
     fetchExperiences();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Auto-scroll to edit form when editing starts
+  useEffect(() => {
+    if (isEditing) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, [isEditing]);
 
   const fetchExperiences = async () => {
     try {
@@ -213,48 +234,59 @@ export default function ExperienceManagementPage() {
   const sortedExperiences = [...experiences].sort((a, b) => a.order - b.order);
 
   // Common input styles
-  const inputClass = "w-full pl-4 pr-4 py-3 bg-slate-900/40 border border-white/[0.08] rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-200 shadow-inner hover:border-white/[0.12] hover:bg-slate-900/60";
-  const labelClass = "block text-[11px] font-semibold text-cyan-100/60 uppercase tracking-widest pl-1 font-mono mb-2";
+  const inputClass =
+    "w-full pl-4 pr-4 py-3 bg-slate-900/40 border border-white/[0.08] rounded-xl text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-cyan-500/50 focus:border-cyan-500/50 transition-all duration-200 shadow-inner hover:border-white/[0.12] hover:bg-slate-900/60";
+  const labelClass =
+    "block text-[11px] font-semibold text-cyan-100/60 uppercase tracking-widest pl-1 font-mono mb-2";
 
   return (
     <div className="space-y-6">
-      <AdminPageHeader 
-        title={t("experience.title")} 
+      <AdminPageHeader
+        title={t("experience.title")}
         description={t("experience.description")}
         customAction={
           <button
             onClick={handleAddExperience}
             className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 rounded-xl border border-cyan-500/20 transition-all text-sm font-semibold"
           >
-           <Plus className="w-4 h-4" /> {t("experience.addNew")}
+            <Plus className="w-4 h-4" /> {t("experience.addNew")}
           </button>
         }
       />
 
       {(isEditing || editingExperience) && (
-        <ShineBorder 
+        <ShineBorder
           className="relative w-full rounded-2xl bg-black/20 border border-white/[0.08] backdrop-blur-xl p-8"
           shineColor={["#f472b6", "#e879f9", "#c084fc"]}
         >
           <div className="flex justify-between items-center mb-6">
-             <h3 className="font-display font-bold text-xl text-white">
-              {editingExperience ? t("experience.editExperience") : t("experience.addNewExperience")}
+            <h3 className="font-display font-bold text-xl text-white">
+              {editingExperience
+                ? t("experience.editExperience")
+                : t("experience.addNewExperience")}
             </h3>
-            <button onClick={handleCancel} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+            <button
+              onClick={handleCancel}
+              className="p-2 hover:bg-white/10 rounded-full transition-colors"
+            >
               <X className="w-5 h-5 text-slate-400" />
             </button>
           </div>
-          
+
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className={labelClass}>{t("experience.companyLabel")} *</label>
+                <label className={labelClass}>
+                  {t("experience.companyLabel")} *
+                </label>
                 <div className="relative">
-                   <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                   <input
+                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
                     type="text"
                     value={formData.company}
-                    onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, company: e.target.value })
+                    }
                     required
                     placeholder="Acme Inc."
                     className={cn(inputClass, "pl-10")}
@@ -262,13 +294,17 @@ export default function ExperienceManagementPage() {
                 </div>
               </div>
               <div>
-                <label className={labelClass}>{t("experience.positionLabel")} *</label>
+                <label className={labelClass}>
+                  {t("experience.positionLabel")} *
+                </label>
                 <div className="relative">
                   <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <input
                     type="text"
                     value={formData.position}
-                    onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, position: e.target.value })
+                    }
                     required
                     placeholder={t("experience.positionPlaceholder")}
                     className={cn(inputClass, "pl-10")}
@@ -278,10 +314,14 @@ export default function ExperienceManagementPage() {
             </div>
 
             <div>
-              <label className={labelClass}>{t("experience.descriptionLabel")} *</label>
+              <label className={labelClass}>
+                {t("experience.descriptionLabel")} *
+              </label>
               <textarea
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 required
                 placeholder={t("experience.descriptionPlaceholder")}
                 rows={3}
@@ -291,20 +331,28 @@ export default function ExperienceManagementPage() {
 
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className={labelClass}>{t("experience.positionFrLabel")}</label>
+                <label className={labelClass}>
+                  {t("experience.positionFrLabel")}
+                </label>
                 <input
                   type="text"
                   value={formData.positionFr}
-                  onChange={(e) => setFormData({ ...formData, positionFr: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, positionFr: e.target.value })
+                  }
                   placeholder={t("experience.positionFrPlaceholder")}
                   className={inputClass}
                 />
               </div>
               <div>
-                <label className={labelClass}>{t("experience.descriptionFrLabel")}</label>
+                <label className={labelClass}>
+                  {t("experience.descriptionFrLabel")}
+                </label>
                 <textarea
                   value={formData.descriptionFr}
-                  onChange={(e) => setFormData({ ...formData, descriptionFr: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, descriptionFr: e.target.value })
+                  }
                   placeholder={t("experience.descriptionFrPlaceholder")}
                   rows={2}
                   className={inputClass}
@@ -313,13 +361,17 @@ export default function ExperienceManagementPage() {
             </div>
 
             <div>
-              <label className={labelClass}>{t("experience.locationLabel")} *</label>
+              <label className={labelClass}>
+                {t("experience.locationLabel")} *
+              </label>
               <div className="relative">
-                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                 <input
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <input
                   type="text"
                   value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, location: e.target.value })
+                  }
                   required
                   placeholder={t("experience.locationPlaceholder")}
                   className={cn(inputClass, "pl-10")}
@@ -329,26 +381,34 @@ export default function ExperienceManagementPage() {
 
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <label className={labelClass}>{t("experience.startDateLabel")} *</label>
+                <label className={labelClass}>
+                  {t("experience.startDateLabel")} *
+                </label>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <input
                     type="date"
                     value={formData.startDate}
-                    onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, startDate: e.target.value })
+                    }
                     required
                     className={cn(inputClass, "pl-10")}
                   />
                 </div>
               </div>
               <div>
-                <label className={labelClass}>{t("experience.endDateLabel")}</label>
+                <label className={labelClass}>
+                  {t("experience.endDateLabel")}
+                </label>
                 <div className="relative">
-                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                   <input
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
                     type="date"
                     value={formData.endDate}
-                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, endDate: e.target.value })
+                    }
                     disabled={formData.current}
                     className={cn(inputClass, "pl-10 disabled:opacity-50")}
                   />
@@ -358,7 +418,7 @@ export default function ExperienceManagementPage() {
 
             <div className="flex gap-6 items-center pt-2">
               <label className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.08] bg-white/[0.02] cursor-pointer hover:bg-white/[0.04] transition-colors">
-                 <input
+                <input
                   type="checkbox"
                   checked={formData.current}
                   onChange={(e) => {
@@ -370,11 +430,13 @@ export default function ExperienceManagementPage() {
                   }}
                   className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-cyan-500 focus:ring-cyan-500/30"
                 />
-                <span className="text-sm font-medium text-slate-300">{t("experience.currentLabel")}</span>
+                <span className="text-sm font-medium text-slate-300">
+                  {t("experience.currentLabel")}
+                </span>
               </label>
 
               {!editingExperience && (
-                 <div className="px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                <div className="px-4 py-2 rounded-xl bg-purple-500/10 border border-purple-500/20">
                   <p className="text-xs text-purple-300 font-mono">
                     {t("experience.autoOrderHint")} {formData.order}
                   </p>
@@ -384,7 +446,9 @@ export default function ExperienceManagementPage() {
 
             {editingExperience && (
               <div>
-                <label className={labelClass}>{t("experience.orderPosition")}</label>
+                <label className={labelClass}>
+                  {t("experience.orderPosition")}
+                </label>
                 <select
                   value={formData.order}
                   onChange={async (e) => {
@@ -406,7 +470,9 @@ export default function ExperienceManagementPage() {
                       await fetchExperiences();
                       setFormData((prev) => ({ ...prev, order: newOrder }));
                     } catch (err) {
-                      setError(err instanceof Error ? err.message : t("common.error"));
+                      setError(
+                        err instanceof Error ? err.message : t("common.error"),
+                      );
                       e.target.value = String(formData.order);
                     } finally {
                       setSubmitting(false);
@@ -416,12 +482,21 @@ export default function ExperienceManagementPage() {
                   className={cn(inputClass, "disabled:opacity-50")}
                 >
                   {(() => {
-                    const uniqueOrders = [...new Set(experiences.map((e) => e.order))].sort((a, b) => a - b);
+                    const uniqueOrders = [
+                      ...new Set(experiences.map((e) => e.order)),
+                    ].sort((a, b) => a - b);
                     return uniqueOrders.map((position) => {
-                      const expAtPosition = experiences.find((e) => e.order === position);
-                      const isCurrent = expAtPosition?.id === editingExperience.id;
+                      const expAtPosition = experiences.find(
+                        (e) => e.order === position,
+                      );
+                      const isCurrent =
+                        expAtPosition?.id === editingExperience.id;
                       return (
-                        <option key={position} value={position} className="bg-slate-900 text-slate-200">
+                        <option
+                          key={position}
+                          value={position}
+                          className="bg-slate-900 text-slate-200"
+                        >
                           {t("experience.positionLabel")} {position}
                           {expAtPosition && !isCurrent
                             ? ` – ${expAtPosition.position} at ${expAtPosition.company}`
@@ -434,7 +509,7 @@ export default function ExperienceManagementPage() {
                   })()}
                 </select>
                 <p className="text-[10px] text-slate-500 mt-1 pl-1">
-                   {t("experience.positionHint")}
+                  {t("experience.positionHint")}
                 </p>
               </div>
             )}
@@ -459,7 +534,11 @@ export default function ExperienceManagementPage() {
                 ) : (
                   <>
                     <Save className="w-4 h-4" />
-                    <span>{editingExperience ? t("experience.update") : t("experience.create")}</span>
+                    <span>
+                      {editingExperience
+                        ? t("experience.update")
+                        : t("experience.create")}
+                    </span>
                   </>
                 )}
               </button>
@@ -478,10 +557,10 @@ export default function ExperienceManagementPage() {
 
       {loading ? (
         <div className="text-center py-12">
-            <div className="animate-pulse flex flex-col items-center">
-                <div className="h-4 bg-white/10 rounded w-1/4 mb-4"></div>
-                <div className="h-64 bg-white/5 rounded-xl w-full"></div>
-            </div>
+          <div className="animate-pulse flex flex-col items-center">
+            <div className="h-4 bg-white/10 rounded w-1/4 mb-4"></div>
+            <div className="h-64 bg-white/5 rounded-xl w-full"></div>
+          </div>
         </div>
       ) : (
         <AdminTable>
@@ -491,12 +570,17 @@ export default function ExperienceManagementPage() {
             <AdminTableHead>{t("experience.company")}</AdminTableHead>
             <AdminTableHead>{t("experience.location")}</AdminTableHead>
             <AdminTableHead>{t("experience.dates")}</AdminTableHead>
-            <AdminTableHead className="text-right">{t("common.actions")}</AdminTableHead>
+            <AdminTableHead className="text-right">
+              {t("common.actions")}
+            </AdminTableHead>
           </AdminTableHeader>
           <AdminTableBody>
-             {sortedExperiences.length === 0 ? (
-               <AdminTableRow>
-                <AdminTableCell colSpan={6} className="text-center py-12 text-slate-500">
+            {sortedExperiences.length === 0 ? (
+              <AdminTableRow>
+                <AdminTableCell
+                  colSpan={6}
+                  className="text-center py-12 text-slate-500"
+                >
                   {t("experience.empty")}
                 </AdminTableCell>
               </AdminTableRow>
@@ -518,13 +602,13 @@ export default function ExperienceManagementPage() {
                         month: "short",
                       })
                     : "";
-                
+
                 return (
                   <AdminTableRow key={exp.id}>
                     <AdminTableCell>
-                       <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3">
                         <span className="text-slate-500 text-xs font-mono w-6 text-center bg-white/[0.05] rounded py-1">
-                            {exp.order}
+                          {exp.order}
                         </span>
                         <div className="flex flex-col gap-1">
                           <button
@@ -541,50 +625,56 @@ export default function ExperienceManagementPage() {
                             className="p-1 hover:bg-cyan-500/20 hover:text-cyan-400 rounded transition-colors disabled:opacity-20"
                             title={t("experience.moveDown")}
                           >
-                           <ArrowDown className="w-3 h-3" />
+                            <ArrowDown className="w-3 h-3" />
                           </button>
                         </div>
                       </div>
                     </AdminTableCell>
                     <AdminTableCell>
-                       <div className="font-medium text-white">{exp.position}</div>
-                       {exp.positionFr && <div className="text-xs text-slate-500 mt-0.5">{exp.positionFr}</div>}
-                    </AdminTableCell>
-                    <AdminTableCell>
-                       <div className="flex items-center gap-2 text-slate-300">
-                          <Building2 className="w-3.5 h-3.5 text-slate-500" />
-                          {exp.company}
-                       </div>
-                    </AdminTableCell>
-                    <AdminTableCell>
-                       <div className="flex items-center gap-2 text-slate-400 text-xs">
-                          <MapPin className="w-3.5 h-3.5 text-slate-600" />
-                          {exp.location}
-                       </div>
-                    </AdminTableCell>
-                    <AdminTableCell>
-                       <div className="flex items-center gap-2 text-xs font-mono text-slate-400 bg-white/[0.03] px-2 py-1 rounded w-fit">
-                          <Calendar className="w-3 h-3 text-slate-600" />
-                          {start} – {end}
-                       </div>
-                    </AdminTableCell>
-                    <AdminTableCell>
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => handleEdit(exp)}
-                            className="p-2 hover:bg-blue-500/10 text-slate-400 hover:text-blue-400 rounded-lg transition-colors border border-transparent hover:border-blue-500/20"
-                            title={t("experience.edit")}
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(exp.id)}
-                            className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors border border-transparent hover:border-red-500/20"
-                            title={t("experience.delete")}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                      <div className="font-medium text-white">
+                        {exp.position}
+                      </div>
+                      {exp.positionFr && (
+                        <div className="text-xs text-slate-500 mt-0.5">
+                          {exp.positionFr}
                         </div>
+                      )}
+                    </AdminTableCell>
+                    <AdminTableCell>
+                      <div className="flex items-center gap-2 text-slate-300">
+                        <Building2 className="w-3.5 h-3.5 text-slate-500" />
+                        {exp.company}
+                      </div>
+                    </AdminTableCell>
+                    <AdminTableCell>
+                      <div className="flex items-center gap-2 text-slate-400 text-xs">
+                        <MapPin className="w-3.5 h-3.5 text-slate-600" />
+                        {exp.location}
+                      </div>
+                    </AdminTableCell>
+                    <AdminTableCell>
+                      <div className="flex items-center gap-2 text-xs font-mono text-slate-400 bg-white/[0.03] px-2 py-1 rounded w-fit">
+                        <Calendar className="w-3 h-3 text-slate-600" />
+                        {start} – {end}
+                      </div>
+                    </AdminTableCell>
+                    <AdminTableCell>
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => handleEdit(exp)}
+                          className="p-2 hover:bg-blue-500/10 text-slate-400 hover:text-blue-400 rounded-lg transition-colors border border-transparent hover:border-blue-500/20"
+                          title={t("experience.edit")}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(exp.id)}
+                          className="p-2 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-colors border border-transparent hover:border-red-500/20"
+                          title={t("experience.delete")}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </AdminTableCell>
                   </AdminTableRow>
                 );
