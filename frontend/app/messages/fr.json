@@ -85,7 +85,7 @@
   "projects": {
     "title": "Tous les projets",
     "description": "Une collection de mes travaux et projets personnels.",
-    "viewProject": "Démo en direct",
+    "viewProject": "En direct",
     "codeLabel": "Code",
     "empty": "Aucun projet pour le moment."
   },
