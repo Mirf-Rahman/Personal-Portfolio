@@ -79,7 +79,7 @@
       },
       "live": "En direct",
       "present": "Présent",
-      "viewAllProjects": "Voir tous les projets →"
+      "viewAllProjects": "Voir tous les projets"
     }
   },
   "projects": {
@@ -211,7 +211,7 @@
     "dashboard": {
       "title": "Tableau de bord",
       "welcome": "Bienvenue ! Voici un aperçu de votre portfolio.",
-      "viewAll": "Voir tout →",
+      "viewAll": "Voir tout",
       "quickActions": "Actions rapides",
       "contentManagement": "Gestion du contenu",
       "addNewProject": "Ajouter un projet",

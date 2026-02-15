@@ -79,7 +79,7 @@
       },
       "live": "Live",
       "present": "Present",
-      "viewAllProjects": "View All Projects →"
+      "viewAllProjects": "View All Projects"
     }
   },
   "projects": {
@@ -211,7 +211,7 @@
     "dashboard": {
       "title": "Dashboard",
       "welcome": "Welcome back! Here's an overview of your portfolio.",
-      "viewAll": "View all →",
+      "viewAll": "View all",
       "quickActions": "Quick Actions",
       "contentManagement": "Content Management",
       "addNewProject": "Add New Project",
