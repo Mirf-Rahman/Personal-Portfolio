@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@/lib/db";
-import { eq } from "drizzle-orm";
+import { eq, gt, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/auth";
 
 // GET /api/experiences/[id]
@@ -121,8 +121,28 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
   try {
     const { id } = await params;
-    const [deleted] = await db.delete(schema.experiences).where(eq(schema.experiences.id, id)).returning();
-    if (!deleted) return NextResponse.json({ error: "Experience not found" }, { status: 404 });
+    
+    // First get the order of the experience being deleted
+    const [expToDelete] = await db
+      .select({ order: schema.experiences.order })
+      .from(schema.experiences)
+      .where(eq(schema.experiences.id, id));
+
+    if (!expToDelete) return NextResponse.json({ error: "Experience not found" }, { status: 404 });
+
+    const deletedOrder = expToDelete.order;
+
+    // Delete the experience and reorder remaining items in a transaction
+    await db.transaction(async (tx) => {
+      // Delete the experience
+      await tx
+        .delete(schema.experiences)
+        .where(eq(schema.experiences.id, id));
+
+      // Decrement order of all items with higher order using Drizzle sql
+      await tx.execute(sql`UPDATE experiences SET "order" = "order" - 1 WHERE "order" > ${deletedOrder}`);
+    });
+
     return NextResponse.json({ message: "Experience deleted successfully" });
   } catch (error) {
     return NextResponse.json({ error: "Failed to delete experience" }, { status: 500 });
