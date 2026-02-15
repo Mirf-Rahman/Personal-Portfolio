@@ -87,12 +87,12 @@ export default function ExperienceManagementPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-scroll to edit form when editing starts
+  // Auto-scroll to edit form when editing starts or when switching between items
   useEffect(() => {
     if (isEditing) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }, [isEditing]);
+  }, [isEditing, editingExperience]);
 
   const fetchExperiences = async () => {
     try {
